@@ -255,7 +255,8 @@ export const hintRevealSchema = z.object({
 
 export type CourseImportResult =
   | { status: "cancelled" }
-  | { status: "imported"; course: ImportedCourseSummary; warnings: ValidationIssue[] };
+  | { status: "imported"; course: ImportedCourseSummary; warnings: ValidationIssue[] }
+  | { status: "failed"; error: AppErrorShape };
 
 export interface AppErrorShape {
   code: string;

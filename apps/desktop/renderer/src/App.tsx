@@ -157,6 +157,8 @@ export default function App() {
   const [importing, setImporting] = useState(false);
   const [importedCourse, setImportedCourse] = useState<ImportedCourseSummary | null>(null);
   const [importWarnings, setImportWarnings] = useState<ValidationIssue[]>([]);
+  const [importFailure, setImportFailure] = useState<AppErrorShape | null>(null);
+  const [repairCopied, setRepairCopied] = useState(false);
   const [showRuntimes, setShowRuntimes] = useState(false);
   const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
@@ -273,15 +275,30 @@ export default function App() {
     try {
       const imported = await window.learnLocal.courses.importPack();
       if (imported.status === "imported") {
+        setImportFailure(null);
         setImportedCourse(imported.course);
         setImportWarnings(imported.warnings);
         setCourses(await window.learnLocal.courses.list());
+      } else if (imported.status === "failed") {
+        setImportFailure(imported.error);
       }
     } catch (value) {
       setError(friendlyError(value));
     } finally {
       setImporting(false);
     }
+  };
+
+  const copyRepairPrompt = async () => {
+    if (!importFailure) return;
+    const issues = Array.isArray(importFailure.details?.issues) ? importFailure.details.issues as ValidationIssue[] : [];
+    const issueText = issues.length
+      ? issues.map((issue) => `- ${issue.file ?? "archive"}${issue.path ? ` ${issue.path}` : ""}: ${issue.message} (${issue.code})`).join("\n")
+      : `- ${importFailure.message} (${importFailure.code})`;
+    const prompt = `Repair my LearnPack 1.0 JSON source files using these validator findings:\n\n${issueText}\n\nReturn only the corrected files, one file per response. Start each response with SAVE AS: followed by the exact relative path, then one JSON code block containing only that file. Wait for me to say \"next file\" before returning another file. Do not create an archive; I will save and compress the JSON files into .learnpack myself. Preserve stable IDs and do not add shell commands, scripts, Docker configuration, executables, dependencies, HTML, or unsafe paths.`;
+    await navigator.clipboard.writeText(prompt);
+    setRepairCopied(true);
+    window.setTimeout(() => setRepairCopied(false), 1500);
   };
 
   const openRuntimes = async () => {
@@ -656,6 +673,20 @@ export default function App() {
             <div className="import-meta"><span>{importedCourse.language} {importedCourse.languageVersion}</span><span>{importedCourse.level}</span><span>v{importedCourse.version}</span></div>
             {importWarnings.length > 0 && <div className="import-warnings"><strong>Imported with {importWarnings.length} warning{importWarnings.length === 1 ? "" : "s"}</strong>{importWarnings.map((warning, index) => <p key={`${warning.code}-${index}`}><span>{warning.code}</span>{warning.message}</p>)}</div>}
             <button className="submit-button modal-action" onClick={() => setImportedCourse(null)}>View course</button>
+          </section>
+        </div>
+      )}
+      {importFailure && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setImportFailure(null)}>
+          <section className="import-modal import-failure" role="dialog" aria-modal="true" aria-labelledby="import-failure-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Close import error" onClick={() => setImportFailure(null)}>×</button>
+            <span className="import-failure-mark">!</span>
+            <div className="eyebrow">LEARNPACK NEEDS REPAIR</div>
+            <h2 id="import-failure-title">The course was not imported</h2>
+            <p>{importFailure.message}</p>
+            <div className="import-issues">{(Array.isArray(importFailure.details?.issues) ? importFailure.details.issues as ValidationIssue[] : []).map((issue, index) => <article key={`${issue.code}-${index}`}><strong>{issue.file ?? "Archive"}{issue.path ? ` · ${issue.path}` : ""}</strong><span>{issue.message}</span><code>{issue.code}</code></article>)}</div>
+            <div className="import-repair-note">Fix the original JSON files, rebuild the archive with manifest.json at its root, then import it again.</div>
+            <div className="import-failure-actions"><button className="run-button" onClick={() => void copyRepairPrompt()}>{repairCopied ? "Repair prompt copied" : "Copy AI repair prompt"}</button><button className="submit-button" onClick={() => setImportFailure(null)}>Close</button></div>
           </section>
         </div>
       )}

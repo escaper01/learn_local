@@ -111,8 +111,12 @@ function registerIpc(): void {
     });
     const sourcePath = selected.filePaths[0];
     if (selected.canceled || !sourcePath) return { status: "cancelled" as const };
-    const imported = await importLearnPack(sourcePath, join(app.getPath("userData"), "courses"));
-    return { status: "imported" as const, course: imported.summary, warnings: imported.warnings };
+    try {
+      const imported = await importLearnPack(sourcePath, join(app.getPath("userData"), "courses"));
+      return { status: "imported" as const, course: imported.summary, warnings: imported.warnings };
+    } catch (error) {
+      return { status: "failed" as const, error: toAppError(error) };
+    }
   });
 
   ipcMain.handle(IPC_CHANNELS.coursesList, async (event) => {

@@ -461,3 +461,15 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .onboarding-languages button, :root[data-theme="light"] .onboarding-status { color: #34433b; border-color: #d6e0da; background: #f5f8f6; }
 .runtime-remove-data { grid-column: 2 / -1; justify-self: end; padding: 3px 0; border: 0; color: #d68b83; background: transparent; font-size: 8px; text-decoration: underline; cursor: pointer; }
 :root[data-theme="light"] .runtime-remove-data { color: #a34b45; }
+.import-failure-mark { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 50%; color: #180b0c; background: #ef7e7e; font-size: 24px; font-weight: 900; }
+.import-issues { max-height: 260px; overflow: auto; margin: 18px 0; text-align: left; }
+.import-issues article { position: relative; display: grid; gap: 4px; margin-bottom: 7px; padding: 10px 90px 10px 11px; border: 1px solid #56373a; border-radius: 7px; background: #211416; }
+.import-issues strong { color: #efb6b6; font-size: 10px; }
+.import-issues span { color: #b99b9d; font-size: 10px; line-height: 1.45; }
+.import-issues code { position: absolute; top: 10px; right: 9px; color: #d87f86; font-size: 8px; }
+.import-repair-note { padding: 10px; border-radius: 7px; color: #aaa198; background: #191915; font-size: 10px; line-height: 1.5; text-align: left; }
+.import-failure-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+:root[data-theme="light"] .import-issues article { border-color: #e1c2c4; background: #fff4f4; }
+:root[data-theme="light"] .import-issues strong { color: #8b343b; }
+:root[data-theme="light"] .import-issues span { color: #74575a; }
+:root[data-theme="light"] .import-repair-note { color: #655e57; background: #f3f1ec; }
