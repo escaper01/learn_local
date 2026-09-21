@@ -40,6 +40,7 @@ MANIFEST REQUIREMENTS
 - course.language must be "${input.language}" and course.languageVersion must be "${language.version}".
 - runtime.adapter must be "${language.adapter}", runtime.adapterRange must be ">=0.1.0 <2.0.0", and runtime.runtimeVersion must be "${language.version}".
 - Reference module files under content/ and project files under projects/.
+- Each project file contains id, title, descriptionMarkdown, optional learningObjectives, and an ordered checkpointExerciseIds list. Every referenced checkpoint must be an exercise whose type is project.
 
 MODULE AND EXERCISE REQUIREMENTS
 - Every module contains stable id, title, optional description, and lessons.

@@ -200,6 +200,14 @@ export interface ImportedCourseSummary {
 
 export interface CourseView {
   summary: ImportedCourseSummary;
+  projects: Array<{
+    path: string;
+    id: string;
+    title: string;
+    descriptionMarkdown: string;
+    learningObjectives: string[];
+    checkpointExerciseIds: string[];
+  }>;
   modules: Array<{
     id: string;
     title: string;

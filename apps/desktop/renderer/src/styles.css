@@ -428,3 +428,9 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .course-card h2 { color: #233229; }
 :root[data-theme="light"] .course-card p { color: #68766e; }
 :root[data-theme="light"] .course-card div div span { color: #3e7158; background: #e5f1ea; }
+.project-milestones article { margin: 6px 0 10px; padding: 9px; border: 1px solid #2b3932; border-radius: 7px; background: #111915; }
+.project-milestones article strong, .project-milestones article small { display: block; }
+.project-milestones article small { margin-top: 3px; color: #55ce8c; font-size: 8px; }
+.project-milestones article p { margin: 6px 0 0; color: #89968f; font-size: 9px; line-height: 1.45; white-space: pre-wrap; }
+:root[data-theme="light"] .project-milestones article { border-color: #d9e2dd; background: #f4f7f5; }
+:root[data-theme="light"] .project-milestones article p { color: #65736b; }

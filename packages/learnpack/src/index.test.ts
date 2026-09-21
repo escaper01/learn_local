@@ -116,6 +116,31 @@ describe("LearnPack semantic validation", () => {
     expect(exercise.completed).toBe(true);
   });
 
+  it("validates and exposes ordered project milestones", () => {
+    const entries = validEntries();
+    const manifest = entries.get("manifest.json") as { projects: string[] };
+    const module = entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> };
+    manifest.projects = ["projects/array-tool.json"];
+    module.lessons[0]!.exercises[0]!.type = "project";
+    module.lessons[0]!.exercises[0]!.tests = [{ id: "basic", visibility: "public", input: "", expected: "3" }];
+    entries.set("projects/array-tool.json", {
+      id: "array-tool",
+      title: "Array tool",
+      descriptionMarkdown: "Build a useful array utility.",
+      learningObjectives: ["Combine loops and input"],
+      checkpointExerciseIds: ["sum-array"]
+    });
+    const view = toCourseView(validateLearnPackContent(entries));
+    expect(view.projects[0]).toMatchObject({ id: "array-tool", checkpointExerciseIds: ["sum-array"] });
+  });
+
+  it("rejects project files with missing checkpoints", () => {
+    const entries = validEntries();
+    (entries.get("manifest.json") as { projects: string[] }).projects = ["projects/missing.json"];
+    entries.set("projects/missing.json", { id: "missing-project", title: "Missing", descriptionMarkdown: "Invalid project.", checkpointExerciseIds: ["not-found"] });
+    expect(() => validateLearnPackContent(entries)).toThrowError(/semantic validation/i);
+  });
+
   it("rejects missing referenced modules", () => {
     const entries = validEntries();
     entries.delete("content/01-basics.json");

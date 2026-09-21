@@ -6,6 +6,7 @@ import yauzl, { type Entry, type ZipFile } from "yauzl";
 import { AppError, type CourseView, type ImportedCourseSummary, type ValidationIssue } from "@learnlocal/contracts";
 import manifestSchema from "../schema/manifest.schema.json";
 import moduleSchema from "../schema/module.schema.json";
+import projectSchema from "../schema/project.schema.json";
 
 const MAX_ARCHIVE_BYTES = 50 * 1024 * 1024;
 const MAX_EXPANDED_BYTES = 100 * 1024 * 1024;
@@ -63,10 +64,18 @@ export interface LearnPackModule {
   lessons: LearnPackLesson[];
 }
 
+export interface LearnPackProject {
+  id: string;
+  title: string;
+  descriptionMarkdown: string;
+  learningObjectives?: string[];
+  checkpointExerciseIds: string[];
+}
+
 export interface ValidatedLearnPack {
   manifest: LearnPackManifest;
   modules: LearnPackModule[];
-  projects: Record<string, unknown>;
+  projects: Record<string, LearnPackProject>;
   summary: ImportedCourseSummary;
   warnings: ValidationIssue[];
 }
@@ -75,6 +84,7 @@ const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
 const validateManifest = ajv.compile<LearnPackManifest>(manifestSchema);
 const validateModule = ajv.compile<LearnPackModule>(moduleSchema);
+const validateProject = ajv.compile<LearnPackProject>(projectSchema);
 
 function schemaIssues(errors: ErrorObject[] | null | undefined, file: string): ValidationIssue[] {
   return (errors ?? []).map((error) => ({
@@ -264,10 +274,25 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
       }
     }
   }
-  const projects: Record<string, unknown> = {};
+  const exerciseById = new Map(modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).map((exercise) => [exercise.id, exercise]));
+  const projects: Record<string, LearnPackProject> = {};
   for (const projectPath of manifest.projects) {
-    if (!entries.has(projectPath)) issues.push({ code: "PACK_REFERENCE_MISSING", severity: "error", file: "manifest.json", path: "/projects", message: `Referenced project does not exist: ${projectPath}` });
-    else projects[projectPath] = entries.get(projectPath);
+    const project = entries.get(projectPath);
+    if (!project) {
+      issues.push({ code: "PACK_REFERENCE_MISSING", severity: "error", file: "manifest.json", path: "/projects", message: `Referenced project does not exist: ${projectPath}` });
+      continue;
+    }
+    if (!validateProject(project)) {
+      issues.push(...schemaIssues(validateProject.errors, projectPath));
+      continue;
+    }
+    projects[projectPath] = project;
+    registerId(project.id, projectPath);
+    for (const exerciseId of project.checkpointExerciseIds) {
+      const exercise = exerciseById.get(exerciseId);
+      if (!exercise) issues.push({ code: "PACK_PROJECT_CHECKPOINT_MISSING", severity: "error", file: projectPath, path: "/checkpointExerciseIds", message: `Project '${project.id}' references missing checkpoint exercise '${exerciseId}'.` });
+      else if (exercise.type !== "project") issues.push({ code: "PACK_PROJECT_CHECKPOINT_TYPE", severity: "error", file: projectPath, path: "/checkpointExerciseIds", message: `Project checkpoint '${exerciseId}' must use exercise type 'project'.` });
+    }
   }
   if (issues.some((issue) => issue.severity === "error")) {
     throw new AppError("PACK_SEMANTIC_INVALID", "validation", "LearnPack contains semantic validation errors.", { issues });
@@ -349,6 +374,14 @@ export function toCourseView(
 ): CourseView {
   return {
     summary: pack.summary,
+    projects: Object.entries(pack.projects).map(([path, project]) => ({
+      path,
+      id: project.id,
+      title: project.title,
+      descriptionMarkdown: project.descriptionMarkdown,
+      learningObjectives: project.learningObjectives ?? [],
+      checkpointExerciseIds: project.checkpointExerciseIds
+    })),
     modules: pack.modules.map((module) => ({
       id: module.id,
       title: module.title,

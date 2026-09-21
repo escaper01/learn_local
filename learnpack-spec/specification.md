@@ -14,7 +14,7 @@ course.learnpack
 └── checksums.json  reserved for signed distribution workflows
 ```
 
-`manifest.json` must conform to `packages/learnpack/schema/manifest.schema.json`. Every module referenced by the manifest must conform to `packages/learnpack/schema/module.schema.json`.
+`manifest.json` must conform to `packages/learnpack/schema/manifest.schema.json`. Every module referenced by the manifest must conform to `packages/learnpack/schema/module.schema.json`. Every project referenced by the manifest must conform to `packages/learnpack/schema/project.schema.json`; its ordered `checkpointExerciseIds` must reference exercises of type `project` in the course modules.
 
 ## Trust model
 
