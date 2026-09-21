@@ -191,6 +191,9 @@ export class DockerProvider implements SandboxProvider {
     this.activeContainers.set(request.executionId, set);
 
     const mount = `type=bind,src=${request.workspace.directory},dst=/workspace`;
+    const hostUid = typeof process.getuid === "function" ? process.getuid() : 0;
+    const hostGid = typeof process.getgid === "function" ? process.getgid() : 0;
+    const containerUser = hostUid > 0 ? `${hostUid}:${hostGid}` : "1000:1000";
     const args = [
       "run",
       "--name",
@@ -219,7 +222,7 @@ export class DockerProvider implements SandboxProvider {
       "no-new-privileges",
       "--read-only",
       "--user",
-      "1000:1000",
+      containerUser,
       "--tmpfs",
       "/tmp:rw,noexec,nosuid,size=64m",
       "--mount",
