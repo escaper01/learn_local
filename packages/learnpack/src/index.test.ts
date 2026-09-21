@@ -128,4 +128,19 @@ describe("LearnPack semantic validation", () => {
     module.id = "java-foundations";
     expect(() => validateLearnPackContent(entries)).toThrowError(/semantic validation/i);
   });
+
+  it("rejects exercises whose declarative tests cannot be executed", () => {
+    const entries = validEntries();
+    const module = entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> };
+    module.lessons[0]!.exercises[0]!.type = "output";
+    expect(() => validateLearnPackContent(entries)).toThrowError(/semantic validation/i);
+  });
+
+  it("warns when course limits exceed the locked sandbox policy", () => {
+    const entries = validEntries();
+    const module = entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> };
+    module.lessons[0]!.exercises[0]!.limits = { timeoutMs: 10_000, memoryMb: 512, maxOutputKb: 128 };
+    const pack = validateLearnPackContent(entries);
+    expect(pack.warnings).toContainEqual(expect.objectContaining({ code: "PACK_LIMIT_CLAMPED" }));
+  });
 });

@@ -235,13 +235,31 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
       registerId(lesson.id, modulePath);
       for (const exercise of lesson.exercises) {
         registerId(exercise.id, modulePath);
+        const location = `${modulePath}#${exercise.id}`;
+        if (exercise.type === "multipleChoice") {
+          if (!exercise.choices || exercise.correctChoice === undefined || exercise.correctChoice >= exercise.choices.length) {
+            issues.push({ code: "PACK_QUIZ_INVALID", severity: "error", file: modulePath, message: `Concept check '${exercise.id}' requires choices and a valid correctChoice.` });
+          }
+        } else {
+          if (!exercise.starterFiles?.length) issues.push({ code: "PACK_STARTER_MISSING", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' requires at least one starter file.` });
+          if (!exercise.tests?.length) issues.push({ code: "PACK_TESTS_MISSING", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' requires at least one declarative test.` });
+        }
         const testIds = new Set<string>();
         for (const test of exercise.tests ?? []) {
           if (testIds.has(test.id)) issues.push({ code: "PACK_DUPLICATE_TEST_ID", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' repeats test ID '${test.id}'.` });
           testIds.add(test.id);
+          if (exercise.type === "output" || exercise.type === "project") {
+            if (typeof test.input !== "string" || typeof test.expected !== "string") issues.push({ code: "PACK_OUTPUT_TEST_INVALID", severity: "error", file: location, message: `Output test '${test.id}' requires string input and expected output.` });
+          } else if (exercise.type === "function" || exercise.type === "debug") {
+            const argument = test.arguments?.[0];
+            if (!Array.isArray(argument) || !argument.every((value) => typeof value === "number") || typeof test.expected !== "number") issues.push({ code: "PACK_FUNCTION_TYPES_UNSUPPORTED", severity: "error", file: location, message: `Function test '${test.id}' must use one numeric array/list argument and a numeric result.` });
+          }
         }
         for (const file of exercise.starterFiles ?? []) {
           if (!isSafeArchivePath(file.path)) issues.push({ code: "PACK_STARTER_PATH_INVALID", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' contains unsafe starter path '${file.path}'.` });
+        }
+        if ((exercise.limits?.timeoutMs ?? 0) > 5_000 || (exercise.limits?.memoryMb ?? 0) > 256 || (exercise.limits?.maxOutputKb ?? 0) > 64) {
+          issues.push({ code: "PACK_LIMIT_CLAMPED", severity: "warning", file: location, message: `Exercise '${exercise.id}' requests resources above the application policy; LearnLocal will apply its safer maximums.` });
         }
       }
     }

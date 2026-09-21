@@ -268,22 +268,29 @@ function registerIpc(): void {
         let exerciseId: string;
         let importedTests: Array<{ id: string; visibility: "public" | "hidden"; arguments: number[]; expected: number }> | undefined;
         let outputTests: OutputTestDefinition[] | undefined;
-        let importedExerciseType: "function" | "debug" | "output" | undefined;
+        let importedExerciseType: "function" | "debug" | "output" | "project" | undefined;
         let importedEntrypoint: FunctionEntrypoint | undefined;
+        let executionLimits: { [Key in keyof typeof EXECUTION_POLICY]: number } = EXECUTION_POLICY;
         if (request.courseId && request.courseVersion && request.exerciseId) {
           const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.courseVersion);
           if (pack.manifest.course.language !== request.language) throw new AppError("PACK_LANGUAGE_MISMATCH", "validation", "The requested exercise does not match the selected language.");
           const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
           if (!exercise) throw new AppError("EXERCISE_NOT_FOUND", "validation", "The requested exercise is unavailable.");
-          if (exercise.type !== "function" && exercise.type !== "debug" && exercise.type !== "output") throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This exercise type does not use the code runner.");
+          if (exercise.type !== "function" && exercise.type !== "debug" && exercise.type !== "output" && exercise.type !== "project") throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This exercise type does not use the code runner.");
           importedExerciseType = exercise.type;
+          executionLimits = {
+            ...EXECUTION_POLICY,
+            timeoutMs: Math.min(exercise.limits?.timeoutMs ?? EXECUTION_POLICY.timeoutMs, EXECUTION_POLICY.timeoutMs),
+            memoryMb: Math.min(exercise.limits?.memoryMb ?? EXECUTION_POLICY.memoryMb, EXECUTION_POLICY.memoryMb),
+            maxOutputKb: Math.min(exercise.limits?.maxOutputKb ?? EXECUTION_POLICY.maxOutputKb, EXECUTION_POLICY.maxOutputKb)
+          };
           if (exercise.type === "function" || exercise.type === "debug") {
             const fallback = request.language === "java" ? { className: "Solution", name: "sum" } : { name: "sum_values" };
             const className = exercise.entrypoint?.className ?? fallback.className;
             importedEntrypoint = { ...(className ? { className } : {}), name: exercise.entrypoint?.name ?? fallback.name };
           }
           const selectedTests = (exercise.tests ?? []).filter((test) => request.action === "submit" || test.visibility === "public");
-          if (exercise.type === "output") {
+          if (exercise.type === "output" || exercise.type === "project") {
             outputTests = selectedTests.map((test) => {
               if (typeof test.input !== "string" || typeof test.expected !== "string") throw new AppError("EXERCISE_TYPES_UNSUPPORTED", "validation", "Output tests require text input and expected output.");
               return { id: test.id, visibility: test.visibility, input: test.input, expected: test.expected, comparison: (test.comparison ?? "exact") as OutputTestDefinition["comparison"] };
@@ -302,10 +309,10 @@ function registerIpc(): void {
           exerciseId = request.language === "java" ? SUM_EXERCISE.id : PYTHON_SUM_EXERCISE.id;
         }
         if (request.language === "java") {
-          if (importedExerciseType === "output" && outputTests) {
+          if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
             const workspace = await java21Adapter.buildOutputWorkspace(request.sourceCode, outputTests);
             workspaceDirectory = workspace.directory;
-            const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
+            const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits });
             result = java21Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
           } else {
           const tests = importedTests ?? (request.action === "submit"
@@ -313,14 +320,14 @@ function registerIpc(): void {
             : SUM_EXERCISE.publicTests);
           const workspace = await java21Adapter.buildWorkspace(request.sourceCode, tests, importedEntrypoint);
           workspaceDirectory = workspace.directory;
-          const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
+          const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits });
           result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
           }
         } else {
-          if (importedExerciseType === "output" && outputTests) {
+          if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
             const workspace = await python3Adapter.buildOutputWorkspace(request.sourceCode, outputTests);
             workspaceDirectory = workspace.directory;
-            const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
+            const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits });
             result = python3Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
           } else {
           const tests = importedTests ?? (request.action === "submit"
@@ -328,7 +335,7 @@ function registerIpc(): void {
             : PYTHON_SUM_EXERCISE.publicTests);
           const workspace = await python3Adapter.buildWorkspace(request.sourceCode, tests, importedEntrypoint);
           workspaceDirectory = workspace.directory;
-          const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
+          const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits });
           result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);
           }
         }
