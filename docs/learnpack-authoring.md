@@ -1,14 +1,14 @@
 # LearnPack authoring
 
-LearnLocal's prompt generator is designed for AI assistants that can produce individual JSON files but cannot create a complete archive. The AI generates one file per response. You save each file at the exact relative path it announces, then package the files yourself.
+LearnLocal's prompt generator asks an AI assistant to produce every required JSON file in one response. You save `manifest.json` first, let LearnLocal create its referenced file paths, paste the remaining JSON blocks into those files, and package them yourself.
 
 ## Generate the JSON files
 
 1. Open **Generate prompt** in LearnLocal, choose the course details, and copy the generated prompt.
-2. Paste it into your AI assistant. Its first response should announce `manifest.json` and contain only that file's JSON in one code block.
+2. Paste it into your AI assistant. Its response should begin with `manifest.json`, then contain every referenced module and project as a separate labeled JSON block.
 3. Save the JSON as `manifest.json` in a new empty course folder. Do not copy the `SAVE AS:` line or Markdown code fences into the file.
-4. Reply `next file` and save every later response at the exact path announced by the AI, such as `content/module-01.json` or `projects/final-project.json`.
-5. Continue until the AI says generation is complete. Check that every path referenced by `manifest.json` exists and that no extra files are present.
+4. In LearnLocal's prompt generator, select **Create files from manifest** and choose the saved manifest. During development the file picker opens in `learnpack-spec/examples`; otherwise it opens in Documents. LearnLocal creates every referenced path and preserves any file that already exists.
+5. Paste each remaining JSON block into the matching file, such as `content/module-01.json` or `projects/final-project.json`. Check that every manifest reference is filled before packaging.
 
 Your folder should resemble:
 
@@ -32,7 +32,7 @@ PowerShell can do the same from inside the course folder:
 
 ```powershell
 Compress-Archive -Path manifest.json,content,projects -DestinationPath ..\my-course.zip
-Rename-Item ..\my-course.zip my-course.learnpack
+Move-Item ..\my-course.zip ..\my-course.learnpack
 ```
 
 On macOS or Linux, run this from inside the course folder:

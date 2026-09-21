@@ -11,7 +11,7 @@ LearnLocal is an offline-first desktop learning environment for portable program
 - Public tests for Run, hidden tests for Submit, custom trusted entrypoints, cancellation, bounded resources, and normalized diagnostics.
 - LearnPack archive/schema/semantic/project validation, repair prompts, immutable course versions, safe Markdown, progressive hints, and persisted course progress.
 - Local SQLite attempts, multi-file workspaces, scoped settings, versioned migrations, recovery backups, activity, streaks, and confidence scores.
-- First-run onboarding, file-at-a-time course prompting, local prompt templates/history, diagnostics export, desktop packaging, and cross-platform GitHub CI.
+- First-run onboarding, complete-course prompting with manifest scaffolding, local prompt templates/history, diagnostics export, desktop packaging, and cross-platform GitHub CI.
 
 ## Prerequisites
 
@@ -53,4 +53,4 @@ Installer output is written to `release/`. The manual packaging workflow builds 
 
 The repository also includes a canonical importable course at `learnpack-spec/examples/java-foundations.learnpack`.
 
-To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). The AI produces one JSON file at a time; you save those files and package them into the `.learnpack` archive yourself.
+To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). The AI produces all separately labeled JSON files in one response; save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block, and package the files into the `.learnpack` archive yourself.

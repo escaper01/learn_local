@@ -73,7 +73,8 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .coding-pane { min-width: 0; min-height: 0; display: grid; grid-template-rows: 43px minmax(225px, 1fr) 58px minmax(210px, .72fr); background: #0d1218; }
 .editor-toolbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242d37; background: #11171e; }
 .file-tabs { align-self: stretch; display: flex; min-width: 0; overflow-x: auto; }
-.file-tab { align-self: stretch; display: flex; align-items: center; gap: 8px; min-width: 155px; padding: 0 15px; border: 0; border-right: 1px solid #242d37; border-top: 2px solid transparent; color: #8996a2; background: transparent; font-size: 11px; cursor: pointer; }
+.file-tab { appearance: none; align-self: stretch; display: flex; align-items: center; gap: 8px; min-width: 155px; padding: 0 15px; border: 0; border-right: 1px solid #242d37; border-top: 2px solid transparent; color: #8996a2; background: #10161d; font: 11px/1 inherit; white-space: nowrap; cursor: pointer; }
+.file-tab:hover { color: #b8c2cb; background: #141c24; }
 .file-tab.active { color: #d3d9df; border-top-color: #54d28e; background: #151c24; }
 .file-tab i { color: #55d28d; font-size: 8px; }
 .java-icon { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 4px; color: #f3b66c; background: #35271c; font-weight: 800; font-size: 9px; }
@@ -316,7 +317,9 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .coding-pane { background: #f4f6f5; }
 :root[data-theme="light"] .editor-toolbar,
 :root[data-theme="light"] .action-bar { background: #f8faf9; border-color: #d8e0dc; }
-:root[data-theme="light"] .file-tab { color: #34423b; border-right-color: #d8e0dc; border-top-color: #26975d; }
+:root[data-theme="light"] .file-tab { color: #68766e; border-right-color: #d8e0dc; border-top-color: transparent; background: #eef2f0; }
+:root[data-theme="light"] .file-tab:hover { color: #33433a; background: #e5ece8; }
+:root[data-theme="light"] .file-tab.active { color: #1f3027; border-top-color: #26975d; background: #ffffff; }
 :root[data-theme="light"] .java-icon { color: #9b590c; background: #f9ead4; }
 :root[data-theme="light"] .java-icon.python { color: #246b9e; background: #dcecf7; }
 :root[data-theme="light"] .language-switch { background: #edf2ef; border-color: #d4ded8; }

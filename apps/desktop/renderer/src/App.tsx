@@ -354,7 +354,7 @@ export default function App() {
     const issueText = issues.length
       ? issues.map((issue) => `- ${issue.file ?? "archive"}${issue.path ? ` ${issue.path}` : ""}: ${issue.message} (${issue.code})`).join("\n")
       : `- ${importFailure.message} (${importFailure.code})`;
-    const prompt = `Repair my LearnPack 1.0 JSON source files using these validator findings:\n\n${issueText}\n\nReturn only the corrected files, one file per response. Start each response with SAVE AS: followed by the exact relative path, then one JSON code block containing only that file. Wait for me to say \"next file\" before returning another file. Do not create an archive; I will save and compress the JSON files into .learnpack myself. Preserve stable IDs and do not add shell commands, scripts, Docker configuration, executables, dependencies, HTML, or unsafe paths.`;
+    const prompt = `Repair my LearnPack 1.0 JSON source files using these validator findings:\n\n${issueText}\n\nReturn every corrected file in one response. For each file, write SAVE AS: followed by its exact forward-slash relative path, then one JSON code block containing only that file. Do not create an archive; I will save and compress the JSON files into .learnpack myself. Preserve stable IDs and do not add shell commands, scripts, Docker configuration, executables, dependencies, HTML, or unsafe paths.`;
     await navigator.clipboard.writeText(prompt);
     setRepairCopied(true);
     window.setTimeout(() => setRepairCopied(false), 1500);
@@ -876,10 +876,13 @@ export default function App() {
                 <label>Language<select value={promptForm.language} onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value as "java" | "python" })}><option value="java">Java 21</option><option value="python">Python 3.13</option></select></label>
                 <label>Experience<select value={promptForm.experience} onChange={(event) => setPromptForm({ ...promptForm, experience: event.target.value as CoursePromptRequest["experience"] })}><option value="new">Completely new</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
                 <label className="wide">Learning goal<textarea value={promptForm.goal} onChange={(event) => setPromptForm({ ...promptForm, goal: event.target.value })} /></label>
-                <label className="wide">Topics to emphasize<input value={promptForm.topics} onChange={(event) => setPromptForm({ ...promptForm, topics: event.target.value })} /></label>
+                <label className="wide">Required topics<textarea placeholder="One topic per line, or a detailed comma-separated list" value={promptForm.topics} onChange={(event) => setPromptForm({ ...promptForm, topics: event.target.value })} /></label>
+                <label className="wide">Topics to exclude<textarea placeholder="Optional topics the course must skip" value={promptForm.skipTopics} onChange={(event) => setPromptForm({ ...promptForm, skipTopics: event.target.value })} /></label>
                 <label>Minutes per day<input type="number" min="10" max="240" value={promptForm.dailyMinutes} onChange={(event) => setPromptForm({ ...promptForm, dailyMinutes: Number(event.target.value) })} /></label>
                 <label>Duration in weeks<input type="number" min="1" max="52" value={promptForm.durationWeeks} onChange={(event) => setPromptForm({ ...promptForm, durationWeeks: Number(event.target.value) })} /></label>
+                <label>Teaching style<select value={promptForm.teachingStyle} onChange={(event) => setPromptForm({ ...promptForm, teachingStyle: event.target.value as CoursePromptRequest["teachingStyle"] })}><option value="supportive">Supportive</option><option value="concise">Concise</option><option value="socratic">Socratic</option><option value="project-based">Project-based</option></select></label>
                 <label className="wide">Project theme<input value={promptForm.projectTheme} onChange={(event) => setPromptForm({ ...promptForm, projectTheme: event.target.value })} /></label>
+                <label className="wide">Additional course instructions<textarea placeholder="Accessibility, explanation depth, pacing, or other requirements" value={promptForm.customInstructions} onChange={(event) => setPromptForm({ ...promptForm, customInstructions: event.target.value })} /></label>
                 <button className="submit-button prompt-generate" onClick={() => void generatePrompt()}>Generate LearnPack prompt</button>
               </div>
               <div className="prompt-preview">

@@ -21,18 +21,27 @@ LEARNER PROFILE
 ${input.customInstructions ? `- Additional instructions: ${input.customInstructions}` : ""}
 
 DELIVERABLE
-Create a LearnPack 1.0 course as separate JSON files. The learner will save the files and compress them into the final .learnpack archive; do not create or simulate an archive.
+Create a complete LearnPack 1.0 course as separate JSON files in one response. The learner will save manifest.json first, use LearnLocal to create the paths referenced by it, paste each JSON block into the matching file, and compress those files into the final .learnpack archive. Do not create or simulate an archive.
 
-FILE-BY-FILE RESPONSE PROTOCOL
-- Produce exactly one file per response, beginning with manifest.json.
-- Start with a single line in the form: SAVE AS: manifest.json
-- Then provide exactly one JSON code block containing only that file's valid JSON.
-- Never combine multiple files into one response or embed one file as a JSON string inside another.
-- After each file, stop and wait for the learner to say "next file".
-- On later responses, use the exact safe relative path declared by manifest.json, for example SAVE AS: content/module-01.json.
-- After the final file, say that generation is complete and list all paths once so the learner can verify the folder before packaging.
+COMPLETE RESPONSE PROTOCOL
+- Produce every required file in this single response, beginning with manifest.json.
+- For each file, write one line in the form SAVE AS: manifest.json or SAVE AS: content/module-01.json, followed by exactly one JSON code block containing only that file's valid JSON.
+- Use only forward slashes in paths, even if the learner uses Windows.
+- Never combine files into one JSON object or embed one file as a JSON string inside another.
+- Every module and project referenced by manifest.json must appear later in the same response.
+- Finish with a short checklist of the exact paths generated.
+- Never output partial or truncated JSON. If response capacity is tight, combine related lessons into fewer modules while preserving every required topic and all course components.
 
 Keep the course achievable within the schedule and move through concept, worked example, tiny exercise, function exercise, debugging task, concept check, checkpoint, reflection, and milestone project.
+
+DEPTH AND TOPIC COVERAGE
+- Treat every item under "Topics to emphasize" as required, not optional. Give each required topic at least one clearly titled lesson, or explicitly name all combined topics in a lesson title and teach each one substantially.
+- Each lesson's theoryMarkdown must include a clear explanation, at least one worked code example, common mistakes, and a concise recap. Do not shorten files to an arbitrary line count.
+- Each lesson must contain at least three meaningful exercises: a concept check, a hands-on code exercise, and either a debugging task or a progressively harder challenge.
+- Across the course include all supported exercise types: output, function, debug, multipleChoice, and project.
+- Each code exercise should normally include at least two public tests, two hidden edge-case tests, and two to four progressive hints.
+- Include cumulative challenges after major topic groups, project checkpoints throughout the course, and at least one final multi-file milestone project integrating the required topics.
+- Before responding, build an internal coverage table mapping every required topic to its lesson, exercises, challenge, and project usage. Do not output the internal table, but do not omit any mapped item.
 
 MANIFEST REQUIREMENTS
 - format must be "learnpack" and schemaVersion must be "1.0.0".
@@ -69,6 +78,7 @@ QUALITY CHECK BEFORE RESPONDING
 5. The final milestone integrates the course goals without requiring network access.
 6. All JSON is syntactically valid and contains no comments or trailing commas.
 7. The final file list exactly matches the files referenced by manifest.json, with manifest.json at the archive root.
+8. Every required topic is taught, practiced, assessed, and used again in a challenge or project.
 
-Begin now with only manifest.json and then wait for "next file".`;
+Begin now and generate manifest.json followed by every referenced JSON file in this one response.`;
 }
