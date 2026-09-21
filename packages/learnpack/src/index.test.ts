@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { join, resolve } from "node:path";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { importLearnPack, inspectLearnPack, loadImportedCourse, normalizeArchivePath, toCourseView, validateLearnPackContent } from "./index";
+import { importLearnPack, inspectLearnPack, loadImportedCourse, normalizeArchivePath, scaffoldLearnPackFromManifest, toCourseView, validateLearnPackContent } from "./index";
 
 function validEntries(): Map<string, unknown> {
   return new Map([
@@ -69,6 +69,25 @@ describe("LearnPack semantic validation", () => {
       expect(replaced).toBeGreaterThanOrEqual(2);
       await writeFile(archive, bytes);
       await expect(inspectLearnPack(archive)).resolves.toMatchObject({ summary: { id: "java-foundations" } });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("creates referenced files from a valid manifest without overwriting existing work", async () => {
+    const directory = await mkdtemp(resolve(tmpdir(), "learnlocal-scaffold-"));
+    const manifestPath = join(directory, "manifest.json");
+    const manifest = validEntries().get("manifest.json") as Record<string, unknown>;
+    manifest.projects = ["projects/final-project.json"];
+    try {
+      await writeFile(manifestPath, JSON.stringify(manifest));
+      const first = await scaffoldLearnPackFromManifest(manifestPath);
+      expect(first).toMatchObject({ courseId: "java-foundations", created: 2, existing: 0 });
+      expect(await readFile(join(directory, "content", "01-basics.json"), "utf8")).toBe("{}\n");
+      await writeFile(join(directory, "content", "01-basics.json"), "{\"saved\":true}\n");
+      const second = await scaffoldLearnPackFromManifest(manifestPath);
+      expect(second).toMatchObject({ created: 0, existing: 2 });
+      expect(await readFile(join(directory, "content", "01-basics.json"), "utf8")).toBe("{\"saved\":true}\n");
     } finally {
       await rm(directory, { recursive: true, force: true });
     }

@@ -24,7 +24,7 @@ import {
   type ExecutionFinishedEvent
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
-import { importLearnPack, listImportedCourses, loadImportedCourse, toCourseView } from "@learnlocal/learnpack";
+import { importLearnPack, listImportedCourses, loadImportedCourse, scaffoldLearnPackFromManifest, toCourseView } from "@learnlocal/learnpack";
 import { EXECUTION_POLICY, type FunctionEntrypoint, type FunctionValue, type OutputTestDefinition } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
@@ -228,6 +228,21 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.promptsGenerate, (event, input: unknown) => {
     assertTrustedSender(event);
     return { prompt: buildCoursePrompt(coursePromptRequestSchema.parse(input)) };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.promptsScaffold, async (event) => {
+    assertTrustedSender(event);
+    const selected = await dialog.showOpenDialog({
+      title: "Select your LearnPack manifest.json",
+      defaultPath: app.isPackaged ? app.getPath("documents") : join(process.cwd(), "learnpack-spec", "examples"),
+      properties: ["openFile"],
+      filters: [{ name: "LearnPack manifest", extensions: ["json"] }]
+    });
+    const path = selected.filePaths[0];
+    if (selected.canceled || !path) return { status: "cancelled" as const, created: 0, existing: 0 };
+    const result = await scaffoldLearnPackFromManifest(path);
+    await shell.openPath(result.root);
+    return { status: "created" as const, courseId: result.courseId, created: result.created, existing: result.existing };
   });
 
   ipcMain.handle(IPC_CHANNELS.progressSummary, (event) => {

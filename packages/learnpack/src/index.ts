@@ -1,5 +1,5 @@
 import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import yauzl, { type Entry, type ZipFile } from "yauzl";
@@ -80,6 +80,13 @@ export interface ValidatedLearnPack {
   warnings: ValidationIssue[];
 }
 
+export interface LearnPackScaffoldResult {
+  courseId: string;
+  root: string;
+  created: number;
+  existing: number;
+}
+
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
 const validateManifest = ajv.compile<LearnPackManifest>(manifestSchema);
@@ -118,6 +125,42 @@ function extension(path: string): string {
 
 export function normalizeArchivePath(path: string): string {
   return path.replaceAll("\\", "/");
+}
+
+export async function scaffoldLearnPackFromManifest(manifestPath: string): Promise<LearnPackScaffoldResult> {
+  let value: unknown;
+  try {
+    value = JSON.parse(await readFile(manifestPath, "utf8")) as unknown;
+  } catch (error) {
+    throw new AppError("PACK_INVALID_JSON", "validation", "The selected manifest is not valid JSON.", {
+      diagnostics: error instanceof Error ? error.message : String(error)
+    });
+  }
+  if (!validateManifest(value)) {
+    throw new AppError("PACK_SCHEMA_INVALID", "validation", "manifest.json does not match LearnPack 1.0.", {
+      issues: schemaIssues(validateManifest.errors, "manifest.json")
+    });
+  }
+
+  const root = dirname(resolve(manifestPath));
+  const references = [...value.modules, ...value.projects];
+  let created = 0;
+  let existing = 0;
+  for (const reference of references) {
+    if (!isSafeArchivePath(reference)) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe manifest path: ${reference}`);
+    const target = resolve(root, ...reference.split("/"));
+    const targetRelative = relative(root, target);
+    if (!targetRelative || targetRelative.startsWith("..")) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe manifest path: ${reference}`);
+    await mkdir(dirname(target), { recursive: true });
+    try {
+      await writeFile(target, "{}\n", { encoding: "utf8", flag: "wx" });
+      created += 1;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      existing += 1;
+    }
+  }
+  return { courseId: value.id, root, created, existing };
 }
 
 function assertEntryAllowed(entry: Entry, normalizedPath: string, seen: Set<string>, state: { count: number; expanded: number }): void {

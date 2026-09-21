@@ -28,7 +28,8 @@ const api: LearnLocalApi = {
     importProfile: () => ipcRenderer.invoke(IPC_CHANNELS.settingsImport)
   },
   prompts: {
-    generate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsGenerate, input)
+    generate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsGenerate, input),
+    scaffold: () => ipcRenderer.invoke(IPC_CHANNELS.promptsScaffold)
   },
   progress: {
     summary: () => ipcRenderer.invoke(IPC_CHANNELS.progressSummary),

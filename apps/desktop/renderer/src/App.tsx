@@ -218,6 +218,7 @@ export default function App() {
   const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
+  const [scaffoldMessage, setScaffoldMessage] = useState("");
   const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>(() => loadLocalList("learnlocal.promptTemplates"));
   const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>(() => loadLocalList("learnlocal.promptHistory"));
   const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
@@ -594,6 +595,14 @@ export default function App() {
     setCopied(true);
   };
 
+  const scaffoldFromManifest = async () => {
+    setScaffoldMessage("");
+    try {
+      const result = await window.learnLocal.prompts.scaffold();
+      if (result.status === "created") setScaffoldMessage(`${result.created} file${result.created === 1 ? "" : "s"} created, ${result.existing} preserved for ${result.courseId}.`);
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
   const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
   const activeStarter = activeImportedExercise?.starterFiles.find((file) => file.path === activeFilePath) ?? activeImportedExercise?.starterFiles[0];
@@ -859,7 +868,7 @@ export default function App() {
             <button className="modal-close" aria-label="Close prompt generator" onClick={() => setShowPrompt(false)}>×</button>
             <div className="eyebrow">PROVIDER-INDEPENDENT</div>
             <h2 id="prompt-title">Course Prompt Generator</h2>
-            <p>Describe your goal, then paste the prompt into any AI assistant. It will generate one JSON file at a time; you package the completed files into a .learnpack.</p>
+            <p>Describe your goal, then paste the prompt into any AI assistant. Save its manifest first, let LearnLocal create the referenced files, and paste each JSON block into its matching file.</p>
             <div className="prompt-layout">
               <div className="prompt-form">
                 <div className="prompt-template-bar"><select aria-label="Load prompt template" defaultValue="" onChange={(event) => { const template = promptTemplates.find((candidate) => candidate.id === event.target.value); if (template) setPromptForm(template.form); event.target.value = ""; }}><option value="">Load template…</option>{promptTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button type="button" onClick={savePromptTemplate}>Save current</button></div>
@@ -875,9 +884,10 @@ export default function App() {
               </div>
               <div className="prompt-preview">
                 {generatedPrompt ? <textarea readOnly value={generatedPrompt} aria-label="Generated course prompt" /> : <div><span>✦</span><strong>Your prompt will appear here</strong><p>It will include the LearnPack schema contract and locked security rules.</p></div>}
-                {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save each response at its requested path, place manifest.json at the folder root, ZIP the folder contents, then rename the archive extension to .learnpack.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
+                {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save manifest.json, create its referenced files, paste each JSON block, then ZIP the folder contents and rename it .learnpack.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
               </div>
             </div>
+            <div className="manifest-scaffold"><div><strong>Have a manifest.json?</strong><span>Create every referenced content and project file beside it. Existing files are never overwritten.</span>{scaffoldMessage && <small>{scaffoldMessage}</small>}</div><button className="run-button" type="button" onClick={() => void scaffoldFromManifest()}>Create files from manifest</button></div>
             {promptHistory.length > 0 && <details className="prompt-history"><summary>Local prompt history ({promptHistory.length})</summary><div>{promptHistory.map((item, index) => <article key={item.id}><span>{new Date(item.createdAt).toLocaleString()}</span><small>{item.prompt.length.toLocaleString()} characters</small><button type="button" onClick={() => setGeneratedPrompt(item.prompt)}>Restore</button>{index === 0 || !generatedPrompt || item.prompt === generatedPrompt ? null : <details><summary>Compare with current</summary><div className="prompt-compare"><pre>{item.prompt}</pre><pre>{generatedPrompt}</pre></div></details>}</article>)}</div></details>}
           </section>
         </div>

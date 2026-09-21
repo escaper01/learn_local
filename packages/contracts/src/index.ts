@@ -288,6 +288,7 @@ export interface LearnLocalApi {
   };
   prompts: {
     generate(input: CoursePromptRequest): Promise<{ prompt: string }>;
+    scaffold(): Promise<{ status: "created" | "cancelled"; courseId?: string; created: number; existing: number }>;
   };
   progress: {
     summary(): Promise<LearningSummary>;
@@ -339,6 +340,7 @@ export const IPC_CHANNELS = {
   settingsExport: "settings:export",
   settingsImport: "settings:import",
   promptsGenerate: "prompts:generate",
+  promptsScaffold: "prompts:scaffold",
   progressSummary: "progress:summary",
   progressSubmitQuiz: "progress:submit-quiz",
   progressRevealHint: "progress:reveal-hint",
