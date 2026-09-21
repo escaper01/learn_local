@@ -30,6 +30,18 @@ const SOLUTION_CODE = `public class Solution {
   }
 }`;
 
+const PYTHON_STARTER_CODE = `def sum_values(values):
+    # Add every value and return the total.
+    return 0
+`;
+
+const PYTHON_SOLUTION_CODE = `def sum_values(values):
+    total = 0
+    for value in values:
+        total += value
+    return total
+`;
+
 function friendlyError(error: unknown): AppErrorShape {
   if (typeof error === "object" && error && "message" in error) {
     return { code: "REQUEST_FAILED", category: "system", message: String(error.message) };
@@ -121,6 +133,7 @@ function ResultPanel({ result, error }: { result: ExecutionResult | null; error:
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
+  const [language, setLanguage] = useState<"java" | "python">("java");
   const [source, setSource] = useState(STARTER_CODE);
   const [provider, setProvider] = useState<ProviderStatus>();
   const [courses, setCourses] = useState<ImportedCourseSummary[]>([]);
@@ -163,7 +176,7 @@ export default function App() {
     setError(null);
     setActiveAction(action);
     try {
-      const { executionId } = await window.learnLocal.execution.start({ action, sourceCode: source });
+      const { executionId } = await window.learnLocal.execution.start({ action, language, sourceCode: source });
       activeRef.current = executionId;
       setActiveExecution(executionId);
     } catch (value) {
@@ -214,6 +227,14 @@ export default function App() {
     }
   };
 
+  const switchLanguage = (next: "java" | "python") => {
+    if (next === language || activeAction) return;
+    setLanguage(next);
+    setSource(next === "java" ? STARTER_CODE : PYTHON_STARTER_CODE);
+    setResult(null);
+    setError(null);
+  };
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -234,7 +255,7 @@ export default function App() {
 
       <section className="workspace">
         <header className="topbar">
-          <div className="crumbs"><span>Java Foundations</span><b>/</b><span>Arrays & loops</span><b>/</b><strong>Sum an Array</strong></div>
+          <div className="crumbs"><span>{language === "java" ? "Java" : "Python"} Foundations</span><b>/</b><span>{language === "java" ? "Arrays" : "Lists"} & loops</span><b>/</b><strong>Sum {language === "java" ? "an Array" : "a List"}</strong></div>
           <div className="topbar-actions">
             <button
               className="theme-toggle"
@@ -252,35 +273,39 @@ export default function App() {
 
         <div className="lesson-grid">
           <article className="lesson-pane">
-            <div className="eyebrow">FUNCTION EXERCISE · JAVA 21</div>
-            <h1>Sum an Array</h1>
-            <p className="lede">Practice traversing an array and carrying a result through each iteration.</p>
+            <div className="eyebrow">FUNCTION EXERCISE · {language === "java" ? "JAVA 21" : "PYTHON 3.13"}</div>
+            <h1>Sum {language === "java" ? "an Array" : "a List"}</h1>
+            <p className="lede">Practice traversing {language === "java" ? "an array" : "a list"} and carrying a result through each iteration.</p>
             <div className="concept-card">
               <span className="concept-icon">∑</span>
               <div><strong>The accumulator pattern</strong><p>Start with a neutral value, update it once per element, then return the final result.</p></div>
             </div>
             <h2>Your task</h2>
-            <p>Complete <code>sum</code> so it returns the total of every number in <code>values</code>.</p>
+            <p>Complete <code>{language === "java" ? "sum" : "sum_values"}</code> so it returns the total of every number in <code>values</code>.</p>
             <ul>
               <li>An empty array should return <code>0</code>.</li>
               <li>Values may be positive, negative, or zero.</li>
               <li>Do not change the class or method signature.</li>
             </ul>
-            <div className="example-block"><span>Example</span><code>sum(new int[] &#123;1, 2, 3&#125;) → 6</code></div>
+            <div className="example-block"><span>Example</span><code>{language === "java" ? "sum(new int[] {1, 2, 3}) → 6" : "sum_values([1, 2, 3]) → 6"}</code></div>
             <details className="hint"><summary>Hint 1 of 3</summary><p>Create an integer named <code>total</code> before the loop.</p></details>
           </article>
 
           <section className="coding-pane">
             <div className="editor-toolbar">
-              <div className="file-tab"><span className="java-icon">J</span>Solution.java <i>●</i></div>
+              <div className="file-tab"><span className={`java-icon ${language}`}>{language === "java" ? "J" : "Py"}</span>{language === "java" ? "Solution.java" : "solution.py"} <i>●</i></div>
               <div className="toolbar-actions">
-                <button className="ghost-button" onClick={() => setSource(STARTER_CODE)} disabled={Boolean(activeAction)}>Reset</button>
-                <button className="ghost-button" onClick={() => setSource(SOLUTION_CODE)} disabled={Boolean(activeAction)}>Show solution</button>
+                <div className="language-switch" aria-label="Exercise language">
+                  <button className={language === "java" ? "active" : ""} onClick={() => switchLanguage("java")}>Java</button>
+                  <button className={language === "python" ? "active" : ""} onClick={() => switchLanguage("python")}>Python</button>
+                </div>
+                <button className="ghost-button" onClick={() => setSource(language === "java" ? STARTER_CODE : PYTHON_STARTER_CODE)} disabled={Boolean(activeAction)}>Reset</button>
+                <button className="ghost-button" onClick={() => setSource(language === "java" ? SOLUTION_CODE : PYTHON_SOLUTION_CODE)} disabled={Boolean(activeAction)}>Show solution</button>
               </div>
             </div>
             <div className="editor-wrap">
               <Editor
-                language="java"
+                language={language}
                 theme={theme === "dark" ? "vs-dark" : "light"}
                 value={source}
                 onChange={(value) => setSource(value ?? "")}
@@ -313,7 +338,7 @@ export default function App() {
 
             <section className="results-pane">
               <div className="results-header"><strong>Test results</strong><span>{activeAction ? `${activeAction === "run" ? "Running public tests" : "Checking all tests"}…` : result ? result.status : "No run yet"}</span></div>
-              {activeAction ? <div className="running-state"><span className="spinner"/><strong>Preparing an isolated Java workspace…</strong><p>The first run can take longer while Docker downloads Java 21.</p></div> : <ResultPanel result={result} error={error} />}
+              {activeAction ? <div className="running-state"><span className="spinner"/><strong>Preparing an isolated {language === "java" ? "Java" : "Python"} workspace…</strong><p>The first run can take longer while Docker downloads the pinned runtime.</p></div> : <ResultPanel result={result} error={error} />}
             </section>
           </section>
         </div>

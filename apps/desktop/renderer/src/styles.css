@@ -66,7 +66,11 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .file-tab { align-self: stretch; display: flex; align-items: center; gap: 8px; min-width: 155px; padding: 0 15px; border-right: 1px solid #242d37; border-top: 2px solid #54d28e; color: #d3d9df; font-size: 11px; }
 .file-tab i { color: #55d28d; font-size: 8px; }
 .java-icon { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 4px; color: #f3b66c; background: #35271c; font-weight: 800; font-size: 9px; }
+.java-icon.python { width: 20px; color: #7fc1ec; background: #18344a; font-size: 8px; }
 .toolbar-actions { display: flex; gap: 2px; padding-right: 9px; }
+.language-switch { display: flex; padding: 2px; margin-right: 5px; border: 1px solid #28333d; border-radius: 6px; background: #0d1319; }
+.language-switch button { padding: 3px 7px; border: 0; border-radius: 4px; color: #687581; background: transparent; font-size: 9px; cursor: pointer; }
+.language-switch button.active { color: #c6f1d9; background: #214130; }
 .ghost-button { padding: 6px 9px; border: 0; border-radius: 5px; color: #74808c; background: transparent; font-size: 10px; cursor: pointer; }
 .ghost-button:hover { color: #bbc4cc; background: #1a222b; }
 .ghost-button:disabled { opacity: .4; }
@@ -201,6 +205,10 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .action-bar { background: #f8faf9; border-color: #d8e0dc; }
 :root[data-theme="light"] .file-tab { color: #34423b; border-right-color: #d8e0dc; border-top-color: #26975d; }
 :root[data-theme="light"] .java-icon { color: #9b590c; background: #f9ead4; }
+:root[data-theme="light"] .java-icon.python { color: #246b9e; background: #dcecf7; }
+:root[data-theme="light"] .language-switch { background: #edf2ef; border-color: #d4ded8; }
+:root[data-theme="light"] .language-switch button { color: #718078; }
+:root[data-theme="light"] .language-switch button.active { color: #116b40; background: #d5ebdf; }
 :root[data-theme="light"] .ghost-button { color: #68756e; }
 :root[data-theme="light"] .ghost-button:hover { color: #26352d; background: #e8eeeb; }
 :root[data-theme="light"] .save-state { color: #738078; }

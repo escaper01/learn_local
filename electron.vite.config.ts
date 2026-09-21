@@ -8,6 +8,7 @@ const workspacePackages = [
   "@learnlocal/learnpack",
   "@learnlocal/runner-core",
   "@learnlocal/runner-java",
+  "@learnlocal/runner-python",
   "@learnlocal/sandbox-docker"
 ];
 

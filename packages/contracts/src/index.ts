@@ -6,6 +6,7 @@ export type ExecutionAction = z.infer<typeof executionActionSchema>;
 export const runRequestSchema = z
   .object({
     action: executionActionSchema,
+    language: z.enum(["java", "python"]),
     sourceCode: z.string().min(1).max(100_000)
   })
   .strict();
@@ -45,8 +46,8 @@ export interface TestResult {
 export interface ExecutionResult {
   executionId: string;
   status: "finished" | "compile-error" | "runtime-error" | "timed-out" | "cancelled";
-  language: "java";
-  runtimeVersion: "21";
+  language: "java" | "python";
+  runtimeVersion: string;
   compile: CompileResult;
   tests: TestResult[];
   console: string;

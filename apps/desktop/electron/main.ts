@@ -15,6 +15,7 @@ import { AttemptRepository } from "@learnlocal/database";
 import { importLearnPack, listImportedCourses } from "@learnlocal/learnpack";
 import { EXECUTION_POLICY } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
+import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
 import { DockerProvider } from "@learnlocal/sandbox-docker";
 
 const docker = new DockerProvider();
@@ -117,21 +118,29 @@ function registerIpc(): void {
     void (async () => {
       let workspaceDirectory: string | undefined;
       try {
-        const tests = request.action === "submit"
-          ? [...SUM_EXERCISE.publicTests, ...SUM_EXERCISE.hiddenTests]
-          : SUM_EXERCISE.publicTests;
         const startedAt = Date.now();
-        const workspace = await java21Adapter.buildWorkspace(request.sourceCode, tests);
-        workspaceDirectory = workspace.directory;
-        const raw = await docker.execute({
-          executionId,
-          runtimeId: "java-21",
-          imageReference: java21Adapter.imageReference,
-          workspace,
-          limits: EXECUTION_POLICY
-        });
-        const result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
-        attempts?.record(SUM_EXERCISE.id, request.action, result);
+        let result;
+        let exerciseId: string;
+        if (request.language === "java") {
+          const tests = request.action === "submit"
+            ? [...SUM_EXERCISE.publicTests, ...SUM_EXERCISE.hiddenTests]
+            : SUM_EXERCISE.publicTests;
+          const workspace = await java21Adapter.buildWorkspace(request.sourceCode, tests);
+          workspaceDirectory = workspace.directory;
+          const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
+          result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
+          exerciseId = SUM_EXERCISE.id;
+        } else {
+          const tests = request.action === "submit"
+            ? [...PYTHON_SUM_EXERCISE.publicTests, ...PYTHON_SUM_EXERCISE.hiddenTests]
+            : PYTHON_SUM_EXERCISE.publicTests;
+          const workspace = await python3Adapter.buildWorkspace(request.sourceCode, tests);
+          workspaceDirectory = workspace.directory;
+          const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
+          result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);
+          exerciseId = PYTHON_SUM_EXERCISE.id;
+        }
+        attempts?.record(exerciseId, request.action, result);
         if (!sender.isDestroyed()) {
           sender.send(IPC_CHANNELS.executionFinished, { executionId, result } satisfies ExecutionFinishedEvent);
         }

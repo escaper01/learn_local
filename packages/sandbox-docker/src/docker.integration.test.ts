@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { EXECUTION_POLICY } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
+import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
 import { DockerProvider } from "./index";
 
 const dockerTest = process.env.RUN_DOCKER_TESTS === "1" ? describe : describe.skip;
@@ -53,4 +54,24 @@ dockerTest("Docker Java execution", () => {
     const removed = await provider.removeManagedRuntime("python-3");
     expect(removed.status).toBe("not-installed");
   }, 360_000);
+
+  it("executes Python public and hidden tests with normalized results", async () => {
+    const provider = new DockerProvider();
+    const tests = [...PYTHON_SUM_EXERCISE.publicTests, ...PYTHON_SUM_EXERCISE.hiddenTests];
+    const workspace = await python3Adapter.buildWorkspace(
+      "def sum_values(values):\n    total = 0\n    for value in values:\n        total += value\n    return total\n",
+      tests
+    );
+    const executionId = `exec_${randomUUID()}`;
+    const startedAt = Date.now();
+    try {
+      const raw = await provider.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
+      const result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);
+      expect(result).toMatchObject({ status: "finished", language: "python", runtimeVersion: "3.13" });
+      expect(result.tests.every((test) => test.passed)).toBe(true);
+    } finally {
+      await rm(workspace.directory, { recursive: true, force: true });
+      await provider.cleanupOwnedResources();
+    }
+  }, 180_000);
 });

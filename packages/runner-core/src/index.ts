@@ -41,9 +41,9 @@ export interface RawSandboxResult {
 
 export interface SandboxExecutionRequest {
   executionId: string;
-  runtimeId: "java-21";
+  runtimeId: "java-21" | "python-3";
   imageReference: string;
-  workspace: PreparedJavaWorkspace;
+  workspace: Pick<PreparedJavaWorkspace, "directory" | "compileCommand" | "runCommand">;
   limits: {
     timeoutMs: number;
     memoryMb: number;
