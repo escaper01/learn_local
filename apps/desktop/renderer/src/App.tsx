@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, ExecutionResult, ImportedCourseSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue } from "@learnlocal/contracts";
 
 loader.config({ monaco });
 
@@ -145,6 +145,7 @@ function ResultPanel({ result, error }: { result: ExecutionResult | null; error:
 }
 
 export default function App() {
+  const [view, setView] = useState<"lesson" | "dashboard" | "courses">("lesson");
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [language, setLanguage] = useState<"java" | "python">("java");
   const [source, setSource] = useState(STARTER_CODE);
@@ -161,11 +162,13 @@ export default function App() {
   const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
+  const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [] });
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [error, setError] = useState<AppErrorShape | null>(null);
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
   const [activeAction, setActiveAction] = useState<"run" | "submit" | null>(null);
   const activeRef = useRef<string | null>(null);
+  const hydratedLanguage = useRef<"java" | "python" | null>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -176,11 +179,13 @@ export default function App() {
   useEffect(() => {
     void window.learnLocal.environment.status().then(setProvider).catch((value) => setError(friendlyError(value)));
     void window.learnLocal.courses.list().then(setCourses).catch((value) => setError(friendlyError(value)));
+    void window.learnLocal.progress.summary().then(setLearningSummary).catch((value) => setError(friendlyError(value)));
     return window.learnLocal.execution.onFinished((event) => {
       if (event.executionId !== activeRef.current) return;
       if ("result" in event) {
         setResult(event.result);
         setError(null);
+        void window.learnLocal.progress.summary().then(setLearningSummary);
       } else {
         setError(event.error);
       }
@@ -189,6 +194,20 @@ export default function App() {
       setActiveAction(null);
     });
   }, []);
+
+  useEffect(() => {
+    hydratedLanguage.current = null;
+    void window.learnLocal.workspace.read(language).then(({ content }) => {
+      setSource(content ?? (language === "java" ? STARTER_CODE : PYTHON_STARTER_CODE));
+      hydratedLanguage.current = language;
+    });
+  }, [language]);
+
+  useEffect(() => {
+    if (hydratedLanguage.current !== language) return;
+    const timeout = window.setTimeout(() => void window.learnLocal.workspace.write(language, source), 600);
+    return () => window.clearTimeout(timeout);
+  }, [language, source]);
 
   const execute = async (action: "run" | "submit") => {
     setResult(null);
@@ -249,7 +268,6 @@ export default function App() {
   const switchLanguage = (next: "java" | "python") => {
     if (next === language || activeAction) return;
     setLanguage(next);
-    setSource(next === "java" ? STARTER_CODE : PYTHON_STARTER_CODE);
     setResult(null);
     setError(null);
   };
@@ -308,8 +326,8 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand"><span className="brand-mark">L</span><span>LearnLocal</span></div>
         <nav>
-          <button className="nav-item"><span>⌂</span>Dashboard</button>
-          <button className="nav-item active"><span>◫</span>My courses{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
+          <button className={`nav-item ${view === "dashboard" ? "active" : ""}`} onClick={() => setView("dashboard")}><span>⌂</span>Dashboard</button>
+          <button className={`nav-item ${view === "courses" ? "active" : ""}`} onClick={() => setView("courses")}><span>◫</span>My courses{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
           <button className="nav-item" onClick={() => void openRuntimes()}><span>⌘</span>Languages</button>
           <button className="nav-item" onClick={() => void openPromptGenerator()}><span>✦</span>Generate prompt</button>
           <button className="nav-item" onClick={() => void importCourse()} disabled={importing}><span>↗</span>{importing ? "Validating…" : "Import course"}</button>
@@ -413,6 +431,36 @@ export default function App() {
           </section>
         </div>
       </section>
+
+      {view === "dashboard" && (
+        <section className="content-view dashboard-view">
+          <header><div><div className="eyebrow">LOCAL LEARNING OVERVIEW</div><h1>Welcome back</h1><p>Your practice data stays on this device.</p></div><button className="submit-button" onClick={() => setView("lesson")}>Continue learning</button></header>
+          <div className="metric-grid">
+            <article><span>Attempts</span><strong>{learningSummary.totalAttempts}</strong><small>All local runs and submissions</small></article>
+            <article><span>Completed</span><strong>{learningSummary.completedExercises}</strong><small>Exercises passed on Submit</small></article>
+            <article><span>Passed</span><strong>{learningSummary.passedSubmissions}</strong><small>Successful submissions</small></article>
+            <article><span>Current streak</span><strong>{learningSummary.currentStreakDays}<i> days</i></strong><small>Consecutive practice days</small></article>
+          </div>
+          <div className="dashboard-grid">
+            <article className="activity-card"><div><strong>Practice activity</strong><span>Last 28 days</span></div><div className="activity-bars">{Array.from({ length: 28 }, (_, index) => {
+              const date = new Date(); date.setUTCDate(date.getUTCDate() - (27 - index)); const key = date.toISOString().slice(0, 10);
+              const attempts = learningSummary.activity.find((day) => day.date === key)?.attempts ?? 0;
+              return <i key={key} className={attempts > 0 ? "active" : ""} style={{ opacity: attempts > 0 ? Math.min(.35 + attempts * .18, 1) : 1 }} title={`${key}: ${attempts} attempts`} />;
+            })}</div></article>
+            <article className="recent-card"><div><strong>Recent attempts</strong><span>{learningSummary.recentAttempts.length}</span></div>{learningSummary.recentAttempts.length ? learningSummary.recentAttempts.map((attempt) => <div className="recent-row" key={`${attempt.createdAt}-${attempt.exerciseId}`}><span className={attempt.passed ? "pass" : "neutral"}>{attempt.passed ? "✓" : "•"}</span><p><strong>{attempt.exerciseId.replaceAll("-", " ")}</strong><small>{attempt.action} · {new Date(attempt.createdAt).toLocaleString()}</small></p></div>) : <p className="dashboard-empty">Run your first exercise to start building activity.</p>}</article>
+          </div>
+        </section>
+      )}
+      {view === "courses" && (
+        <section className="content-view courses-view">
+          <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Built-in and imported courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import LearnPack</button></header>
+          <div className="course-grid">
+            <article className="course-card"><span className="course-language java">J</span><div><small>BUILT IN · JAVA 21</small><h2>Java Foundations</h2><p>Arrays, loops, functions, debugging, and tests.</p><div><span>Interactive exercise</span><span>Local runtime</span></div></div><button className="submit-button" onClick={() => { switchLanguage("java"); setView("lesson"); }}>Continue</button></article>
+            <article className="course-card"><span className="course-language python">Py</span><div><small>BUILT IN · PYTHON 3.13</small><h2>Python Foundations</h2><p>Lists, loops, functions, tracebacks, and tests.</p><div><span>Interactive exercise</span><span>Local runtime</span></div></div><button className="submit-button" onClick={() => { switchLanguage("python"); setView("lesson"); }}>Continue</button></article>
+            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{course.language === "java" ? "J" : "Py"}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} modules</span><span>{course.exerciseCount} exercises</span><span>{course.estimatedHours} hours</span></div></div><button className="run-button" onClick={() => { switchLanguage(course.language); setView("lesson"); }}>Open</button></article>)}
+          </div>
+        </section>
+      )}
 
       {importedCourse && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setImportedCourse(null)}>

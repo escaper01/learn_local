@@ -188,11 +188,49 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .prompt-preview > div p { font-size: 9px; }
 .prompt-preview textarea { width: 100%; height: 100%; min-height: 430px; padding: 15px 15px 52px; border: 0; outline: 0; color: #aebbb4; background: transparent; font: 9px/1.55 "Cascadia Code", Consolas, monospace; resize: none; }
 .prompt-preview > button { position: absolute; right: 12px; bottom: 11px; }
+.content-view { position: fixed; z-index: 20; inset: 0 0 0 224px; overflow: auto; padding: 44px clamp(32px, 5vw, 72px); background: #0e141a; }
+.content-view > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 26px; border-bottom: 1px solid #242e37; }
+.content-view > header h1 { margin: 7px 0 4px; }
+.content-view > header p { margin: 0; color: #7e8a95; font-size: 12px; }
+.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; margin: 24px 0 12px; }
+.metric-grid article { display: grid; gap: 5px; padding: 17px; border: 1px solid #27313a; border-radius: 10px; background: #121920; }
+.metric-grid span { color: #78848f; font-size: 9px; text-transform: uppercase; letter-spacing: .6px; }
+.metric-grid strong { color: #e0e7ed; font-size: 27px; }
+.metric-grid strong i { color: #728078; font-size: 11px; font-style: normal; font-weight: 500; }
+.metric-grid small { color: #596570; font-size: 9px; }
+.dashboard-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; }
+.activity-card, .recent-card { padding: 18px; border: 1px solid #27313a; border-radius: 10px; background: #121920; }
+.activity-card > div:first-child, .recent-card > div:first-child { display: flex; justify-content: space-between; color: #aeb8c1; font-size: 11px; }
+.activity-card > div span, .recent-card > div span { color: #65717c; font-size: 9px; }
+.activity-bars { display: grid; grid-template-columns: repeat(14, 1fr); gap: 6px; margin-top: 24px; }
+.activity-bars i { aspect-ratio: 1; border-radius: 3px; background: #202a32; }
+.activity-bars i.active { background: #43c77d; }
+.recent-card { display: grid; align-content: start; gap: 7px; }
+.recent-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-top: 1px solid #242e37; }
+.recent-row > span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #738078; background: #222c34; font-size: 10px; }
+.recent-row > span.pass { color: #5dd493; background: #193728; }
+.recent-row p { display: grid; gap: 2px; margin: 0; }
+.recent-row p strong { color: #aeb8c1; font-size: 9px; text-transform: capitalize; }
+.recent-row p small { color: #64707b; font-size: 8px; }
+.dashboard-empty { color: #697681; font-size: 10px; }
+.course-grid { display: grid; grid-template-columns: repeat(2, minmax(300px, 1fr)); gap: 13px; padding-top: 24px; }
+.course-card { display: grid; grid-template-columns: 48px 1fr auto; align-items: start; gap: 15px; padding: 18px; border: 1px solid #29343d; border-radius: 11px; background: #121920; }
+.course-card.imported { border-color: #294638; }
+.course-language { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 10px; font-weight: 850; }
+.course-language.java { color: #f0ae62; background: #37271a; }
+.course-language.python { color: #75b9e9; background: #183249; }
+.course-card small { color: #627079; font-size: 8px; letter-spacing: .6px; }
+.course-card h2 { margin: 5px 0; font-size: 15px; }
+.course-card p { min-height: 32px; margin: 0 0 10px; color: #7c8993; font-size: 10px; line-height: 1.5; }
+.course-card div div { display: flex; flex-wrap: wrap; gap: 5px; }
+.course-card div div span { padding: 3px 6px; border-radius: 4px; color: #668174; background: #17271f; font-size: 8px; }
+.course-card > button { align-self: center; }
 
 @media (max-width: 1150px) {
   .sidebar { width: 190px; flex-basis: 190px; }
   .lesson-grid { grid-template-columns: 36% 64%; }
   .lesson-pane { padding-left: 25px; padding-right: 25px; }
+  .content-view { left: 190px; }
 }
 
 /* Light theme. The default dark palette remains the no-script fallback. */
@@ -324,3 +362,23 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .prompt-preview > div { color: #718078; }
 :root[data-theme="light"] .prompt-preview > div strong { color: #415047; }
 :root[data-theme="light"] .prompt-preview textarea { color: #34433b; }
+:root[data-theme="light"] .content-view { background: #f4f7f6; }
+:root[data-theme="light"] .content-view > header { border-bottom-color: #d9e2dd; }
+:root[data-theme="light"] .content-view > header p { color: #69776f; }
+:root[data-theme="light"] .metric-grid article,
+:root[data-theme="light"] .activity-card,
+:root[data-theme="light"] .recent-card,
+:root[data-theme="light"] .course-card { background: #ffffff; border-color: #d9e2dd; }
+:root[data-theme="light"] .metric-grid span { color: #6e7c74; }
+:root[data-theme="light"] .metric-grid strong { color: #223129; }
+:root[data-theme="light"] .metric-grid small { color: #7c8982; }
+:root[data-theme="light"] .activity-card > div:first-child,
+:root[data-theme="light"] .recent-card > div:first-child { color: #435149; }
+:root[data-theme="light"] .activity-bars i { background: #e1e8e4; }
+:root[data-theme="light"] .activity-bars i.active { background: #2dab68; }
+:root[data-theme="light"] .recent-row { border-top-color: #dce4e0; }
+:root[data-theme="light"] .recent-row p strong { color: #435149; }
+:root[data-theme="light"] .course-card.imported { border-color: #bfdecd; }
+:root[data-theme="light"] .course-card h2 { color: #233229; }
+:root[data-theme="light"] .course-card p { color: #68766e; }
+:root[data-theme="light"] .course-card div div span { color: #3e7158; background: #e5f1ea; }

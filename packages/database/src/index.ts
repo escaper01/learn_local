@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { ExecutionAction, ExecutionResult, SettingScope, SettingValue } from "@learnlocal/contracts";
+import type { ExecutionAction, ExecutionResult, LearningSummary, SettingScope, SettingValue } from "@learnlocal/contracts";
 
 export interface StoredSettingRow {
   key: string;
@@ -21,6 +21,7 @@ export class AttemptRepository {
   }
 
   record(exerciseId: string, action: ExecutionAction, result: ExecutionResult): void {
+    const passed = action === "submit" && result.tests.length > 0 && result.tests.every((test) => test.passed);
     this.database.exec("BEGIN IMMEDIATE");
     try {
       this.database
@@ -35,7 +36,7 @@ export class AttemptRepository {
           exerciseId,
           action,
           result.status,
-          Number(result.tests.length > 0 && result.tests.every((test) => test.passed)),
+          Number(passed),
           Number(result.compile.success),
           result.resources.wallTimeMs,
           new Date().toISOString()
@@ -55,6 +56,13 @@ export class AttemptRepository {
           test.durationMs,
           test.feedbackCode ?? null
         );
+      }
+      if (passed) {
+        this.database.prepare(`
+          INSERT INTO exercise_progress (exercise_id, completed_at, last_attempt_id)
+          VALUES (?, ?, ?)
+          ON CONFLICT (exercise_id) DO UPDATE SET completed_at = COALESCE(exercise_progress.completed_at, excluded.completed_at), last_attempt_id = excluded.last_attempt_id
+        `).run(exerciseId, new Date().toISOString(), result.executionId);
       }
       this.database.exec("COMMIT");
     } catch (error) {
@@ -103,6 +111,62 @@ export class AttemptRepository {
     }
   }
 
+  readWorkspace(language: "java" | "python"): string | null {
+    const row = this.database.prepare("SELECT content FROM workspace_files WHERE workspace_id = ? AND path = ?").get(`builtin-${language}`, language === "java" ? "Solution.java" : "solution.py") as { content?: unknown } | undefined;
+    return typeof row?.content === "string" ? row.content : null;
+  }
+
+  writeWorkspace(language: "java" | "python", content: string): void {
+    const path = language === "java" ? "Solution.java" : "solution.py";
+    this.database.prepare(`
+      INSERT INTO workspace_files (workspace_id, path, content, updated_at)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT (workspace_id, path) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at
+    `).run(`builtin-${language}`, path, content, new Date().toISOString());
+  }
+
+  learningSummary(): LearningSummary {
+    const totals = this.database.prepare(`
+      SELECT COUNT(*) AS total_attempts,
+             SUM(CASE WHEN action = 'submit' AND passed = 1 THEN 1 ELSE 0 END) AS passed_submissions
+      FROM exercise_attempts
+    `).get() as Record<string, number | null>;
+    const completed = this.database.prepare("SELECT COUNT(*) AS count FROM exercise_progress WHERE completed_at IS NOT NULL").get() as { count: number };
+    const recentRows = this.database.prepare(`
+      SELECT exercise_id, action, status, passed, created_at
+      FROM exercise_attempts ORDER BY created_at DESC LIMIT 8
+    `).all() as Array<Record<string, unknown>>;
+    const activityRows = this.database.prepare(`
+      SELECT substr(created_at, 1, 10) AS date, COUNT(*) AS attempts
+      FROM exercise_attempts
+      WHERE created_at >= datetime('now', '-27 days')
+      GROUP BY substr(created_at, 1, 10) ORDER BY date
+    `).all() as Array<{ date: string; attempts: number }>;
+    const activeDates = new Set(activityRows.map((row) => row.date));
+    let streak = 0;
+    const cursor = new Date();
+    const today = cursor.toISOString().slice(0, 10);
+    if (!activeDates.has(today)) cursor.setUTCDate(cursor.getUTCDate() - 1);
+    while (activeDates.has(cursor.toISOString().slice(0, 10))) {
+      streak += 1;
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+    }
+    return {
+      totalAttempts: Number(totals.total_attempts ?? 0),
+      completedExercises: Number(completed.count ?? 0),
+      passedSubmissions: Number(totals.passed_submissions ?? 0),
+      currentStreakDays: streak,
+      recentAttempts: recentRows.map((row) => ({
+        exerciseId: String(row.exercise_id),
+        action: String(row.action) as ExecutionAction,
+        status: String(row.status),
+        passed: Number(row.passed) === 1,
+        createdAt: String(row.created_at)
+      })),
+      activity: activityRows.map((row) => ({ date: row.date, attempts: Number(row.attempts) }))
+    };
+  }
+
   private migrate(): void {
     this.database.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -138,6 +202,20 @@ export class AttemptRepository {
         value_json TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         PRIMARY KEY (key, scope, scope_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS exercise_progress (
+        exercise_id TEXT PRIMARY KEY,
+        completed_at TEXT,
+        last_attempt_id TEXT NOT NULL REFERENCES exercise_attempts(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS workspace_files (
+        workspace_id TEXT NOT NULL,
+        path TEXT NOT NULL,
+        content TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY (workspace_id, path)
       );
 
       INSERT OR IGNORE INTO schema_migrations (version, applied_at)

@@ -131,6 +131,27 @@ export const coursePromptRequestSchema = z.object({
 }).strict();
 export type CoursePromptRequest = z.infer<typeof coursePromptRequestSchema>;
 
+export interface LearningSummary {
+  totalAttempts: number;
+  completedExercises: number;
+  passedSubmissions: number;
+  currentStreakDays: number;
+  recentAttempts: Array<{
+    exerciseId: string;
+    action: ExecutionAction;
+    status: string;
+    passed: boolean;
+    createdAt: string;
+  }>;
+  activity: Array<{ date: string; attempts: number }>;
+}
+
+export const workspaceReadSchema = z.object({ language: z.enum(["java", "python"]) }).strict();
+export const workspaceWriteSchema = z.object({
+  language: z.enum(["java", "python"]),
+  content: z.string().max(500_000)
+}).strict();
+
 export interface ValidationIssue {
   code: string;
   severity: "error" | "warning";
@@ -185,6 +206,13 @@ export interface LearnLocalApi {
   prompts: {
     generate(input: CoursePromptRequest): Promise<{ prompt: string }>;
   };
+  progress: {
+    summary(): Promise<LearningSummary>;
+  };
+  workspace: {
+    read(language: "java" | "python"): Promise<{ content: string | null }>;
+    write(language: "java" | "python", content: string): Promise<void>;
+  };
   environment: {
     status(): Promise<ProviderStatus>;
   };
@@ -211,6 +239,9 @@ export const IPC_CHANNELS = {
   settingsExport: "settings:export",
   settingsImport: "settings:import",
   promptsGenerate: "prompts:generate",
+  progressSummary: "progress:summary",
+  workspaceRead: "workspace:read",
+  workspaceWrite: "workspace:write",
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",

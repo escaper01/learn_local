@@ -26,6 +26,13 @@ const api: LearnLocalApi = {
   prompts: {
     generate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsGenerate, input)
   },
+  progress: {
+    summary: () => ipcRenderer.invoke(IPC_CHANNELS.progressSummary)
+  },
+  workspace: {
+    read: (language) => ipcRenderer.invoke(IPC_CHANNELS.workspaceRead, { language }),
+    write: (language, content) => ipcRenderer.invoke(IPC_CHANNELS.workspaceWrite, { language, content })
+  },
   environment: {
     status: () => ipcRenderer.invoke(IPC_CHANNELS.environmentStatus)
   },

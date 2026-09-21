@@ -12,6 +12,8 @@ import {
   settingMutationSchema,
   settingResetSchema,
   settingsContextSchema,
+  workspaceReadSchema,
+  workspaceWriteSchema,
   toAppError,
   type ExecutionFinishedEvent
 } from "@learnlocal/contracts";
@@ -166,6 +168,23 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.promptsGenerate, (event, input: unknown) => {
     assertTrustedSender(event);
     return { prompt: buildCoursePrompt(coursePromptRequestSchema.parse(input)) };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.progressSummary, (event) => {
+    assertTrustedSender(event);
+    return attempts?.learningSummary() ?? { totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [] };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.workspaceRead, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { language } = workspaceReadSchema.parse(input);
+    return { content: attempts?.readWorkspace(language) ?? null };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.workspaceWrite, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { language, content } = workspaceWriteSchema.parse(input);
+    attempts?.writeWorkspace(language, content);
   });
 
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {
