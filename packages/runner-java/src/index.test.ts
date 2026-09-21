@@ -22,4 +22,18 @@ describe("Java adapter", () => {
       await rm(workspace.directory, { recursive: true, force: true });
     }
   });
+
+  it("creates a trusted output harness without a shell command", async () => {
+    const workspace = await java21Adapter.buildOutputWorkspace(
+      "public class Main { public static void main(String[] args) { System.out.println(42); } }",
+      [{ id: "answer", visibility: "public", input: "", expected: "42", comparison: "trimmed" }]
+    );
+    try {
+      expect(workspace.compileCommand).toContain("LearnLocalOutputHarness.java");
+      expect(workspace.runCommand[0]).toBe("java");
+      expect(workspace.runCommand.join(" ")).not.toContain("sh -c");
+    } finally {
+      await rm(workspace.directory, { recursive: true, force: true });
+    }
+  });
 });

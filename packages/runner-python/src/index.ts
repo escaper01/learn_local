@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { CompileDiagnostic, ExecutionResult, TestResult } from "@learnlocal/contracts";
-import type { RawProcessResult, RawSandboxResult } from "@learnlocal/runner-core";
+import type { OutputTestDefinition, PreparedOutputWorkspace, RawProcessResult, RawSandboxResult } from "@learnlocal/runner-core";
 
 const RESULT_PREFIX = "__LEARNLOCAL_RESULT__";
 
@@ -61,6 +61,44 @@ for test in TESTS:
 `;
 }
 
+function outputHarness(tests: readonly OutputTestDefinition[]): string {
+  return `import json
+import subprocess
+import sys
+import time
+
+PREFIX = ${JSON.stringify(RESULT_PREFIX)}
+TESTS = ${JSON.stringify(tests)}
+
+def normalize(value, mode):
+    if mode == "trimmed": return value.strip()
+    if mode == "lines": return value.strip().splitlines()
+    if mode == "numeric":
+        try: return float(value.strip())
+        except ValueError: return None
+    return value
+
+for test in TESTS:
+    started = time.perf_counter_ns()
+    completed = subprocess.run([sys.executable, "-I", "solution.py"], input=test["input"], text=True, capture_output=True)
+    actual = completed.stdout + completed.stderr
+    passed = completed.returncode == 0 and normalize(actual, test["comparison"]) == normalize(test["expected"], test["comparison"])
+    print(PREFIX + json.dumps({"id": test["id"], "visibility": test["visibility"], "passed": passed, "durationMs": (time.perf_counter_ns() - started) // 1_000_000, "expected": test["expected"], "actual": actual}, separators=(",", ":")))
+`;
+}
+
+function parseTaggedResults(stdout: string): { parsed: Map<string, Record<string, unknown>>; consoleLines: string[] } {
+  const parsed = new Map<string, Record<string, unknown>>();
+  const consoleLines: string[] = [];
+  for (const line of stdout.split(/\r?\n/)) {
+    if (line.startsWith(RESULT_PREFIX)) {
+      try { const value = JSON.parse(line.slice(RESULT_PREFIX.length)) as Record<string, unknown>; if (typeof value.id === "string") parsed.set(value.id, value); }
+      catch { consoleLines.push(line); }
+    } else if (line) consoleLines.push(line);
+  }
+  return { parsed, consoleLines };
+}
+
 function diagnostics(stderr: string): CompileDiagnostic[] {
   const match = /File "[^"]*[/\\]?(?<file>[^/\\"]+)", line (?<line>\d+)/.exec(stderr);
   if (!stderr.trim()) return [];
@@ -96,6 +134,15 @@ export const python3Adapter = {
       runCommand: ["python", "-I", "_learnlocal_harness.py"],
       tests
     };
+  },
+
+  async buildOutputWorkspace(sourceCode: string, tests: readonly OutputTestDefinition[]): Promise<PreparedOutputWorkspace> {
+    const directory = await mkdtemp(join(tmpdir(), "learnlocal-python-output-"));
+    await Promise.all([
+      writeFile(join(directory, "solution.py"), sourceCode, "utf8"),
+      writeFile(join(directory, "_learnlocal_output.py"), outputHarness(tests), "utf8")
+    ]);
+    return { directory, compileCommand: ["python", "-I", "-m", "py_compile", "solution.py", "_learnlocal_output.py"], runCommand: ["python", "-I", "_learnlocal_output.py"], tests };
   },
 
   parseExecution(executionId: string, raw: RawSandboxResult, tests: readonly PythonTestDefinition[], startedAt: number): ExecutionResult {
@@ -146,6 +193,22 @@ export const python3Adapter = {
       tests: results,
       console: [...consoleLines, run.stderr].filter(Boolean).join("\n")
     };
+  },
+
+  parseOutputExecution(executionId: string, raw: RawSandboxResult, tests: readonly OutputTestDefinition[], startedAt: number): ExecutionResult {
+    const resources = { wallTimeMs: Date.now() - startedAt, timedOut: raw.compile.timedOut || Boolean(raw.run?.timedOut), outputTruncated: raw.compile.outputTruncated || Boolean(raw.run?.outputTruncated) };
+    if (raw.compile.exitCode !== 0 || raw.compile.timedOut || raw.compile.cancelled) {
+      return { executionId, language: "python", runtimeVersion: "3.13", status: raw.compile.timedOut || raw.compile.cancelled ? abnormalStatus(raw.compile) : "compile-error", compile: { attempted: true, success: false, durationMs: raw.compile.durationMs, diagnostics: diagnostics(raw.compile.stderr) }, tests: [], console: raw.compile.stderr, resources };
+    }
+    const run = raw.run;
+    if (!run) throw new Error("The sandbox did not return a Python run result.");
+    const { parsed, consoleLines } = parseTaggedResults(run.stdout);
+    const results: TestResult[] = tests.map((test) => {
+      const value = parsed.get(test.id);
+      const common = { id: test.id, visibility: test.visibility, passed: value?.passed === true, durationMs: typeof value?.durationMs === "number" ? value.durationMs : 0 };
+      return test.visibility === "hidden" ? (common.passed ? common : { ...common, feedbackCode: "WRONG_RESULT" as const }) : { ...common, expected: test.expected, actual: value?.actual, ...(!common.passed ? { feedbackCode: "WRONG_RESULT" as const } : {}) };
+    });
+    return { executionId, language: "python", runtimeVersion: "3.13", status: run.exitCode !== 0 || run.timedOut || run.cancelled ? abnormalStatus(run) : "finished", compile: { attempted: true, success: true, durationMs: raw.compile.durationMs, diagnostics: [] }, tests: results, console: [...consoleLines, run.stderr].filter(Boolean).join("\n"), resources };
   }
 };
 

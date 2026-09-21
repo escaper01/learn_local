@@ -17,6 +17,21 @@ export interface JavaTestDefinition {
   expected: number;
 }
 
+export interface OutputTestDefinition {
+  id: string;
+  visibility: "public" | "hidden";
+  input: string;
+  expected: string;
+  comparison: "exact" | "trimmed" | "lines" | "numeric";
+}
+
+export interface PreparedOutputWorkspace {
+  directory: string;
+  compileCommand: readonly string[];
+  runCommand: readonly string[];
+  tests: readonly OutputTestDefinition[];
+}
+
 export interface PreparedJavaWorkspace {
   directory: string;
   compileCommand: readonly string[];
@@ -67,10 +82,17 @@ export interface JavaAdapter {
   readonly languageVersions: readonly ["21"];
   readonly imageReference: string;
   buildWorkspace(sourceCode: string, tests: readonly JavaTestDefinition[]): Promise<PreparedJavaWorkspace>;
+  buildOutputWorkspace(sourceCode: string, tests: readonly OutputTestDefinition[]): Promise<PreparedOutputWorkspace>;
   parseExecution(
     executionId: string,
     raw: RawSandboxResult,
     tests: readonly JavaTestDefinition[],
+    startedAt: number
+  ): ExecutionResult;
+  parseOutputExecution(
+    executionId: string,
+    raw: RawSandboxResult,
+    tests: readonly OutputTestDefinition[],
     startedAt: number
   ): ExecutionResult;
 }

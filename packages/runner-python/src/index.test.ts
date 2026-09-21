@@ -13,4 +13,17 @@ describe("Python adapter", () => {
       await rm(workspace.directory, { recursive: true, force: true });
     }
   });
+
+  it("creates an isolated output exercise harness", async () => {
+    const workspace = await python3Adapter.buildOutputWorkspace(
+      "print(42)\n",
+      [{ id: "answer", visibility: "public", input: "", expected: "42", comparison: "trimmed" }]
+    );
+    try {
+      expect(workspace.compileCommand).toContain("_learnlocal_output.py");
+      expect(workspace.runCommand).toEqual(["python", "-I", "_learnlocal_output.py"]);
+    } finally {
+      await rm(workspace.directory, { recursive: true, force: true });
+    }
+  });
 });

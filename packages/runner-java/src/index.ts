@@ -6,6 +6,8 @@ import { AppError } from "@learnlocal/contracts";
 import type {
   JavaAdapter,
   JavaTestDefinition,
+  OutputTestDefinition,
+  PreparedOutputWorkspace,
   PreparedJavaWorkspace,
   RawProcessResult,
   RawSandboxResult
@@ -53,6 +55,54 @@ function createHarness(tests: readonly JavaTestDefinition[]): string {
   }
 }
 `;
+}
+
+function javaString(value: string): string {
+  return JSON.stringify(value).replaceAll("\\n", "\\n").replaceAll("\\r", "\\r");
+}
+
+function createOutputHarness(tests: readonly OutputTestDefinition[], className: string): string {
+  const invocations = tests.map((test) => `runTest(${javaString(test.id)}, ${javaString(test.visibility)}, ${javaString(test.input)}, ${javaString(test.expected)}, ${javaString(test.comparison)});`).join("\n    ");
+  return `import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+public final class LearnLocalOutputHarness {
+  private static final String PREFIX = "${RESULT_PREFIX}";
+  public static void main(String[] args) throws Exception { ${invocations} }
+  private static void runTest(String id, String visibility, String input, String expected, String comparison) throws Exception {
+    long started = System.nanoTime();
+    Process process = new ProcessBuilder("java", "${className}").redirectErrorStream(true).start();
+    process.getOutputStream().write(input.getBytes(StandardCharsets.UTF_8));
+    process.getOutputStream().close();
+    String actual = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    int exit = process.waitFor();
+    boolean passed = exit == 0 && compare(actual, expected, comparison);
+    long durationMs = (System.nanoTime() - started) / 1_000_000;
+    System.out.println(PREFIX + "{\\\"id\\\":\\\"" + escape(id) + "\\\",\\\"visibility\\\":\\\"" + visibility
+      + "\\\",\\\"passed\\\":" + passed + ",\\\"durationMs\\\":" + durationMs + ",\\\"expected\\\":\\\""
+      + escape(expected) + "\\\",\\\"actual\\\":\\\"" + escape(actual) + "\\\"}");
+  }
+  private static boolean compare(String actual, String expected, String mode) {
+    if ("trimmed".equals(mode)) return actual.trim().equals(expected.trim());
+    if ("lines".equals(mode)) return Arrays.equals(actual.strip().split("\\\\R"), expected.strip().split("\\\\R"));
+    if ("numeric".equals(mode)) { try { return Double.compare(Double.parseDouble(actual.trim()), Double.parseDouble(expected.trim())) == 0; } catch (NumberFormatException ignored) { return false; } }
+    return actual.equals(expected);
+  }
+  private static String escape(String value) { return value.replace("\\\\", "\\\\\\\\").replace("\\\"", "\\\\\\\"").replace("\\n", "\\\\n").replace("\\r", "\\\\r"); }
+}`;
+}
+
+function parseTaggedResults(stdout: string): { parsed: Map<string, Record<string, unknown>>; consoleLines: string[] } {
+  const parsed = new Map<string, Record<string, unknown>>();
+  const consoleLines: string[] = [];
+  for (const line of stdout.split(/\r?\n/)) {
+    if (line.startsWith(RESULT_PREFIX)) {
+      try { const value = JSON.parse(line.slice(RESULT_PREFIX.length)) as Record<string, unknown>; if (typeof value.id === "string") parsed.set(value.id, value); }
+      catch { consoleLines.push(line); }
+    } else if (line) consoleLines.push(line);
+  }
+  return { parsed, consoleLines };
 }
 
 function parseDiagnostics(stderr: string): CompileDiagnostic[] {
@@ -104,6 +154,22 @@ export const java21Adapter: JavaAdapter = {
       directory,
       compileCommand: ["javac", "-encoding", "UTF-8", "Solution.java", "LearnLocalHarness.java"],
       runCommand: ["java", "-Xms16m", "-Xmx128m", "LearnLocalHarness"],
+      tests
+    };
+  },
+
+  async buildOutputWorkspace(sourceCode, tests): Promise<PreparedOutputWorkspace> {
+    if (/^\s*package\s+/m.test(sourceCode)) throw new AppError("JAVA_PACKAGE_NOT_ALLOWED", "validation", "Package declarations are not supported in this exercise.");
+    const className = /public\s+(?:final\s+)?class\s+([A-Za-z_$][\w$]*)/.exec(sourceCode)?.[1] ?? "Main";
+    const directory = await mkdtemp(join(tmpdir(), "learnlocal-java-output-"));
+    await Promise.all([
+      writeFile(join(directory, `${className}.java`), sourceCode, "utf8"),
+      writeFile(join(directory, "LearnLocalOutputHarness.java"), createOutputHarness(tests, className), "utf8")
+    ]);
+    return {
+      directory,
+      compileCommand: ["javac", "-encoding", "UTF-8", `${className}.java`, "LearnLocalOutputHarness.java"],
+      runCommand: ["java", "-Xms16m", "-Xmx128m", "LearnLocalOutputHarness"],
       tests
     };
   },
@@ -186,6 +252,23 @@ export const java21Adapter: JavaAdapter = {
       tests: results,
       console: [...consoleLines, run.stderr].filter(Boolean).join("\n")
     };
+  },
+
+  parseOutputExecution(executionId, raw, tests, startedAt): ExecutionResult {
+    const wallTimeMs = Date.now() - startedAt;
+    const resources = { wallTimeMs, timedOut: raw.compile.timedOut || Boolean(raw.run?.timedOut), outputTruncated: raw.compile.outputTruncated || Boolean(raw.run?.outputTruncated) };
+    if (raw.compile.exitCode !== 0 || raw.compile.timedOut || raw.compile.cancelled) {
+      return { executionId, language: "java", runtimeVersion: "21", status: raw.compile.timedOut || raw.compile.cancelled ? statusFromProcess(raw.compile) : "compile-error", compile: { attempted: true, success: false, durationMs: raw.compile.durationMs, diagnostics: parseDiagnostics(raw.compile.stderr) }, tests: [], console: raw.compile.stderr, resources };
+    }
+    const run = raw.run;
+    if (!run) throw new Error("The sandbox did not return a Java run result.");
+    const { parsed, consoleLines } = parseTaggedResults(run.stdout);
+    const results: TestResult[] = tests.map((test) => {
+      const value = parsed.get(test.id);
+      const common = { id: test.id, visibility: test.visibility, passed: value?.passed === true, durationMs: typeof value?.durationMs === "number" ? value.durationMs : 0 };
+      return test.visibility === "hidden" ? (common.passed ? common : { ...common, feedbackCode: "WRONG_RESULT" as const }) : { ...common, expected: test.expected, actual: value?.actual, ...(!common.passed ? { feedbackCode: "WRONG_RESULT" as const } : {}) };
+    });
+    return { executionId, language: "java", runtimeVersion: "21", status: run.exitCode !== 0 || run.timedOut || run.cancelled ? statusFromProcess(run) : "finished", compile: { attempted: true, success: true, durationMs: raw.compile.durationMs, diagnostics: [] }, tests: results, console: [...consoleLines, run.stderr].filter(Boolean).join("\n"), resources };
   }
 };
 

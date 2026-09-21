@@ -74,4 +74,23 @@ dockerTest("Docker Java execution", () => {
       await provider.cleanupOwnedResources();
     }
   }, 180_000);
+
+  it("executes Java and Python output exercises with trusted comparisons", async () => {
+    const provider = new DockerProvider();
+    const tests = [{ id: "answer", visibility: "public" as const, input: "", expected: "42", comparison: "trimmed" as const }];
+    const javaWorkspace = await java21Adapter.buildOutputWorkspace("public class Main { public static void main(String[] args) { System.out.println(42); } }", tests);
+    const pythonWorkspace = await python3Adapter.buildOutputWorkspace("print(42)\n", tests);
+    try {
+      const javaId = `exec_${randomUUID()}`;
+      const javaRaw = await provider.execute({ executionId: javaId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace: javaWorkspace, limits: EXECUTION_POLICY });
+      expect(java21Adapter.parseOutputExecution(javaId, javaRaw, tests, Date.now()).tests[0]?.passed).toBe(true);
+      const pythonId = `exec_${randomUUID()}`;
+      const pythonRaw = await provider.execute({ executionId: pythonId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace: pythonWorkspace, limits: EXECUTION_POLICY });
+      expect(python3Adapter.parseOutputExecution(pythonId, pythonRaw, tests, Date.now()).tests[0]?.passed).toBe(true);
+    } finally {
+      await rm(javaWorkspace.directory, { recursive: true, force: true });
+      await rm(pythonWorkspace.directory, { recursive: true, force: true });
+      await provider.cleanupOwnedResources();
+    }
+  }, 180_000);
 });
