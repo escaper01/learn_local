@@ -54,7 +54,18 @@
             }
           }
         },
-        "entrypoint": { "type": "object" },
+        "entrypoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name"],
+          "properties": {
+            "kind": { "const": "function" },
+            "className": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
+            "name": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
+            "parameters": { "type": "array", "maxItems": 1 },
+            "returns": { "type": "string", "maxLength": 80 }
+          }
+        },
         "tests": {
           "type": "array",
           "maxItems": 100,

@@ -41,6 +41,7 @@ export interface LearnPackExercise {
   title: string;
   instructionMarkdown: string;
   starterFiles?: Array<{ path: string; content: string }>;
+  entrypoint?: { kind?: "function"; className?: string; name?: string; parameters?: unknown[]; returns?: string };
   tests?: Array<{ id: string; visibility: "public" | "hidden"; arguments?: unknown[]; input?: string; expected: unknown; comparison?: string }>;
   hints?: string[];
   choices?: string[];

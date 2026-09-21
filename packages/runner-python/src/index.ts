@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { CompileDiagnostic, ExecutionResult, TestResult } from "@learnlocal/contracts";
-import type { OutputTestDefinition, PreparedOutputWorkspace, RawProcessResult, RawSandboxResult } from "@learnlocal/runner-core";
+import type { FunctionEntrypoint, OutputTestDefinition, PreparedOutputWorkspace, RawProcessResult, RawSandboxResult } from "@learnlocal/runner-core";
 
 const RESULT_PREFIX = "__LEARNLOCAL_RESULT__";
 
@@ -20,7 +20,7 @@ export interface PreparedPythonWorkspace {
   tests: readonly PythonTestDefinition[];
 }
 
-function harness(tests: readonly PythonTestDefinition[]): string {
+function harness(tests: readonly PythonTestDefinition[], entrypoint: FunctionEntrypoint): string {
   return `import json
 import importlib.util
 import time
@@ -39,7 +39,7 @@ TESTS = ${JSON.stringify(tests)}
 for test in TESTS:
     started = time.perf_counter_ns()
     try:
-        actual = solution.sum_values(list(test["arguments"]))
+        actual = getattr(solution, ${JSON.stringify(entrypoint.name)})(list(test["arguments"]))
         duration_ms = (time.perf_counter_ns() - started) // 1_000_000
         print(PREFIX + json.dumps({
             "id": test["id"],
@@ -122,11 +122,12 @@ export const python3Adapter = {
   languageVersions: ["3.13"] as const,
   imageReference: "python@sha256:2325bb286ec344af3e5898cc224b5844e2707ac6e26b1632516fd3edc84a5e26",
 
-  async buildWorkspace(sourceCode: string, tests: readonly PythonTestDefinition[]): Promise<PreparedPythonWorkspace> {
+  async buildWorkspace(sourceCode: string, tests: readonly PythonTestDefinition[], entrypoint: FunctionEntrypoint = { name: "sum_values" }): Promise<PreparedPythonWorkspace> {
+    if (!/^[A-Za-z_]\w*$/.test(entrypoint.name)) throw new Error("The Python function entrypoint is invalid.");
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-python-"));
     await Promise.all([
       writeFile(join(directory, "solution.py"), sourceCode, "utf8"),
-      writeFile(join(directory, "_learnlocal_harness.py"), harness(tests), "utf8")
+      writeFile(join(directory, "_learnlocal_harness.py"), harness(tests, entrypoint), "utf8")
     ]);
     return {
       directory,

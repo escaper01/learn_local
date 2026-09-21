@@ -17,6 +17,11 @@ export interface JavaTestDefinition {
   expected: number;
 }
 
+export interface FunctionEntrypoint {
+  className?: string;
+  name: string;
+}
+
 export interface OutputTestDefinition {
   id: string;
   visibility: "public" | "hidden";
@@ -81,7 +86,7 @@ export interface JavaAdapter {
   readonly adapterVersion: string;
   readonly languageVersions: readonly ["21"];
   readonly imageReference: string;
-  buildWorkspace(sourceCode: string, tests: readonly JavaTestDefinition[]): Promise<PreparedJavaWorkspace>;
+  buildWorkspace(sourceCode: string, tests: readonly JavaTestDefinition[], entrypoint?: FunctionEntrypoint): Promise<PreparedJavaWorkspace>;
   buildOutputWorkspace(sourceCode: string, tests: readonly OutputTestDefinition[]): Promise<PreparedOutputWorkspace>;
   parseExecution(
     executionId: string,

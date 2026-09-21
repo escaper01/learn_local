@@ -37,6 +37,7 @@ function validEntries(): Map<string, unknown> {
           title: "Sum an array",
           instructionMarkdown: "Return the total.",
           starterFiles: [{ path: "Solution.java", content: "public class Solution {}" }],
+          entrypoint: { kind: "function", className: "Solution", name: "sum", parameters: [{ name: "values", type: "int[]" }], returns: "int" },
           tests: [{ id: "basic", visibility: "public", arguments: [[1, 2]], expected: 3 }]
         }]
       }]

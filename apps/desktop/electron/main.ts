@@ -22,7 +22,7 @@ import {
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
 import { importLearnPack, listImportedCourses, loadImportedCourse, toCourseView } from "@learnlocal/learnpack";
-import { EXECUTION_POLICY, type OutputTestDefinition } from "@learnlocal/runner-core";
+import { EXECUTION_POLICY, type FunctionEntrypoint, type OutputTestDefinition } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
 import { DockerProvider } from "@learnlocal/sandbox-docker";
@@ -269,6 +269,7 @@ function registerIpc(): void {
         let importedTests: Array<{ id: string; visibility: "public" | "hidden"; arguments: number[]; expected: number }> | undefined;
         let outputTests: OutputTestDefinition[] | undefined;
         let importedExerciseType: "function" | "debug" | "output" | undefined;
+        let importedEntrypoint: FunctionEntrypoint | undefined;
         if (request.courseId && request.courseVersion && request.exerciseId) {
           const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.courseVersion);
           if (pack.manifest.course.language !== request.language) throw new AppError("PACK_LANGUAGE_MISMATCH", "validation", "The requested exercise does not match the selected language.");
@@ -276,6 +277,11 @@ function registerIpc(): void {
           if (!exercise) throw new AppError("EXERCISE_NOT_FOUND", "validation", "The requested exercise is unavailable.");
           if (exercise.type !== "function" && exercise.type !== "debug" && exercise.type !== "output") throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This exercise type does not use the code runner.");
           importedExerciseType = exercise.type;
+          if (exercise.type === "function" || exercise.type === "debug") {
+            const fallback = request.language === "java" ? { className: "Solution", name: "sum" } : { name: "sum_values" };
+            const className = exercise.entrypoint?.className ?? fallback.className;
+            importedEntrypoint = { ...(className ? { className } : {}), name: exercise.entrypoint?.name ?? fallback.name };
+          }
           const selectedTests = (exercise.tests ?? []).filter((test) => request.action === "submit" || test.visibility === "public");
           if (exercise.type === "output") {
             outputTests = selectedTests.map((test) => {
@@ -305,7 +311,7 @@ function registerIpc(): void {
           const tests = importedTests ?? (request.action === "submit"
             ? [...SUM_EXERCISE.publicTests, ...SUM_EXERCISE.hiddenTests]
             : SUM_EXERCISE.publicTests);
-          const workspace = await java21Adapter.buildWorkspace(request.sourceCode, tests);
+          const workspace = await java21Adapter.buildWorkspace(request.sourceCode, tests, importedEntrypoint);
           workspaceDirectory = workspace.directory;
           const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
           result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
@@ -320,7 +326,7 @@ function registerIpc(): void {
           const tests = importedTests ?? (request.action === "submit"
             ? [...PYTHON_SUM_EXERCISE.publicTests, ...PYTHON_SUM_EXERCISE.hiddenTests]
             : PYTHON_SUM_EXERCISE.publicTests);
-          const workspace = await python3Adapter.buildWorkspace(request.sourceCode, tests);
+          const workspace = await python3Adapter.buildWorkspace(request.sourceCode, tests, importedEntrypoint);
           workspaceDirectory = workspace.directory;
           const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
           result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);

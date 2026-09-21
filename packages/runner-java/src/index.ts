@@ -6,6 +6,7 @@ import { AppError } from "@learnlocal/contracts";
 import type {
   JavaAdapter,
   JavaTestDefinition,
+  FunctionEntrypoint,
   OutputTestDefinition,
   PreparedOutputWorkspace,
   PreparedJavaWorkspace,
@@ -19,7 +20,7 @@ function javaArray(values: readonly number[]): string {
   return `new int[]{${values.join(",")}}`;
 }
 
-function createHarness(tests: readonly JavaTestDefinition[]): string {
+function createHarness(tests: readonly JavaTestDefinition[], entrypoint: Required<FunctionEntrypoint>): string {
   const invocations = tests
     .map(
       (test) => `runTest(${JSON.stringify(test.id)}, ${JSON.stringify(test.visibility)}, ${javaArray(test.arguments)}, ${test.expected});`
@@ -36,7 +37,7 @@ function createHarness(tests: readonly JavaTestDefinition[]): string {
   private static void runTest(String id, String visibility, int[] input, int expected) {
     long started = System.nanoTime();
     try {
-      int actual = Solution.sum(input);
+      int actual = ${entrypoint.className}.${entrypoint.name}(input);
       long durationMs = (System.nanoTime() - started) / 1_000_000;
       boolean passed = actual == expected;
       System.out.println(PREFIX + "{\\\"id\\\":\\\"" + escape(id) + "\\\",\\\"visibility\\\":\\\"" + visibility
@@ -135,7 +136,7 @@ export const java21Adapter: JavaAdapter = {
   languageVersions: ["21"],
   imageReference: "eclipse-temurin@sha256:c7d5863b5dd8f26b90c64f1d80cc2b0e5a5e4642f8db9955a370d348edd8f438",
 
-  async buildWorkspace(sourceCode, tests): Promise<PreparedJavaWorkspace> {
+  async buildWorkspace(sourceCode, tests, entrypoint = { className: "Solution", name: "sum" }): Promise<PreparedJavaWorkspace> {
     if (/^\s*package\s+/m.test(sourceCode)) {
       throw new AppError(
         "JAVA_PACKAGE_NOT_ALLOWED",
@@ -144,15 +145,17 @@ export const java21Adapter: JavaAdapter = {
       );
     }
 
+    const resolved = { className: entrypoint.className ?? "Solution", name: entrypoint.name };
+    if (!/^[A-Za-z_$][\w$]*$/.test(resolved.className) || !/^[A-Za-z_$][\w$]*$/.test(resolved.name)) throw new AppError("ENTRYPOINT_INVALID", "validation", "The Java function entrypoint is invalid.");
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-java-"));
     await Promise.all([
-      writeFile(join(directory, "Solution.java"), sourceCode, "utf8"),
-      writeFile(join(directory, "LearnLocalHarness.java"), createHarness(tests), "utf8")
+      writeFile(join(directory, `${resolved.className}.java`), sourceCode, "utf8"),
+      writeFile(join(directory, "LearnLocalHarness.java"), createHarness(tests, resolved), "utf8")
     ]);
 
     return {
       directory,
-      compileCommand: ["javac", "-encoding", "UTF-8", "Solution.java", "LearnLocalHarness.java"],
+      compileCommand: ["javac", "-encoding", "UTF-8", `${resolved.className}.java`, "LearnLocalHarness.java"],
       runCommand: ["java", "-Xms16m", "-Xmx128m", "LearnLocalHarness"],
       tests
     };
