@@ -115,6 +115,6 @@ If a requested feature conflicts with these rules, stop and redesign the boundar
 
 ## Current implementation boundary
 
-The repository now implements the V1 foundation: secure Electron shell, light/dark React and Monaco workspace, Java and Python adapters, restricted Docker execution, runtime lifecycle management, LearnPack 1.0 import/revalidation, imported-course execution, public versus hidden tests, cancellation, normalized results, SQLite settings/workspaces/attempts/progress, dashboard, prompt generation, diagnostics export, packaging, and CI.
+The repository now implements the V1 foundation: secure Electron shell, light/dark React and Monaco workspace, Java and Python adapters, restricted Docker execution, runtime lifecycle management, LearnPack 1.0 import/revalidation, function/debug/output/project-checkpoint/quiz flows, public versus hidden tests, progressive hints, custom trusted entrypoints, cancellation, normalized results, SQLite settings/workspaces/attempts/progress, dashboard, prompt generation, diagnostics export, packaging, and CI.
 
-Future work must extend exercise type coverage and richer multi-file project navigation through the adapter and LearnPack contracts. Do not bypass those boundaries with renderer commands or course-provided scripts. Signed public releases require owner-provided platform credentials.
+Future work must add richer multi-file project navigation through the adapter and LearnPack contracts, a production update service, and broader platform accessibility/E2E validation. Do not bypass security boundaries with renderer commands or course-provided scripts. Signed public releases require owner-provided platform credentials.
