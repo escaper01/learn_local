@@ -221,6 +221,13 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
   }
   const manifest = manifestValue;
   const issues: ValidationIssue[] = [];
+  for (const [kind, references] of [["modules", manifest.modules], ["projects", manifest.projects]] as const) {
+    const seenReferences = new Set<string>();
+    for (const reference of references) {
+      if (seenReferences.has(reference)) issues.push({ code: "PACK_DUPLICATE_REFERENCE", severity: "error", file: "manifest.json", path: `/${kind}`, message: `The manifest references '${reference}' more than once.` });
+      seenReferences.add(reference);
+    }
+  }
   if (manifest.course.language !== manifest.runtime.adapter) {
     issues.push({ code: "PACK_ADAPTER_LANGUAGE_MISMATCH", severity: "error", file: "manifest.json", path: "/runtime/adapter", message: "Runtime adapter must match the course language." });
   }
@@ -281,8 +288,13 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
             }
           }
         }
+        const starterPaths = new Set<string>();
+        const expectedExtension = manifest.course.language === "java" ? ".java" : ".py";
         for (const file of exercise.starterFiles ?? []) {
           if (!isSafeArchivePath(file.path)) issues.push({ code: "PACK_STARTER_PATH_INVALID", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' contains unsafe starter path '${file.path}'.` });
+          if (starterPaths.has(file.path)) issues.push({ code: "PACK_STARTER_PATH_DUPLICATE", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' repeats starter path '${file.path}'.` });
+          if (!file.path.toLowerCase().endsWith(expectedExtension)) issues.push({ code: "PACK_STARTER_LANGUAGE_MISMATCH", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' starter '${file.path}' must end in ${expectedExtension}.` });
+          starterPaths.add(file.path);
         }
         if ((exercise.limits?.timeoutMs ?? 0) > 5_000 || (exercise.limits?.memoryMb ?? 0) > 256 || (exercise.limits?.maxOutputKb ?? 0) > 64) {
           issues.push({ code: "PACK_LIMIT_CLAMPED", severity: "warning", file: location, message: `Exercise '${exercise.id}' requests resources above the application policy; LearnLocal will apply its safer maximums.` });

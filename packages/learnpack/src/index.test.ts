@@ -154,6 +154,19 @@ describe("LearnPack semantic validation", () => {
     expect(() => validateLearnPackContent(entries)).toThrowError(/semantic validation/i);
   });
 
+  it("rejects duplicate and language-mismatched starter files", () => {
+    const entries = validEntries();
+    const exercise = (entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> }).lessons[0]!.exercises[0]!;
+    exercise.starterFiles = [{ path: "solution.py", content: "pass" }, { path: "solution.py", content: "pass" }];
+    expect(() => validateLearnPackContent(entries)).toThrowError(/semantic validation/i);
+  });
+
+  it("rejects duplicate manifest references", () => {
+    const entries = validEntries();
+    (entries.get("manifest.json") as { modules: string[] }).modules.push("content/01-basics.json");
+    expect(() => validateLearnPackContent(entries)).toThrowError(/manifest|semantic validation/i);
+  });
+
   it("rejects exercises whose declarative tests cannot be executed", () => {
     const entries = validEntries();
     const module = entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> };
