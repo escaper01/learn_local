@@ -17,7 +17,11 @@ packages/contracts/      IPC schemas, public types, error contracts
 packages/database/       SQLite migrations and repositories
 packages/runner-core/    Provider/adapter interfaces and immutable policy
 packages/runner-java/    Trusted Java workspace and harness generation
+packages/runner-python/  Trusted Python workspace and harness generation
 packages/sandbox-docker/ Docker lifecycle and process isolation
+packages/learnpack/      LearnPack schemas, archive validation, and course views
+packages/prompt-generator/ Provider-independent course-authoring prompts
+packages/settings-core/  Setting definitions, validation, and precedence
 ```
 
 Future packages should follow the structure in the full project plan instead of accumulating unrelated code in the desktop app.
@@ -115,6 +119,6 @@ If a requested feature conflicts with these rules, stop and redesign the boundar
 
 ## Current implementation boundary
 
-The repository now implements the V1 foundation: secure Electron shell, light/dark React and Monaco workspace, Java and Python adapters, restricted Docker execution, runtime lifecycle management, LearnPack 1.0 import/revalidation, function/debug/output/project-checkpoint/quiz flows, public versus hidden tests, progressive hints, custom trusted entrypoints, cancellation, normalized results, SQLite settings/workspaces/attempts/progress, dashboard, prompt generation, diagnostics export, packaging, and CI.
+The repository now implements the V1 product surface: secure Electron shell, onboarding, light/dark React and Monaco workspace, multi-file Java/Python adapters, typed function harnesses, restricted Docker execution, runtime lifecycle/data management, LearnPack 1.0 import/revalidation/repair, strict project milestones, function/debug/output/project/quiz flows, public versus hidden tests, progressive hints, safe Markdown, cancellation and execution phases, versioned SQLite settings/workspaces/attempts/progress, scoped settings, confidence dashboard, file-at-a-time prompt generation, local prompt templates/history, diagnostics, cross-platform packaging, and CI.
 
-Future work must add richer multi-file project navigation through the adapter and LearnPack contracts, a production update service, and broader platform accessibility/E2E validation. Do not bypass security boundaries with renderer commands or course-provided scripts. Signed public releases require owner-provided platform credentials.
+Remaining release infrastructure is intentionally external: production update hosting plus Windows and Apple signing/notarization credentials. Continue platform E2E, accessibility, and adversarial archive coverage as the product evolves. Do not bypass security boundaries with renderer commands or course-provided scripts.

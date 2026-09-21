@@ -6,12 +6,12 @@ LearnLocal is an offline-first desktop learning environment for portable program
 
 - Secure Electron boundary with typed IPC, CSP, navigation guards, and no renderer access to Node or Docker.
 - Persistent dark and light themes.
-- Java 21 and Python 3.13 runtime installation, smoke testing, inventory, repair, and removal.
-- Function, debugging, output, project-checkpoint, and multiple-choice exercise flows.
+- Java 21 and Python 3.13 runtime installation, smoke testing, inventory, repair, scoped cleanup, and installation-specific Docker ownership.
+- Typed function, debugging, output, multi-file project-checkpoint, and multiple-choice exercise flows.
 - Public tests for Run, hidden tests for Submit, custom trusted entrypoints, cancellation, bounded resources, and normalized diagnostics.
-- LearnPack archive/schema/semantic validation, immutable course versions, progressive hints, and persisted course progress.
-- Local SQLite attempts, workspaces, settings, backups, activity, and streaks.
-- Course prompt generation, settings import/export, diagnostics export, desktop packaging, and GitHub CI.
+- LearnPack archive/schema/semantic/project validation, repair prompts, immutable course versions, safe Markdown, progressive hints, and persisted course progress.
+- Local SQLite attempts, multi-file workspaces, scoped settings, versioned migrations, recovery backups, activity, streaks, and confidence scores.
+- First-run onboarding, file-at-a-time course prompting, local prompt templates/history, diagnostics export, desktop packaging, and cross-platform GitHub CI.
 
 ## Prerequisites
 
