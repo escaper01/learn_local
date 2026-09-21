@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue, ValidationIssue } from "@learnlocal/contracts";
 
 loader.config({ monaco });
 
@@ -153,6 +153,7 @@ export default function App() {
   const [courses, setCourses] = useState<ImportedCourseSummary[]>([]);
   const [importing, setImporting] = useState(false);
   const [importedCourse, setImportedCourse] = useState<ImportedCourseSummary | null>(null);
+  const [importWarnings, setImportWarnings] = useState<ValidationIssue[]>([]);
   const [showRuntimes, setShowRuntimes] = useState(false);
   const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
@@ -256,6 +257,7 @@ export default function App() {
       const imported = await window.learnLocal.courses.importPack();
       if (imported.status === "imported") {
         setImportedCourse(imported.course);
+        setImportWarnings(imported.warnings);
         setCourses(await window.learnLocal.courses.list());
       }
     } catch (value) {
@@ -572,6 +574,7 @@ export default function App() {
               <div><strong>{importedCourse.estimatedHours}h</strong><span>Estimate</span></div>
             </div>
             <div className="import-meta"><span>{importedCourse.language} {importedCourse.languageVersion}</span><span>{importedCourse.level}</span><span>v{importedCourse.version}</span></div>
+            {importWarnings.length > 0 && <div className="import-warnings"><strong>Imported with {importWarnings.length} warning{importWarnings.length === 1 ? "" : "s"}</strong>{importWarnings.map((warning, index) => <p key={`${warning.code}-${index}`}><span>{warning.code}</span>{warning.message}</p>)}</div>}
             <button className="submit-button modal-action" onClick={() => setImportedCourse(null)}>View course</button>
           </section>
         </div>

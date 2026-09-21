@@ -152,6 +152,10 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .import-stats span { color: #6f7d75; font-size: 9px; text-transform: uppercase; letter-spacing: .55px; }
 .import-meta { display: flex; gap: 7px; margin-bottom: 23px; }
 .import-meta span { padding: 4px 8px; border-radius: 5px; color: #89a598; background: #1a2921; font-size: 9px; text-transform: capitalize; }
+.import-warnings { max-height: 150px; overflow: auto; margin: -8px 0 18px; padding: 12px; border: 1px solid #7b642b; border-radius: 8px; color: #e4ce8b; background: #241f12; text-align: left; }
+.import-warnings strong { display: block; margin-bottom: 8px; }
+.import-warnings p { margin: 6px 0; font-size: 11px; }
+.import-warnings span { margin-right: 7px; color: #c8a64f; font-family: monospace; }
 .modal-action { width: 100%; }
 .runtime-modal { position: relative; width: min(650px, 100%); padding: 29px; border: 1px solid #2a3932; border-radius: 14px; background: #121a17; box-shadow: 0 26px 80px #00000066; }
 .runtime-modal h2 { margin: 6px 0 5px; font-size: 23px; }
@@ -361,6 +365,7 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .import-stats strong { color: #26352d; }
 :root[data-theme="light"] .import-stats span { color: #78857e; }
 :root[data-theme="light"] .import-meta span { color: #3b7257; background: #e5f2eb; }
+:root[data-theme="light"] .import-warnings { color: #66531e; border-color: #d7bd72; background: #fff8df; }
 :root[data-theme="light"] .runtime-modal { background: #ffffff; border-color: #d5dfda; box-shadow: 0 26px 80px #2331292b; }
 :root[data-theme="light"] .runtime-modal > p { color: #65736b; }
 :root[data-theme="light"] .runtime-card { background: #f8faf9; border-color: #dbe4df; }
