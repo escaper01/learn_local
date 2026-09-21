@@ -370,11 +370,13 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(async () => {
+  const development = Boolean(process.env.ELECTRON_RENDERER_URL);
+  const scriptPolicy = development ? "script-src 'self' 'unsafe-inline'" : "script-src 'self'";
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        "Content-Security-Policy": ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"],
+        "Content-Security-Policy": [`default-src 'self'; ${scriptPolicy}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'`],
         "X-Content-Type-Options": ["nosniff"]
       }
     });
