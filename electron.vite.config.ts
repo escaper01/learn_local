@@ -5,6 +5,7 @@ import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 const workspacePackages = [
   "@learnlocal/contracts",
   "@learnlocal/database",
+  "@learnlocal/learnpack",
   "@learnlocal/runner-core",
   "@learnlocal/runner-java",
   "@learnlocal/sandbox-docker"

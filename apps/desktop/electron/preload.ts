@@ -7,6 +7,10 @@ import {
 } from "@learnlocal/contracts";
 
 const api: LearnLocalApi = {
+  courses: {
+    importPack: () => ipcRenderer.invoke(IPC_CHANNELS.coursesImport),
+    list: () => ipcRenderer.invoke(IPC_CHANNELS.coursesList)
+  },
   environment: {
     status: () => ipcRenderer.invoke(IPC_CHANNELS.environmentStatus)
   },

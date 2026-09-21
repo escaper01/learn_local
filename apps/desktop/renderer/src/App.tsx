@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, ExecutionResult, ProviderStatus } from "@learnlocal/contracts";
+import type { AppErrorShape, ExecutionResult, ImportedCourseSummary, ProviderStatus } from "@learnlocal/contracts";
 
 loader.config({ monaco });
 
@@ -114,6 +114,9 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [source, setSource] = useState(STARTER_CODE);
   const [provider, setProvider] = useState<ProviderStatus>();
+  const [courses, setCourses] = useState<ImportedCourseSummary[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [importedCourse, setImportedCourse] = useState<ImportedCourseSummary | null>(null);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [error, setError] = useState<AppErrorShape | null>(null);
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
@@ -128,6 +131,7 @@ export default function App() {
 
   useEffect(() => {
     void window.learnLocal.environment.status().then(setProvider).catch((value) => setError(friendlyError(value)));
+    void window.learnLocal.courses.list().then(setCourses).catch((value) => setError(friendlyError(value)));
     return window.learnLocal.execution.onFinished((event) => {
       if (event.executionId !== activeRef.current) return;
       if ("result" in event) {
@@ -161,15 +165,31 @@ export default function App() {
     await window.learnLocal.execution.cancel(activeExecution);
   };
 
+  const importCourse = async () => {
+    setImporting(true);
+    setError(null);
+    try {
+      const imported = await window.learnLocal.courses.importPack();
+      if (imported.status === "imported") {
+        setImportedCourse(imported.course);
+        setCourses(await window.learnLocal.courses.list());
+      }
+    } catch (value) {
+      setError(friendlyError(value));
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
         <div className="brand"><span className="brand-mark">L</span><span>LearnLocal</span></div>
         <nav>
           <button className="nav-item"><span>⌂</span>Dashboard</button>
-          <button className="nav-item active"><span>◫</span>My courses</button>
+          <button className="nav-item active"><span>◫</span>My courses{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
           <button className="nav-item"><span>⌘</span>Languages</button>
-          <button className="nav-item"><span>↗</span>Import course</button>
+          <button className="nav-item" onClick={() => void importCourse()} disabled={importing}><span>↗</span>{importing ? "Validating…" : "Import course"}</button>
         </nav>
         <div className="sidebar-spacer" />
         <nav>
@@ -265,6 +285,26 @@ export default function App() {
           </section>
         </div>
       </section>
+
+      {importedCourse && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setImportedCourse(null)}>
+          <section className="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Close import summary" onClick={() => setImportedCourse(null)}>×</button>
+            <span className="import-success">✓</span>
+            <div className="eyebrow">LEARNPACK 1.0 IMPORTED</div>
+            <h2 id="import-title">{importedCourse.title}</h2>
+            <p>{importedCourse.description}</p>
+            <div className="import-stats">
+              <div><strong>{importedCourse.moduleCount}</strong><span>Modules</span></div>
+              <div><strong>{importedCourse.lessonCount}</strong><span>Lessons</span></div>
+              <div><strong>{importedCourse.exerciseCount}</strong><span>Exercises</span></div>
+              <div><strong>{importedCourse.estimatedHours}h</strong><span>Estimate</span></div>
+            </div>
+            <div className="import-meta"><span>{importedCourse.language} {importedCourse.languageVersion}</span><span>{importedCourse.level}</span><span>v{importedCourse.version}</span></div>
+            <button className="submit-button modal-action" onClick={() => setImportedCourse(null)}>View course</button>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

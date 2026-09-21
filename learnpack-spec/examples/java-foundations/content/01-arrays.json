@@ -1,0 +1,37 @@
+{
+  "id": "java-arrays",
+  "title": "Arrays and loops",
+  "description": "Traverse collections and build results incrementally.",
+  "lessons": [
+    {
+      "id": "array-accumulators",
+      "title": "The accumulator pattern",
+      "theoryMarkdown": "An accumulator stores a result while a loop visits each value. Start from a neutral value, update it once per element, and return it after the loop.",
+      "exercises": [
+        {
+          "id": "java-arrays-sum",
+          "type": "function",
+          "title": "Sum an Array",
+          "instructionMarkdown": "Return the sum of every number in the array.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n  public static int sum(int[] values) {\n    return 0;\n  }\n}"
+            }
+          ],
+          "tests": [
+            { "id": "public-basic", "visibility": "public", "arguments": [[1, 2, 3]], "expected": 6 },
+            { "id": "public-empty", "visibility": "public", "arguments": [[]], "expected": 0 },
+            { "id": "hidden-negative", "visibility": "hidden", "arguments": [[-2, 5, 10]], "expected": 13 }
+          ],
+          "hints": [
+            "Create a variable for the running total.",
+            "Visit every element with a loop.",
+            "Add the current element to the total."
+          ],
+          "limits": { "timeoutMs": 3000, "memoryMb": 256, "maxOutputKb": 64 }
+        }
+      ]
+    }
+  ]
+}

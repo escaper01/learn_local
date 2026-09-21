@@ -64,6 +64,33 @@ export interface ProviderStatus {
   message: string;
 }
 
+export interface ValidationIssue {
+  code: string;
+  severity: "error" | "warning";
+  file?: string;
+  path?: string;
+  message: string;
+}
+
+export interface ImportedCourseSummary {
+  id: string;
+  version: string;
+  title: string;
+  description: string;
+  language: "java" | "python";
+  languageVersion: string;
+  level: "beginner" | "intermediate" | "advanced";
+  estimatedHours: number;
+  moduleCount: number;
+  lessonCount: number;
+  exerciseCount: number;
+  importedAt: string;
+}
+
+export type CourseImportResult =
+  | { status: "cancelled" }
+  | { status: "imported"; course: ImportedCourseSummary; warnings: ValidationIssue[] };
+
 export interface AppErrorShape {
   code: string;
   category: "validation" | "runtime" | "compile" | "execution" | "system";
@@ -72,6 +99,10 @@ export interface AppErrorShape {
 }
 
 export interface LearnLocalApi {
+  courses: {
+    importPack(): Promise<CourseImportResult>;
+    list(): Promise<ImportedCourseSummary[]>;
+  };
   environment: {
     status(): Promise<ProviderStatus>;
   };
@@ -87,6 +118,8 @@ export type ExecutionFinishedEvent =
   | { executionId: string; error: AppErrorShape };
 
 export const IPC_CHANNELS = {
+  coursesImport: "courses:import",
+  coursesList: "courses:list",
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",

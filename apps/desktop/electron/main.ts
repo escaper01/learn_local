@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
-import { app, BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
 import {
   AppError,
   cancelRequestSchema,
@@ -11,6 +11,7 @@ import {
   type ExecutionFinishedEvent
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
+import { importLearnPack, listImportedCourses } from "@learnlocal/learnpack";
 import { EXECUTION_POLICY } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { DockerProvider } from "@learnlocal/sandbox-docker";
@@ -66,6 +67,24 @@ function createWindow(): void {
 }
 
 function registerIpc(): void {
+  ipcMain.handle(IPC_CHANNELS.coursesImport, async (event) => {
+    assertTrustedSender(event);
+    const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender)!, {
+      title: "Import a LearnPack",
+      properties: ["openFile"],
+      filters: [{ name: "LearnLocal course", extensions: ["learnpack"] }]
+    });
+    const sourcePath = selected.filePaths[0];
+    if (selected.canceled || !sourcePath) return { status: "cancelled" as const };
+    const imported = await importLearnPack(sourcePath, join(app.getPath("userData"), "courses"));
+    return { status: "imported" as const, course: imported.summary, warnings: imported.warnings };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.coursesList, async (event) => {
+    assertTrustedSender(event);
+    return listImportedCourses(join(app.getPath("userData"), "courses"));
+  });
+
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {
     assertTrustedSender(event);
     return docker.detect();

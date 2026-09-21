@@ -6,6 +6,7 @@
   "dependencies": {
     "@learnlocal/contracts": "0.1.0",
     "@learnlocal/database": "0.1.0",
+    "@learnlocal/learnpack": "0.1.0",
     "@learnlocal/runner-core": "0.1.0",
     "@learnlocal/runner-java": "0.1.0",
     "@learnlocal/sandbox-docker": "0.1.0",

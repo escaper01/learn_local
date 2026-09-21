@@ -1,0 +1,22 @@
+{
+  "format": "learnpack",
+  "schemaVersion": "1.0.0",
+  "id": "java-foundations",
+  "version": "1.0.0",
+  "course": {
+    "title": "Java Foundations",
+    "description": "A compact introduction to Java arrays, loops, and functions.",
+    "language": "java",
+    "languageVersion": "21",
+    "level": "beginner",
+    "estimatedHours": 4,
+    "authors": [{ "name": "LearnLocal" }]
+  },
+  "runtime": {
+    "adapter": "java",
+    "adapterRange": ">=0.1.0 <2.0.0",
+    "runtimeVersion": "21"
+  },
+  "modules": ["content/01-arrays.json"],
+  "projects": []
+}

@@ -19,6 +19,8 @@ button { font: inherit; }
 .nav-item span { width: 19px; color: #6f7b88; text-align: center; }
 .nav-item.active { color: #dcf8e7; background: #182a22; }
 .nav-item.active span { color: #5bd493; }
+.nav-item:disabled { opacity: .6; }
+.nav-count { margin-left: auto; min-width: 19px; padding: 2px 5px; border-radius: 9px; color: #68d79a; background: #214333; font-size: 9px; text-align: center; }
 .sidebar-spacer { flex: 1; }
 .runtime-status { display: flex; align-items: center; gap: 8px; margin: 16px 8px 0; padding-top: 14px; border-top: 1px solid #252e38; color: #7f8b98; font-size: 11px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #73808d; }
@@ -109,6 +111,22 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .diagnostic strong { color: #dc9499; font-size: 10px; }
 .diagnostic p { margin: 4px 0 0; color: #aa9598; font: 10px/1.5 "Cascadia Code", Consolas, monospace; white-space: pre-wrap; }
 
+.modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: #05080bb8; backdrop-filter: blur(5px); }
+.import-modal { position: relative; width: min(480px, 100%); padding: 31px; border: 1px solid #2a3932; border-radius: 14px; background: #121a17; box-shadow: 0 26px 80px #00000066; }
+.modal-close { position: absolute; top: 12px; right: 13px; display: grid; place-items: center; width: 29px; height: 29px; border: 0; border-radius: 7px; color: #7e8b84; background: transparent; font-size: 20px; cursor: pointer; }
+.modal-close:hover { color: #d4ddd8; background: #202b26; }
+.import-success { display: grid; place-items: center; width: 43px; height: 43px; margin-bottom: 17px; border-radius: 50%; color: #74dfa4; background: #193c29; font-size: 20px; font-weight: 800; }
+.import-modal h2 { margin: 6px 0 7px; font-size: 23px; }
+.import-modal > p { margin: 0; color: #909e96; font-size: 12px; line-height: 1.55; }
+.import-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin: 22px 0 13px; border: 1px solid #29362f; border-radius: 9px; overflow: hidden; }
+.import-stats div { display: grid; gap: 3px; padding: 12px; border-right: 1px solid #29362f; }
+.import-stats div:last-child { border-right: 0; }
+.import-stats strong { color: #e0e8e3; font-size: 16px; }
+.import-stats span { color: #6f7d75; font-size: 9px; text-transform: uppercase; letter-spacing: .55px; }
+.import-meta { display: flex; gap: 7px; margin-bottom: 23px; }
+.import-meta span { padding: 4px 8px; border-radius: 5px; color: #89a598; background: #1a2921; font-size: 9px; text-transform: capitalize; }
+.modal-action { width: 100%; }
+
 @media (max-width: 1150px) {
   .sidebar { width: 190px; flex-basis: 190px; }
   .lesson-grid { grid-template-columns: 36% 64%; }
@@ -126,6 +144,7 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .nav-item:hover { color: #34433b; background: #eef3f0; }
 :root[data-theme="light"] .nav-item.active { color: #12673f; background: #e1f2e9; }
 :root[data-theme="light"] .nav-item.active span { color: #23935d; }
+:root[data-theme="light"] .nav-count { color: #12683f; background: #cce8d9; }
 :root[data-theme="light"] .runtime-status { color: #6f7d75; border-top-color: #dce4e0; }
 
 :root[data-theme="light"] .topbar { background: #ffffff; border-bottom-color: #dce4e0; }
@@ -191,3 +210,14 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .diagnostic p { color: #75575a; }
 :root[data-theme="light"] .error-state .result-icon { color: #a23a43; background: #f9dfe1; }
 :root[data-theme="light"] .error-state p { color: #8d686c; }
+:root[data-theme="light"] .modal-backdrop { background: #26322c66; }
+:root[data-theme="light"] .import-modal { background: #ffffff; border-color: #d5dfda; box-shadow: 0 26px 80px #2331292b; }
+:root[data-theme="light"] .modal-close { color: #718078; }
+:root[data-theme="light"] .modal-close:hover { color: #26342d; background: #eef3f0; }
+:root[data-theme="light"] .import-success { color: #147646; background: #ddf1e6; }
+:root[data-theme="light"] .import-modal > p { color: #65736b; }
+:root[data-theme="light"] .import-stats { border-color: #dbe4df; }
+:root[data-theme="light"] .import-stats div { border-right-color: #dbe4df; }
+:root[data-theme="light"] .import-stats strong { color: #26352d; }
+:root[data-theme="light"] .import-stats span { color: #78857e; }
+:root[data-theme="light"] .import-meta span { color: #3b7257; background: #e5f2eb; }

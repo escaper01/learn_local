@@ -1,0 +1,14 @@
+{
+  "name": "@learnlocal/learnpack",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@learnlocal/contracts": "0.1.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "yauzl": "^3.4.0",
+    "yazl": "^3.3.1"
+  }
+}
