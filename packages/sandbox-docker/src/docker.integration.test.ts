@@ -44,11 +44,16 @@ dockerTest("Docker Java execution", () => {
     }
   }, 180_000);
 
-  it("installs, validates, inventories, and removes Python independently", async () => {
+  it("installs, verifies, updates, inventories, and removes Python independently", async () => {
     const provider = new DockerProvider();
     const installed = await provider.installManagedRuntime("python-3");
     expect(installed).toMatchObject({ id: "python-3", status: "ready" });
     expect(installed.sizeBytes).toBeGreaterThan(0);
+    const verified = await provider.verifyManagedRuntime("python-3");
+    expect(verified.status).toBe("ready");
+    expect(verified.lastValidatedAt).toBeTruthy();
+    const updated = await provider.updateManagedRuntime("python-3");
+    expect(updated).toMatchObject({ id: "python-3", status: "ready" });
     const java = (await provider.listRuntimes()).find((runtime) => runtime.id === "java-21");
     expect(java?.id).toBe("java-21");
     const removed = await provider.removeManagedRuntime("python-3");

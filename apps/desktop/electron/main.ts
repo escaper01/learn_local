@@ -146,6 +146,18 @@ function registerIpc(): void {
     return docker.installManagedRuntime(runtimeId);
   });
 
+  ipcMain.handle(IPC_CHANNELS.runtimesVerify, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { runtimeId } = runtimeRequestSchema.parse(input);
+    return docker.verifyManagedRuntime(runtimeId);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.runtimesUpdate, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { runtimeId } = runtimeRequestSchema.parse(input);
+    return docker.updateManagedRuntime(runtimeId);
+  });
+
   ipcMain.handle(IPC_CHANNELS.runtimesRemove, async (event, input: unknown) => {
     assertTrustedSender(event);
     const { runtimeId, removeLearningData } = runtimeRemoveRequestSchema.parse(input);

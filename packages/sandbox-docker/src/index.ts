@@ -123,8 +123,34 @@ export class DockerProvider implements SandboxProvider {
   }
 
   async installManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
+    return this.provisionManagedRuntime(runtimeId, "installing");
+  }
+
+  async updateManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
+    return this.provisionManagedRuntime(runtimeId, "updating");
+  }
+
+  async verifyManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
     const runtime = this.runtimeDefinition(runtimeId);
-    this.runtimeStates.set(runtimeId, "installing");
+    this.runtimeStates.set(runtimeId, "validating");
+    try {
+      const provider = await this.detect();
+      if (!provider.available) throw new AppError("PROVIDER_NOT_RUNNING", "runtime", provider.message);
+      const inspected = await this.capture(["image", "inspect", runtime.localReference], { timeoutMs: 5_000, maxOutputBytes: 8_192 });
+      if (inspected.exitCode !== 0) throw new AppError("RUNTIME_NOT_INSTALLED", "runtime", `${runtime.displayName} is not installed.`);
+      await this.smokeTestRuntime(runtime);
+      this.validationDates.set(runtimeId, new Date().toISOString());
+      this.runtimeStates.set(runtimeId, "ready");
+      return this.inspectManagedRuntime(runtime);
+    } catch (error) {
+      this.runtimeStates.set(runtimeId, "broken");
+      throw error;
+    }
+  }
+
+  private async provisionManagedRuntime(runtimeId: RuntimeSummary["id"], state: "installing" | "updating"): Promise<RuntimeSummary> {
+    const runtime = this.runtimeDefinition(runtimeId);
+    this.runtimeStates.set(runtimeId, state);
     try {
       const provider = await this.detect();
       if (!provider.available) throw new AppError("PROVIDER_NOT_RUNNING", "runtime", provider.message);

@@ -85,7 +85,7 @@ export interface RuntimeSummary {
   displayName: string;
   version: string;
   providerId: "docker";
-  status: "not-installed" | "installing" | "ready" | "broken" | "removing";
+  status: "not-installed" | "installing" | "validating" | "updating" | "ready" | "broken" | "removing";
   imageReference: string;
   sizeBytes: number | null;
   lastValidatedAt: string | null;
@@ -275,6 +275,8 @@ export interface LearnLocalApi {
   runtimes: {
     list(): Promise<RuntimeSummary[]>;
     install(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
+    verify(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
+    update(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
     remove(runtimeId: RuntimeSummary["id"], removeLearningData?: boolean): Promise<RuntimeSummary>;
   };
   settings: {
@@ -328,6 +330,8 @@ export const IPC_CHANNELS = {
   coursesOpen: "courses:open",
   runtimesList: "runtimes:list",
   runtimesInstall: "runtimes:install",
+  runtimesVerify: "runtimes:verify",
+  runtimesUpdate: "runtimes:update",
   runtimesRemove: "runtimes:remove",
   settingsList: "settings:list",
   settingsSet: "settings:set",

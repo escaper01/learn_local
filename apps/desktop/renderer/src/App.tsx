@@ -209,6 +209,7 @@ export default function App() {
   const [showRuntimes, setShowRuntimes] = useState(false);
   const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
+  const [runtimeOperationLabel, setRuntimeOperationLabel] = useState("Working");
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<ResolvedSetting[]>([]);
   const [settingsScope, setSettingsScope] = useState<SettingScope>("global");
@@ -364,11 +365,14 @@ export default function App() {
     catch (value) { setError(friendlyError(value)); }
   };
 
-  const changeRuntime = async (runtime: RuntimeSummary) => {
+  const runRuntimeOperation = async (runtime: RuntimeSummary, action: "install" | "verify" | "update" | "remove") => {
     setRuntimeOperation(runtime.id);
+    setRuntimeOperationLabel(action === "install" ? "Installing" : action === "verify" ? "Verifying" : action === "update" ? "Updating" : "Removing");
     setError(null);
     try {
-      if (runtime.status === "ready") await window.learnLocal.runtimes.remove(runtime.id);
+      if (action === "verify") await window.learnLocal.runtimes.verify(runtime.id);
+      else if (action === "update") await window.learnLocal.runtimes.update(runtime.id);
+      else if (action === "remove") await window.learnLocal.runtimes.remove(runtime.id);
       else await window.learnLocal.runtimes.install(runtime.id);
       setRuntimes(await window.learnLocal.runtimes.list());
     } catch (value) {
@@ -383,6 +387,7 @@ export default function App() {
     const confirmed = window.confirm(`Remove ${runtime.displayName} and all ${runtime.language} courses, saved workspaces, attempts, hints, and progress from this device? This cannot be undone.`);
     if (!confirmed) return;
     setRuntimeOperation(runtime.id);
+    setRuntimeOperationLabel("Removing");
     setError(null);
     try {
       await window.learnLocal.runtimes.remove(runtime.id, true);
@@ -796,15 +801,17 @@ export default function App() {
                   <article className="runtime-card" key={runtime.id}>
                     <span className={`runtime-logo ${runtime.language}`}>{runtime.language === "java" ? "J" : "Py"}</span>
                     <div className="runtime-copy">
-                      <div><strong>{runtime.displayName}</strong><span className={`runtime-state ${runtime.status}`}>{busy ? (runtime.status === "ready" ? "Removing" : "Installing") : runtime.status.replace("-", " ")}</span></div>
+                      <div><strong>{runtime.displayName}</strong><span className={`runtime-state ${runtime.status}`}>{busy ? runtimeOperationLabel : runtime.status.replace("-", " ")}</span></div>
                       <p>Docker · {formatBytes(runtime.sizeBytes)} · {runtime.activeExecutions} active</p>
                       <small>{runtime.imageReference.slice(0, 48)}…</small>
                     </div>
-                    <button
-                      className={runtime.status === "ready" ? "runtime-remove" : "runtime-install"}
-                      disabled={Boolean(runtimeOperation)}
-                      onClick={() => void changeRuntime(runtime)}
-                    >{busy ? "Working…" : runtime.status === "ready" ? "Remove" : runtime.status === "broken" ? "Repair" : "Install"}</button>
+                    <div className="runtime-actions">
+                      {runtime.status === "ready" ? <>
+                        <button className="runtime-install" disabled={Boolean(runtimeOperation)} onClick={() => void runRuntimeOperation(runtime, "verify")}>Verify</button>
+                        <button className="runtime-install" disabled={Boolean(runtimeOperation)} onClick={() => void runRuntimeOperation(runtime, "update")}>Update</button>
+                        <button className="runtime-remove" disabled={Boolean(runtimeOperation)} onClick={() => void runRuntimeOperation(runtime, "remove")}>Remove</button>
+                      </> : <button className="runtime-install" disabled={Boolean(runtimeOperation)} onClick={() => void runRuntimeOperation(runtime, "install")}>{busy ? "Working…" : runtime.status === "broken" ? "Repair" : "Install"}</button>}
+                    </div>
                     {runtime.status === "ready" && <button className="runtime-remove-data" disabled={Boolean(runtimeOperation)} onClick={() => void removeRuntimeAndData(runtime)}>Remove all data</button>}
                   </article>
                 );
