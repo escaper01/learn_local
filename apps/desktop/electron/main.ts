@@ -13,6 +13,7 @@ import {
   IPC_CHANNELS,
   runRequestSchema,
   quizSubmitSchema,
+  runtimeRemoveRequestSchema,
   runtimeRequestSchema,
   settingMutationSchema,
   settingResetSchema,
@@ -143,8 +144,16 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC_CHANNELS.runtimesRemove, async (event, input: unknown) => {
     assertTrustedSender(event);
-    const { runtimeId } = runtimeRequestSchema.parse(input);
-    return docker.removeManagedRuntime(runtimeId);
+    const { runtimeId, removeLearningData } = runtimeRemoveRequestSchema.parse(input);
+    const removed = await docker.removeManagedRuntime(runtimeId);
+    if (removeLearningData) {
+      const language = runtimeId === "java-21" ? "java" : "python";
+      const courseRoot = join(app.getPath("userData"), "courses");
+      const matchingCourses = (await listImportedCourses(courseRoot)).filter((course) => course.language === language);
+      attempts?.removeLanguageLearningData(language, matchingCourses.map((course) => course.id));
+      await Promise.all(matchingCourses.map((course) => rm(join(courseRoot, course.id), { recursive: true, force: true })));
+    }
+    return removed;
   });
 
   ipcMain.handle(IPC_CHANNELS.settingsList, (event, input: unknown) => {
@@ -433,7 +442,18 @@ app.whenReady().then(async () => {
       }
     });
   });
-  attempts = new AttemptRepository(join(app.getPath("userData"), "learnlocal.sqlite"));
+  const userData = app.getPath("userData");
+  const installationIdPath = join(userData, "installation-id");
+  let installationId: string;
+  try {
+    const stored = (await readFile(installationIdPath, "utf8")).trim();
+    installationId = /^[a-f0-9-]{36}$/.test(stored) ? stored : randomUUID();
+  } catch {
+    installationId = randomUUID();
+  }
+  await writeFile(installationIdPath, installationId, "utf8");
+  docker.setInstallationId(installationId);
+  attempts = new AttemptRepository(join(userData, "learnlocal.sqlite"));
   registerIpc();
   await docker.cleanupOwnedResources();
   createWindow();

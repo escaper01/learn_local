@@ -48,4 +48,23 @@ describe("local database", () => {
       await rm(directory, { recursive: true, force: true });
     }
   });
+
+  it("removes only the selected language learning data", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-remove-"));
+    const repository = new AttemptRepository(join(directory, "test.sqlite"));
+    try {
+      repository.record("java-course:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000011"));
+      repository.record("python-course:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000012"));
+      repository.writeWorkspaceFiles("java-course@1.0.0:exercise", [{ path: "Main.java", content: "class Main {}" }]);
+      repository.writeWorkspaceFiles("python-course@1.0.0:exercise", [{ path: "main.py", content: "pass" }]);
+      repository.removeLanguageLearningData("java", ["java-course"]);
+      expect(repository.isExerciseCompleted("java-course:exercise")).toBe(false);
+      expect(repository.isExerciseCompleted("python-course:exercise")).toBe(true);
+      expect(repository.readWorkspaceFiles("java-course@1.0.0:exercise")).toEqual([]);
+      expect(repository.readWorkspaceFiles("python-course@1.0.0:exercise")).toHaveLength(1);
+    } finally {
+      repository.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
 });

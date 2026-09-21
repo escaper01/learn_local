@@ -54,6 +54,12 @@ export class DockerProvider implements SandboxProvider {
   private readonly cancelledExecutions = new Set<string>();
   private readonly runtimeStates = new Map<RuntimeSummary["id"], RuntimeSummary["status"]>();
   private readonly validationDates = new Map<RuntimeSummary["id"], string>();
+  private installationLabel: string = OWNERSHIP_LABELS.installation;
+
+  setInstallationId(installationId: string): void {
+    if (!/^[a-f0-9-]{36}$/.test(installationId)) throw new AppError("INSTALLATION_ID_INVALID", "system", "The local installation identifier is invalid.");
+    this.installationLabel = `com.learnlocal.installation=${installationId}`;
+  }
 
   async detect(): Promise<ProviderStatus> {
     const result = await this.capture(["version", "--format", "{{.Server.Version}}"], {
@@ -138,7 +144,7 @@ export class DockerProvider implements SandboxProvider {
     const owned = await this.capture([
       "ps", "-aq",
       "--filter", `label=${OWNERSHIP_LABELS.managed}`,
-      "--filter", `label=${OWNERSHIP_LABELS.installation}`,
+      "--filter", `label=${this.installationLabel}`,
       "--filter", `label=com.learnlocal.runtime=${runtime.id}`
     ], { timeoutMs: 5_000, maxOutputBytes: 64_000 });
     const containerIds = owned.stdout.split(/\r?\n/).filter(Boolean);
@@ -170,7 +176,7 @@ export class DockerProvider implements SandboxProvider {
         "--filter",
         `label=${OWNERSHIP_LABELS.managed}`,
         "--filter",
-        `label=${OWNERSHIP_LABELS.installation}`
+        `label=${this.installationLabel}`
       ],
       { timeoutMs: 5_000, maxOutputBytes: 64_000 }
     );
@@ -201,7 +207,7 @@ export class DockerProvider implements SandboxProvider {
       "--label",
       OWNERSHIP_LABELS.managed,
       "--label",
-      OWNERSHIP_LABELS.installation,
+      this.installationLabel,
       "--label",
       `com.learnlocal.runtime=${request.runtimeId}`,
       "--label",
@@ -258,7 +264,8 @@ export class DockerProvider implements SandboxProvider {
         status: transient,
         imageReference: runtime.approvedReference,
         sizeBytes: null,
-        lastValidatedAt: this.validationDates.get(runtime.id) ?? null
+        lastValidatedAt: this.validationDates.get(runtime.id) ?? null,
+        activeExecutions: this.activeContainers.size
       };
     }
     const inspected = await this.capture(["image", "inspect", runtime.localReference, "--format", "{{json .Size}}"], { timeoutMs: 5_000, maxOutputBytes: 8_192 });
@@ -272,7 +279,8 @@ export class DockerProvider implements SandboxProvider {
       status: inspected.exitCode === 0 && Number.isFinite(size) ? "ready" : "not-installed",
       imageReference: runtime.approvedReference,
       sizeBytes: Number.isFinite(size) ? size : null,
-      lastValidatedAt: this.validationDates.get(runtime.id) ?? null
+      lastValidatedAt: this.validationDates.get(runtime.id) ?? null,
+      activeExecutions: [...this.activeContainers.values()].filter((containers) => containers.size > 0).length
     };
   }
 
@@ -281,7 +289,7 @@ export class DockerProvider implements SandboxProvider {
     const smoke = await this.capture([
       "run", "--name", name,
       "--label", OWNERSHIP_LABELS.managed,
-      "--label", OWNERSHIP_LABELS.installation,
+      "--label", this.installationLabel,
       "--label", `com.learnlocal.runtime=${runtime.id}`,
       "--network", "none",
       "--memory", "128m",

@@ -89,12 +89,14 @@ export interface RuntimeSummary {
   imageReference: string;
   sizeBytes: number | null;
   lastValidatedAt: string | null;
+  activeExecutions: number;
   message?: string;
 }
 
 export const runtimeRequestSchema = z
   .object({ runtimeId: z.enum(["java-21", "python-3"]) })
   .strict();
+export const runtimeRemoveRequestSchema = runtimeRequestSchema.extend({ removeLearningData: z.boolean().default(false) }).strict();
 
 export type SettingValue = string | number | boolean;
 export type SettingScope = "global" | "language" | "course";
@@ -271,7 +273,7 @@ export interface LearnLocalApi {
   runtimes: {
     list(): Promise<RuntimeSummary[]>;
     install(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
-    remove(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
+    remove(runtimeId: RuntimeSummary["id"], removeLearningData?: boolean): Promise<RuntimeSummary>;
   };
   settings: {
     list(context?: { language?: "java" | "python"; courseId?: string }): Promise<ResolvedSetting[]>;

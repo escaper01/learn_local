@@ -152,6 +152,26 @@ export class AttemptRepository {
     }
   }
 
+  removeLanguageLearningData(language: "java" | "python", courseIds: readonly string[]): void {
+    const exercisePatterns = courseIds.map((courseId) => `${courseId}:%`);
+    const builtInExercise = language === "java" ? "java-arrays-sum" : "python-lists-sum";
+    const clauses = ["exercise_id = ?", ...exercisePatterns.map(() => "exercise_id LIKE ? ESCAPE '\\'")].join(" OR ");
+    const values = [builtInExercise, ...exercisePatterns];
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.database.prepare(`DELETE FROM hint_reveals WHERE ${clauses}`).run(...values);
+      this.database.prepare(`DELETE FROM quiz_attempts WHERE ${clauses}`).run(...values);
+      this.database.prepare(`DELETE FROM exercise_progress WHERE ${clauses}`).run(...values);
+      this.database.prepare(`DELETE FROM exercise_attempts WHERE ${clauses}`).run(...values);
+      this.database.prepare("DELETE FROM workspace_files WHERE workspace_id = ?").run(`builtin-${language}`);
+      for (const courseId of courseIds) this.database.prepare("DELETE FROM workspace_files WHERE workspace_id LIKE ? ESCAPE '\\'").run(`${courseId}@%`);
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   learningSummary(): LearningSummary {
     const totals = this.database.prepare(`
       SELECT COUNT(*) AS total_attempts,

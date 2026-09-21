@@ -15,7 +15,7 @@ const api: LearnLocalApi = {
   runtimes: {
     list: () => ipcRenderer.invoke(IPC_CHANNELS.runtimesList),
     install: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesInstall, { runtimeId }),
-    remove: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesRemove, { runtimeId })
+    remove: (runtimeId, removeLearningData = false) => ipcRenderer.invoke(IPC_CHANNELS.runtimesRemove, { runtimeId, removeLearningData })
   },
   settings: {
     list: (context = {}) => ipcRenderer.invoke(IPC_CHANNELS.settingsList, context),

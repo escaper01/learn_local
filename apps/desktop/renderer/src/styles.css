@@ -459,3 +459,5 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .onboarding-modal > p { color: #65736b; }
 :root[data-theme="light"] .onboarding-points span { color: #435149; background: #edf3f0; }
 :root[data-theme="light"] .onboarding-languages button, :root[data-theme="light"] .onboarding-status { color: #34433b; border-color: #d6e0da; background: #f5f8f6; }
+.runtime-remove-data { grid-column: 2 / -1; justify-self: end; padding: 3px 0; border: 0; color: #d68b83; background: transparent; font-size: 8px; text-decoration: underline; cursor: pointer; }
+:root[data-theme="light"] .runtime-remove-data { color: #a34b45; }

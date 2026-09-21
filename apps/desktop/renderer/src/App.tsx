@@ -305,6 +305,21 @@ export default function App() {
     }
   };
 
+  const removeRuntimeAndData = async (runtime: RuntimeSummary) => {
+    const confirmed = window.confirm(`Remove ${runtime.displayName} and all ${runtime.language} courses, saved workspaces, attempts, hints, and progress from this device? This cannot be undone.`);
+    if (!confirmed) return;
+    setRuntimeOperation(runtime.id);
+    setError(null);
+    try {
+      await window.learnLocal.runtimes.remove(runtime.id, true);
+      setRuntimes(await window.learnLocal.runtimes.list());
+      setCourses(await window.learnLocal.courses.list());
+      setLearningSummary(await window.learnLocal.progress.summary());
+      if (activeCourse?.summary.language === runtime.language) switchLanguage(runtime.language === "java" ? "python" : "java");
+    } catch (value) { setError(friendlyError(value)); }
+    finally { setRuntimeOperation(null); }
+  };
+
   const switchLanguage = (next: "java" | "python") => {
     if (next === language || activeAction) return;
     setLanguage(next);
@@ -659,7 +674,7 @@ export default function App() {
                     <span className={`runtime-logo ${runtime.language}`}>{runtime.language === "java" ? "J" : "Py"}</span>
                     <div className="runtime-copy">
                       <div><strong>{runtime.displayName}</strong><span className={`runtime-state ${runtime.status}`}>{busy ? (runtime.status === "ready" ? "Removing" : "Installing") : runtime.status.replace("-", " ")}</span></div>
-                      <p>Docker · {formatBytes(runtime.sizeBytes)}</p>
+                      <p>Docker · {formatBytes(runtime.sizeBytes)} · {runtime.activeExecutions} active</p>
                       <small>{runtime.imageReference.slice(0, 48)}…</small>
                     </div>
                     <button
@@ -667,6 +682,7 @@ export default function App() {
                       disabled={Boolean(runtimeOperation)}
                       onClick={() => void changeRuntime(runtime)}
                     >{busy ? "Working…" : runtime.status === "ready" ? "Remove" : runtime.status === "broken" ? "Repair" : "Install"}</button>
+                    {runtime.status === "ready" && <button className="runtime-remove-data" disabled={Boolean(runtimeOperation)} onClick={() => void removeRuntimeAndData(runtime)}>Remove all data</button>}
                   </article>
                 );
               })}
