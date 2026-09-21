@@ -7,9 +7,16 @@ export const runRequestSchema = z
   .object({
     action: executionActionSchema,
     language: z.enum(["java", "python"]),
-    sourceCode: z.string().min(1).max(100_000)
+    sourceCode: z.string().min(1).max(100_000),
+    courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional(),
+    courseVersion: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/).optional(),
+    exerciseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional()
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    const count = [value.courseId, value.courseVersion, value.exerciseId].filter(Boolean).length;
+    if (count !== 0 && count !== 3) context.addIssue({ code: "custom", message: "Course id, version, and exercise id must be provided together." });
+  });
 
 export type RunRequest = z.infer<typeof runRequestSchema>;
 
@@ -175,6 +182,34 @@ export interface ImportedCourseSummary {
   importedAt: string;
 }
 
+export interface CourseView {
+  summary: ImportedCourseSummary;
+  modules: Array<{
+    id: string;
+    title: string;
+    lessons: Array<{
+      id: string;
+      title: string;
+      theoryMarkdown: string;
+      exercises: Array<{
+        id: string;
+        type: string;
+        title: string;
+        instructionMarkdown: string;
+        starterFiles: Array<{ path: string; content: string }>;
+        hints: string[];
+        publicTestCount: number;
+        hiddenTestCount: number;
+      }>;
+    }>;
+  }>;
+}
+
+export const courseOpenSchema = z.object({
+  courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+  version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/)
+}).strict();
+
 export type CourseImportResult =
   | { status: "cancelled" }
   | { status: "imported"; course: ImportedCourseSummary; warnings: ValidationIssue[] };
@@ -190,6 +225,7 @@ export interface LearnLocalApi {
   courses: {
     importPack(): Promise<CourseImportResult>;
     list(): Promise<ImportedCourseSummary[]>;
+    open(courseId: string, version: string): Promise<CourseView>;
   };
   runtimes: {
     list(): Promise<RuntimeSummary[]>;
@@ -230,6 +266,7 @@ export type ExecutionFinishedEvent =
 export const IPC_CHANNELS = {
   coursesImport: "courses:import",
   coursesList: "courses:list",
+  coursesOpen: "courses:open",
   runtimesList: "runtimes:list",
   runtimesInstall: "runtimes:install",
   runtimesRemove: "runtimes:remove",

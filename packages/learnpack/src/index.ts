@@ -3,7 +3,7 @@ import { join } from "node:path";
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import yauzl, { type Entry, type ZipFile } from "yauzl";
-import { AppError, type ImportedCourseSummary, type ValidationIssue } from "@learnlocal/contracts";
+import { AppError, type CourseView, type ImportedCourseSummary, type ValidationIssue } from "@learnlocal/contracts";
 import manifestSchema from "../schema/manifest.schema.json";
 import moduleSchema from "../schema/module.schema.json";
 
@@ -41,7 +41,7 @@ export interface LearnPackExercise {
   title: string;
   instructionMarkdown: string;
   starterFiles?: Array<{ path: string; content: string }>;
-  tests?: Array<{ id: string; visibility: "public" | "hidden"; expected: unknown }>;
+  tests?: Array<{ id: string; visibility: "public" | "hidden"; arguments?: unknown[]; input?: string; expected: unknown; comparison?: string }>;
   hints?: string[];
   limits?: { timeoutMs?: number; memoryMb?: number; maxOutputKb?: number };
 }
@@ -63,6 +63,7 @@ export interface LearnPackModule {
 export interface ValidatedLearnPack {
   manifest: LearnPackManifest;
   modules: LearnPackModule[];
+  projects: Record<string, unknown>;
   summary: ImportedCourseSummary;
   warnings: ValidationIssue[];
 }
@@ -242,8 +243,10 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
       }
     }
   }
+  const projects: Record<string, unknown> = {};
   for (const projectPath of manifest.projects) {
     if (!entries.has(projectPath)) issues.push({ code: "PACK_REFERENCE_MISSING", severity: "error", file: "manifest.json", path: "/projects", message: `Referenced project does not exist: ${projectPath}` });
+    else projects[projectPath] = entries.get(projectPath);
   }
   if (issues.some((issue) => issue.severity === "error")) {
     throw new AppError("PACK_SEMANTIC_INVALID", "validation", "LearnPack contains semantic validation errors.", { issues });
@@ -264,7 +267,7 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
     exerciseCount: lessons.reduce((total, lesson) => total + lesson.exercises.length, 0),
     importedAt
   };
-  return { manifest, modules, summary, warnings: issues.filter((issue) => issue.severity === "warning") };
+  return { manifest, modules, projects, summary, warnings: issues.filter((issue) => issue.severity === "warning") };
 }
 
 export async function inspectLearnPack(path: string): Promise<ValidatedLearnPack> {
@@ -302,4 +305,43 @@ export async function listImportedCourses(libraryDirectory: string): Promise<Imp
     }
   }
   return summaries.sort((left, right) => right.importedAt.localeCompare(left.importedAt));
+}
+
+export async function loadImportedCourse(libraryDirectory: string, courseId: string, version: string): Promise<ValidatedLearnPack> {
+  const path = join(libraryDirectory, courseId, `${version}.course.json`);
+  try {
+    const stored = JSON.parse(await readFile(path, "utf8")) as ValidatedLearnPack;
+    const entries = new Map<string, unknown>([["manifest.json", stored.manifest]]);
+    stored.manifest.modules.forEach((modulePath, index) => entries.set(modulePath, stored.modules[index]));
+    Object.entries(stored.projects ?? {}).forEach(([projectPath, project]) => entries.set(projectPath, project));
+    return validateLearnPackContent(entries, stored.summary.importedAt);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("COURSE_NOT_FOUND", "validation", "The requested imported course version is unavailable.");
+  }
+}
+
+export function toCourseView(pack: ValidatedLearnPack): CourseView {
+  return {
+    summary: pack.summary,
+    modules: pack.modules.map((module) => ({
+      id: module.id,
+      title: module.title,
+      lessons: module.lessons.map((lesson) => ({
+        id: lesson.id,
+        title: lesson.title,
+        theoryMarkdown: lesson.theoryMarkdown,
+        exercises: lesson.exercises.map((exercise) => ({
+          id: exercise.id,
+          type: exercise.type,
+          title: exercise.title,
+          instructionMarkdown: exercise.instructionMarkdown,
+          starterFiles: exercise.starterFiles ?? [],
+          hints: exercise.hints ?? [],
+          publicTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "public").length,
+          hiddenTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "hidden").length
+        }))
+      }))
+    }))
+  };
 }

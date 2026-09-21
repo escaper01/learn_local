@@ -5,6 +5,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } f
 import {
   AppError,
   cancelRequestSchema,
+  courseOpenSchema,
   coursePromptRequestSchema,
   IPC_CHANNELS,
   runRequestSchema,
@@ -18,7 +19,7 @@ import {
   type ExecutionFinishedEvent
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
-import { importLearnPack, listImportedCourses } from "@learnlocal/learnpack";
+import { importLearnPack, listImportedCourses, loadImportedCourse, toCourseView } from "@learnlocal/learnpack";
 import { EXECUTION_POLICY } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
@@ -93,6 +94,12 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.coursesList, async (event) => {
     assertTrustedSender(event);
     return listImportedCourses(join(app.getPath("userData"), "courses"));
+  });
+
+  ipcMain.handle(IPC_CHANNELS.coursesOpen, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { courseId, version } = courseOpenSchema.parse(input);
+    return toCourseView(await loadImportedCourse(join(app.getPath("userData"), "courses"), courseId, version));
   });
 
   ipcMain.handle(IPC_CHANNELS.runtimesList, async (event) => {
@@ -204,24 +211,42 @@ function registerIpc(): void {
         const startedAt = Date.now();
         let result;
         let exerciseId: string;
+        let importedTests: Array<{ id: string; visibility: "public" | "hidden"; arguments: number[]; expected: number }> | undefined;
+        if (request.courseId && request.courseVersion && request.exerciseId) {
+          const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.courseVersion);
+          if (pack.manifest.course.language !== request.language) throw new AppError("PACK_LANGUAGE_MISMATCH", "validation", "The requested exercise does not match the selected language.");
+          const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
+          if (!exercise) throw new AppError("EXERCISE_NOT_FOUND", "validation", "The requested exercise is unavailable.");
+          if (exercise.type !== "function") throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This prototype runner currently executes imported function exercises.");
+          importedTests = (exercise.tests ?? [])
+            .filter((test) => request.action === "submit" || test.visibility === "public")
+            .map((test) => {
+              const values = test.arguments?.[0];
+              if (!Array.isArray(values) || !values.every((value) => typeof value === "number") || typeof test.expected !== "number") {
+                throw new AppError("EXERCISE_TYPES_UNSUPPORTED", "validation", "This adapter currently supports one numeric array/list argument and a numeric result.");
+              }
+              return { id: test.id, visibility: test.visibility, arguments: values, expected: test.expected };
+            });
+          exerciseId = `${request.courseId}:${exercise.id}`;
+        } else {
+          exerciseId = request.language === "java" ? SUM_EXERCISE.id : PYTHON_SUM_EXERCISE.id;
+        }
         if (request.language === "java") {
-          const tests = request.action === "submit"
+          const tests = importedTests ?? (request.action === "submit"
             ? [...SUM_EXERCISE.publicTests, ...SUM_EXERCISE.hiddenTests]
-            : SUM_EXERCISE.publicTests;
+            : SUM_EXERCISE.publicTests);
           const workspace = await java21Adapter.buildWorkspace(request.sourceCode, tests);
           workspaceDirectory = workspace.directory;
           const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
           result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
-          exerciseId = SUM_EXERCISE.id;
         } else {
-          const tests = request.action === "submit"
+          const tests = importedTests ?? (request.action === "submit"
             ? [...PYTHON_SUM_EXERCISE.publicTests, ...PYTHON_SUM_EXERCISE.hiddenTests]
-            : PYTHON_SUM_EXERCISE.publicTests;
+            : PYTHON_SUM_EXERCISE.publicTests);
           const workspace = await python3Adapter.buildWorkspace(request.sourceCode, tests);
           workspaceDirectory = workspace.directory;
           const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: EXECUTION_POLICY });
           result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);
-          exerciseId = PYTHON_SUM_EXERCISE.id;
         }
         attempts?.record(exerciseId, request.action, result);
         if (!sender.isDestroyed()) {
