@@ -71,6 +71,46 @@ function formatBytes(value: number | null): string {
   return `${amount.toFixed(unit > 1 ? 1 : 0)} ${units[unit]}`;
 }
 
+function inlineMarkdown(text: string) {
+  return text.split(/(`[^`]+`)/g).filter(Boolean).map((part, index) => part.startsWith("`") && part.endsWith("`") ? <code key={index}>{part.slice(1, -1)}</code> : part);
+}
+
+function SafeMarkdown({ value, className = "" }: { value: string; className?: string }) {
+  const lines = value.replaceAll("\r\n", "\n").split("\n");
+  const blocks = [];
+  for (let index = 0; index < lines.length;) {
+    const line = lines[index] ?? "";
+    if (!line.trim()) { index += 1; continue; }
+    if (line.trim().startsWith("```")) {
+      const language = line.trim().slice(3);
+      const code: string[] = [];
+      index += 1;
+      while (index < lines.length && !lines[index]!.trim().startsWith("```")) { code.push(lines[index]!); index += 1; }
+      index += index < lines.length ? 1 : 0;
+      blocks.push(<pre key={`code-${index}`}><code data-language={language || undefined}>{code.join("\n")}</code></pre>);
+      continue;
+    }
+    const heading = /^(#{1,3})\s+(.+)$/.exec(line.trim());
+    if (heading) {
+      const content = inlineMarkdown(heading[2]!);
+      blocks.push(heading[1]!.length === 1 ? <h2 key={`heading-${index}`}>{content}</h2> : <h3 key={`heading-${index}`}>{content}</h3>);
+      index += 1;
+      continue;
+    }
+    if (/^[-*]\s+/.test(line.trim())) {
+      const items = [];
+      while (index < lines.length && /^[-*]\s+/.test(lines[index]!.trim())) { items.push(lines[index]!.trim().replace(/^[-*]\s+/, "")); index += 1; }
+      blocks.push(<ul key={`list-${index}`}>{items.map((item, itemIndex) => <li key={itemIndex}>{inlineMarkdown(item)}</li>)}</ul>);
+      continue;
+    }
+    const paragraph = [line.trim()];
+    index += 1;
+    while (index < lines.length && lines[index]!.trim() && !/^(#{1,3})\s+|^[-*]\s+|^```/.test(lines[index]!.trim())) { paragraph.push(lines[index]!.trim()); index += 1; }
+    blocks.push(<p key={`paragraph-${index}`}>{inlineMarkdown(paragraph.join(" "))}</p>);
+  }
+  return <div className={`safe-markdown ${className}`.trim()}>{blocks}</div>;
+}
+
 function StatusDot({ status }: { status: ProviderStatus | undefined }) {
   const className = status?.available ? "status-dot ready" : "status-dot unavailable";
   return (
@@ -568,15 +608,15 @@ export default function App() {
 
         <div className="lesson-grid">
           <article className="lesson-pane">
-            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={`${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => void selectCourseExercise(lesson, exercise)}>{exercise.completed ? "✓" : exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : exercise.type === "project" ? "◆" : "›"} {exercise.title}</button>)}</div>)}{activeCourse.projects.length > 0 && <div className="project-milestones"><span>Project milestones</span>{activeCourse.projects.map((project) => <article key={project.id}><strong>{project.title}</strong><small>{project.checkpointExerciseIds.filter((id) => courseExercises.find((exercise) => exercise.id === id)?.completed).length} / {project.checkpointExerciseIds.length} checkpoints</small><p>{project.descriptionMarkdown}</p></article>)}</div>}</div>}
+            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={`${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => void selectCourseExercise(lesson, exercise)}>{exercise.completed ? "✓" : exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : exercise.type === "project" ? "◆" : "›"} {exercise.title}</button>)}</div>)}{activeCourse.projects.length > 0 && <div className="project-milestones"><span>Project milestones</span>{activeCourse.projects.map((project) => <article key={project.id}><strong>{project.title}</strong><small>{project.checkpointExerciseIds.filter((id) => courseExercises.find((exercise) => exercise.id === id)?.completed).length} / {project.checkpointExerciseIds.length} checkpoints</small><SafeMarkdown value={project.descriptionMarkdown}/></article>)}</div>}</div>}
             <div className="eyebrow">{(activeImportedExercise?.type ?? "function").toUpperCase()} EXERCISE · {language === "java" ? "JAVA 21" : "PYTHON 3.13"}</div>
             <h1>{activeImportedExercise?.title ?? `Sum ${language === "java" ? "an Array" : "a List"}`}</h1>
-            <p className="lede">{activeImportedExercise?.instructionMarkdown ?? `Practice traversing ${language === "java" ? "an array" : "a list"} and carrying a result through each iteration.`}</p>
+            <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? `Practice traversing ${language === "java" ? "an array" : "a list"} and carrying a result through each iteration.`}/>
             <div className="concept-card">
               <span className="concept-icon">∑</span>
-              <div><strong>{activeLesson?.title ?? "The accumulator pattern"}</strong><p>{activeLesson?.theoryMarkdown ?? "Start with a neutral value, update it once per element, then return the final result."}</p></div>
+              <div><strong>{activeLesson?.title ?? "The accumulator pattern"}</strong><SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Start with a neutral value, update it once per element, then return the final result."}/></div>
             </div>
-            {activeImportedExercise?.type !== "multipleChoice" && <><h2>Your task</h2>
+            {!activeImportedExercise && <><h2>Your task</h2>
             <p>Complete <code>{language === "java" ? "sum" : "sum_values"}</code> so it returns the total of every number in <code>values</code>.</p>
             <ul>
               <li>An empty array should return <code>0</code>.</li>
@@ -590,7 +630,7 @@ export default function App() {
 
           {activeImportedExercise?.type === "multipleChoice" ? (
             <section className="quiz-pane">
-              <div className="quiz-heading"><span>CONCEPT CHECK</span><strong>{activeImportedExercise.title}</strong><p>{activeImportedExercise.instructionMarkdown}</p></div>
+              <div className="quiz-heading"><span>CONCEPT CHECK</span><strong>{activeImportedExercise.title}</strong><SafeMarkdown value={activeImportedExercise.instructionMarkdown}/></div>
               <div className="quiz-choices">{activeImportedExercise.choices?.map((choice, index) => <button key={choice} className={`${selectedChoice === index ? "selected" : ""} ${quizCorrect !== null && selectedChoice === index ? quizCorrect ? "correct" : "incorrect" : ""}`} disabled={quizCorrect === true} onClick={() => { setSelectedChoice(index); setQuizCorrect(null); }}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
               {quizCorrect !== null && <div className={`quiz-feedback ${quizCorrect ? "correct" : "incorrect"}`}><strong>{quizCorrect ? "Correct" : "Not quite"}</strong><p>{quizCorrect ? "Concept check completed. Your progress was saved." : "Review the lesson and try another answer."}</p></div>}
               <div className="quiz-actions"><button className="submit-button" disabled={selectedChoice === null || quizCorrect === true} onClick={() => void submitQuiz()}>{quizCorrect === false ? "Try again" : "Check answer"}</button></div>

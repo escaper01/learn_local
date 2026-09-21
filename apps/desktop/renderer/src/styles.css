@@ -497,3 +497,15 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .mastery-row { border-top-color: #dce4e0; }
 :root[data-theme="light"] .mastery-row p strong { color: #435149; }
 :root[data-theme="light"] .mastery-row > div { background: #e1e8e4; }
+.safe-markdown p { margin: 0 0 9px; white-space: normal; }
+.safe-markdown p:last-child { margin-bottom: 0; }
+.safe-markdown h2, .safe-markdown h3 { margin: 15px 0 7px; color: #dce5df; }
+.safe-markdown h2 { font-size: 14px; }
+.safe-markdown h3 { font-size: 12px; }
+.safe-markdown ul { margin: 8px 0; padding-left: 20px; }
+.safe-markdown pre { overflow: auto; margin: 9px 0; padding: 10px; border: 1px solid #2c3932; border-radius: 7px; color: #b8e8cc; background: #0b110e; font: 10px/1.55 "Cascadia Code", Consolas, monospace; }
+.safe-markdown code { color: #8ce6b2; font-family: "Cascadia Code", Consolas, monospace; }
+.project-milestones .safe-markdown { margin-top: 6px; color: #89968f; font-size: 9px; line-height: 1.45; }
+:root[data-theme="light"] .safe-markdown h2, :root[data-theme="light"] .safe-markdown h3 { color: #2c3d34; }
+:root[data-theme="light"] .safe-markdown pre { color: #256743; border-color: #d6e0da; background: #edf3f0; }
+:root[data-theme="light"] .safe-markdown code { color: #247045; }
