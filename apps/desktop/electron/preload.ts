@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import {
   IPC_CHANNELS,
   type ExecutionFinishedEvent,
+  type ExecutionProgressEvent,
   type LearnLocalApi,
   type RunRequest
 } from "@learnlocal/contracts";
@@ -52,6 +53,11 @@ const api: LearnLocalApi = {
       const handler = (_event: Electron.IpcRendererEvent, value: ExecutionFinishedEvent) => listener(value);
       ipcRenderer.on(IPC_CHANNELS.executionFinished, handler);
       return () => ipcRenderer.removeListener(IPC_CHANNELS.executionFinished, handler);
+    },
+    onProgress: (listener) => {
+      const handler = (_event: Electron.IpcRendererEvent, value: ExecutionProgressEvent) => listener(value);
+      ipcRenderer.on(IPC_CHANNELS.executionProgress, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.executionProgress, handler);
     }
   }
 };

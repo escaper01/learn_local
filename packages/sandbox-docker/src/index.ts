@@ -77,6 +77,7 @@ export class DockerProvider implements SandboxProvider {
   }
 
   async execute(request: SandboxExecutionRequest): Promise<RawSandboxResult> {
+    request.onPhase?.("preparing");
     const status = await this.detect();
     if (!status.available) {
       throw new AppError("PROVIDER_NOT_RUNNING", "runtime", status.message);
@@ -88,6 +89,7 @@ export class DockerProvider implements SandboxProvider {
     const runName = this.containerName(request.executionId, "run");
 
     try {
+      request.onPhase?.("compiling");
       const compile = await this.runContainer(
         request,
         compileName,
@@ -96,6 +98,7 @@ export class DockerProvider implements SandboxProvider {
       );
       if (compile.exitCode !== 0 || compile.timedOut || compile.cancelled) return { compile };
 
+      request.onPhase?.("running");
       const run = await this.runContainer(
         request,
         runName,
@@ -104,6 +107,7 @@ export class DockerProvider implements SandboxProvider {
       );
       return { compile, run };
     } finally {
+      request.onPhase?.("cleaning");
       await Promise.allSettled([
         this.removeContainer(compileName),
         this.removeContainer(runName)

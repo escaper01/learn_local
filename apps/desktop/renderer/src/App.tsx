@@ -180,6 +180,7 @@ export default function App() {
   const [error, setError] = useState<AppErrorShape | null>(null);
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
   const [activeAction, setActiveAction] = useState<"run" | "submit" | null>(null);
+  const [executionPhase, setExecutionPhase] = useState("Preparing an isolated workspace…");
   const activeRef = useRef<string | null>(null);
   const activeActionRef = useRef<"run" | "submit" | null>(null);
   const activeCourseRef = useRef<CourseView | null>(null);
@@ -195,7 +196,10 @@ export default function App() {
     void window.learnLocal.environment.status().then(setProvider).catch((value) => setError(friendlyError(value)));
     void window.learnLocal.courses.list().then(setCourses).catch((value) => setError(friendlyError(value)));
     void window.learnLocal.progress.summary().then(setLearningSummary).catch((value) => setError(friendlyError(value)));
-    return window.learnLocal.execution.onFinished((event) => {
+    const stopProgress = window.learnLocal.execution.onProgress((event) => {
+      if (event.executionId === activeRef.current) setExecutionPhase(event.message);
+    });
+    const stopFinished = window.learnLocal.execution.onFinished((event) => {
       if (event.executionId !== activeRef.current) return;
       if ("result" in event) {
         setResult(event.result);
@@ -216,6 +220,7 @@ export default function App() {
       setActiveExecution(null);
       setActiveAction(null);
     });
+    return () => { stopProgress(); stopFinished(); };
   }, []);
 
   useEffect(() => { activeCourseRef.current = activeCourse; }, [activeCourse]);
@@ -253,6 +258,7 @@ export default function App() {
     setResult(null);
     setError(null);
     setActiveAction(action);
+    setExecutionPhase("Preparing an isolated workspace…");
     activeActionRef.current = action;
     try {
       const courseReference = activeCourse && activeImportedExercise ? { courseId: activeCourse.summary.id, courseVersion: activeCourse.summary.version, exerciseId: activeImportedExercise.id } : {};
@@ -638,7 +644,7 @@ export default function App() {
 
             <section className="results-pane">
               <div className="results-header"><strong>Test results</strong><span>{activeAction ? `${activeAction === "run" ? "Running public tests" : "Checking all tests"}…` : result ? result.status : "No run yet"}</span></div>
-              {activeAction ? <div className="running-state"><span className="spinner"/><strong>Preparing an isolated {language === "java" ? "Java" : "Python"} workspace…</strong><p>The first run can take longer while Docker downloads the pinned runtime.</p></div> : <ResultPanel result={result} error={error} />}
+              {activeAction ? <div className="running-state"><span className="spinner"/><strong>{executionPhase}</strong><p>The first run can take longer while Docker downloads the pinned runtime.</p></div> : <ResultPanel result={result} error={error} />}
             </section>
           </section>
           )}

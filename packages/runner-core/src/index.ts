@@ -77,6 +77,7 @@ export interface SandboxExecutionRequest {
     pidsLimit: number;
     cpus: number;
   };
+  onPhase?: (phase: "preparing" | "compiling" | "running" | "cleaning") => void;
 }
 
 export interface SandboxProvider {

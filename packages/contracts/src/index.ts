@@ -308,12 +308,19 @@ export interface LearnLocalApi {
     start(request: RunRequest): Promise<{ executionId: string }>;
     cancel(executionId: string): Promise<void>;
     onFinished(listener: (event: ExecutionFinishedEvent) => void): () => void;
+    onProgress(listener: (event: ExecutionProgressEvent) => void): () => void;
   };
 }
 
 export type ExecutionFinishedEvent =
   | { executionId: string; result: ExecutionResult }
   | { executionId: string; error: AppErrorShape };
+
+export interface ExecutionProgressEvent {
+  executionId: string;
+  phase: "preparing" | "compiling" | "running" | "cleaning";
+  message: string;
+}
 
 export const IPC_CHANNELS = {
   coursesImport: "courses:import",
@@ -339,7 +346,8 @@ export const IPC_CHANNELS = {
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",
-  executionFinished: "execution:finished"
+  executionFinished: "execution:finished",
+  executionProgress: "execution:progress"
 } as const;
 
 export class AppError extends Error {

@@ -319,6 +319,13 @@ function registerIpc(): void {
     void (async () => {
       let workspaceDirectory: string | undefined;
       try {
+        const reportPhase = (phase: "preparing" | "compiling" | "running" | "cleaning") => {
+          if (!sender.isDestroyed()) sender.send(IPC_CHANNELS.executionProgress, {
+            executionId,
+            phase,
+            message: phase === "preparing" ? "Preparing the approved runtime" : phase === "compiling" ? "Compiling and validating source files" : phase === "running" ? "Running tests in the isolated container" : "Removing the disposable container"
+          });
+        };
         const startedAt = Date.now();
         let result;
         let exerciseId: string;
@@ -381,7 +388,7 @@ function registerIpc(): void {
           if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
             const workspace = await java21Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
             workspaceDirectory = workspace.directory;
-            const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits });
+            const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
             result = java21Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
           } else {
           const tests = importedTests ?? (request.action === "submit"
@@ -389,14 +396,14 @@ function registerIpc(): void {
             : SUM_EXERCISE.publicTests);
           const workspace = await java21Adapter.buildWorkspace(executionSource, tests, importedEntrypoint, importedSourceFiles);
           workspaceDirectory = workspace.directory;
-          const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits });
+          const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
           result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
           }
         } else {
           if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
             const workspace = await python3Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
             workspaceDirectory = workspace.directory;
-            const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits });
+            const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
             result = python3Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
           } else {
           const tests = importedTests ?? (request.action === "submit"
@@ -404,7 +411,7 @@ function registerIpc(): void {
             : PYTHON_SUM_EXERCISE.publicTests);
           const workspace = await python3Adapter.buildWorkspace(executionSource, tests, importedEntrypoint, importedSourceFiles);
           workspaceDirectory = workspace.directory;
-          const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits });
+          const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
           result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);
           }
         }
