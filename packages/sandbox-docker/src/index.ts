@@ -1,6 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { basename } from "node:path";
-import { AppError, type ProviderStatus } from "@learnlocal/contracts";
+import { AppError, type ProviderStatus, type RuntimeSummary } from "@learnlocal/contracts";
 import {
   OWNERSHIP_LABELS,
   type RawProcessResult,
@@ -15,11 +16,44 @@ interface ProcessCaptureOptions {
   executionId?: string;
 }
 
+interface RuntimeDefinition {
+  id: RuntimeSummary["id"];
+  language: RuntimeSummary["language"];
+  displayName: string;
+  version: string;
+  approvedReference: string;
+  localReference: string;
+  smokeCommand: readonly string[];
+}
+
+export const RUNTIME_CATALOG: readonly RuntimeDefinition[] = Object.freeze([
+  {
+    id: "java-21",
+    language: "java",
+    displayName: "Java 21",
+    version: "21",
+    approvedReference: "eclipse-temurin@sha256:c7d5863b5dd8f26b90c64f1d80cc2b0e5a5e4642f8db9955a370d348edd8f438",
+    localReference: "learnlocal/runtime-java-21:1",
+    smokeCommand: ["java", "-version"]
+  },
+  {
+    id: "python-3",
+    language: "python",
+    displayName: "Python 3.13",
+    version: "3.13",
+    approvedReference: "python@sha256:2325bb286ec344af3e5898cc224b5844e2707ac6e26b1632516fd3edc84a5e26",
+    localReference: "learnlocal/runtime-python-3:1",
+    smokeCommand: ["python", "--version"]
+  }
+]);
+
 export class DockerProvider implements SandboxProvider {
   readonly id = "docker";
   private readonly activeProcesses = new Map<string, Set<ChildProcessWithoutNullStreams>>();
   private readonly activeContainers = new Map<string, Set<string>>();
   private readonly cancelledExecutions = new Set<string>();
+  private readonly runtimeStates = new Map<RuntimeSummary["id"], RuntimeSummary["status"]>();
+  private readonly validationDates = new Map<RuntimeSummary["id"], string>();
 
   async detect(): Promise<ProviderStatus> {
     const result = await this.capture(["version", "--format", "{{.Server.Version}}"], {
@@ -72,6 +106,52 @@ export class DockerProvider implements SandboxProvider {
       this.activeProcesses.delete(request.executionId);
       this.cancelledExecutions.delete(request.executionId);
     }
+  }
+
+  async listRuntimes(): Promise<RuntimeSummary[]> {
+    return Promise.all(RUNTIME_CATALOG.map((runtime) => this.inspectManagedRuntime(runtime)));
+  }
+
+  async installManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
+    const runtime = this.runtimeDefinition(runtimeId);
+    this.runtimeStates.set(runtimeId, "installing");
+    try {
+      const provider = await this.detect();
+      if (!provider.available) throw new AppError("PROVIDER_NOT_RUNNING", "runtime", provider.message);
+      const pulled = await this.capture(["pull", runtime.approvedReference], { timeoutMs: 300_000, maxOutputBytes: 512_000 });
+      if (pulled.exitCode !== 0 || pulled.timedOut) throw new AppError("RUNTIME_PULL_FAILED", "runtime", `Docker could not download ${runtime.displayName}.`, { diagnostics: pulled.stderr });
+      const tagged = await this.capture(["tag", runtime.approvedReference, runtime.localReference], { timeoutMs: 10_000, maxOutputBytes: 16_000 });
+      if (tagged.exitCode !== 0) throw new AppError("RUNTIME_TAG_FAILED", "runtime", `Docker could not register ${runtime.displayName} for LearnLocal.`, { diagnostics: tagged.stderr });
+      await this.smokeTestRuntime(runtime);
+      this.validationDates.set(runtimeId, new Date().toISOString());
+      this.runtimeStates.set(runtimeId, "ready");
+      return this.inspectManagedRuntime(runtime);
+    } catch (error) {
+      this.runtimeStates.set(runtimeId, "broken");
+      throw error;
+    }
+  }
+
+  async removeManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
+    const runtime = this.runtimeDefinition(runtimeId);
+    this.runtimeStates.set(runtimeId, "removing");
+    const owned = await this.capture([
+      "ps", "-aq",
+      "--filter", `label=${OWNERSHIP_LABELS.managed}`,
+      "--filter", `label=${OWNERSHIP_LABELS.installation}`,
+      "--filter", `label=com.learnlocal.runtime=${runtime.id}`
+    ], { timeoutMs: 5_000, maxOutputBytes: 64_000 });
+    const containerIds = owned.stdout.split(/\r?\n/).filter(Boolean);
+    if (containerIds.length) await this.capture(["rm", "-f", ...containerIds], { timeoutMs: 15_000, maxOutputBytes: 64_000 });
+
+    const removed = await this.capture(["image", "rm", runtime.localReference], { timeoutMs: 30_000, maxOutputBytes: 64_000 });
+    if (removed.exitCode !== 0 && !/No such image/i.test(removed.stderr)) {
+      this.runtimeStates.set(runtimeId, "broken");
+      throw new AppError("RUNTIME_REMOVE_FAILED", "runtime", `Docker could not remove ${runtime.displayName}.`, { diagnostics: removed.stderr });
+    }
+    this.runtimeStates.delete(runtimeId);
+    this.validationDates.delete(runtimeId);
+    return this.inspectManagedRuntime(runtime);
   }
 
   async cancel(executionId: string): Promise<void> {
@@ -155,6 +235,66 @@ export class DockerProvider implements SandboxProvider {
       maxOutputBytes: request.limits.maxOutputKb * 1024,
       executionId: request.executionId
     });
+  }
+
+  private runtimeDefinition(runtimeId: RuntimeSummary["id"]): RuntimeDefinition {
+    const runtime = RUNTIME_CATALOG.find((candidate) => candidate.id === runtimeId);
+    if (!runtime) throw new AppError("RUNTIME_UNKNOWN", "validation", "Unknown runtime identifier.");
+    return runtime;
+  }
+
+  private async inspectManagedRuntime(runtime: RuntimeDefinition): Promise<RuntimeSummary> {
+    const transient = this.runtimeStates.get(runtime.id);
+    if (transient && transient !== "ready") {
+      return {
+        id: runtime.id,
+        language: runtime.language,
+        displayName: runtime.displayName,
+        version: runtime.version,
+        providerId: "docker",
+        status: transient,
+        imageReference: runtime.approvedReference,
+        sizeBytes: null,
+        lastValidatedAt: this.validationDates.get(runtime.id) ?? null
+      };
+    }
+    const inspected = await this.capture(["image", "inspect", runtime.localReference, "--format", "{{json .Size}}"], { timeoutMs: 5_000, maxOutputBytes: 8_192 });
+    const size = Number(inspected.stdout.trim());
+    return {
+      id: runtime.id,
+      language: runtime.language,
+      displayName: runtime.displayName,
+      version: runtime.version,
+      providerId: "docker",
+      status: inspected.exitCode === 0 && Number.isFinite(size) ? "ready" : "not-installed",
+      imageReference: runtime.approvedReference,
+      sizeBytes: Number.isFinite(size) ? size : null,
+      lastValidatedAt: this.validationDates.get(runtime.id) ?? null
+    };
+  }
+
+  private async smokeTestRuntime(runtime: RuntimeDefinition): Promise<void> {
+    const name = `learnlocal-smoke-${runtime.id}-${randomUUID()}`;
+    const smoke = await this.capture([
+      "run", "--name", name,
+      "--label", OWNERSHIP_LABELS.managed,
+      "--label", OWNERSHIP_LABELS.installation,
+      "--label", `com.learnlocal.runtime=${runtime.id}`,
+      "--network", "none",
+      "--memory", "128m",
+      "--memory-swap", "128m",
+      "--cpus", "1",
+      "--pids-limit", "32",
+      "--cap-drop", "ALL",
+      "--security-opt", "no-new-privileges",
+      "--read-only",
+      "--user", "1000:1000",
+      "--tmpfs", "/tmp:rw,noexec,nosuid,size=32m",
+      runtime.localReference,
+      ...runtime.smokeCommand
+    ], { timeoutMs: 30_000, maxOutputBytes: 64_000 });
+    await this.removeContainer(name);
+    if (smoke.exitCode !== 0 || smoke.timedOut) throw new AppError("RUNTIME_SMOKE_TEST_FAILED", "runtime", `${runtime.displayName} did not pass its validation test.`, { diagnostics: smoke.stderr });
   }
 
   private async ensureImage(imageReference: string): Promise<void> {

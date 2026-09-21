@@ -7,6 +7,7 @@ import {
   cancelRequestSchema,
   IPC_CHANNELS,
   runRequestSchema,
+  runtimeRequestSchema,
   toAppError,
   type ExecutionFinishedEvent
 } from "@learnlocal/contracts";
@@ -83,6 +84,23 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.coursesList, async (event) => {
     assertTrustedSender(event);
     return listImportedCourses(join(app.getPath("userData"), "courses"));
+  });
+
+  ipcMain.handle(IPC_CHANNELS.runtimesList, async (event) => {
+    assertTrustedSender(event);
+    return docker.listRuntimes();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.runtimesInstall, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { runtimeId } = runtimeRequestSchema.parse(input);
+    return docker.installManagedRuntime(runtimeId);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.runtimesRemove, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { runtimeId } = runtimeRequestSchema.parse(input);
+    return docker.removeManagedRuntime(runtimeId);
   });
 
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {

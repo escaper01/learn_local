@@ -64,6 +64,23 @@ export interface ProviderStatus {
   message: string;
 }
 
+export interface RuntimeSummary {
+  id: "java-21" | "python-3";
+  language: "java" | "python";
+  displayName: string;
+  version: string;
+  providerId: "docker";
+  status: "not-installed" | "installing" | "ready" | "broken" | "removing";
+  imageReference: string;
+  sizeBytes: number | null;
+  lastValidatedAt: string | null;
+  message?: string;
+}
+
+export const runtimeRequestSchema = z
+  .object({ runtimeId: z.enum(["java-21", "python-3"]) })
+  .strict();
+
 export interface ValidationIssue {
   code: string;
   severity: "error" | "warning";
@@ -103,6 +120,11 @@ export interface LearnLocalApi {
     importPack(): Promise<CourseImportResult>;
     list(): Promise<ImportedCourseSummary[]>;
   };
+  runtimes: {
+    list(): Promise<RuntimeSummary[]>;
+    install(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
+    remove(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
+  };
   environment: {
     status(): Promise<ProviderStatus>;
   };
@@ -120,6 +142,9 @@ export type ExecutionFinishedEvent =
 export const IPC_CHANNELS = {
   coursesImport: "courses:import",
   coursesList: "courses:list",
+  runtimesList: "runtimes:list",
+  runtimesInstall: "runtimes:install",
+  runtimesRemove: "runtimes:remove",
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",

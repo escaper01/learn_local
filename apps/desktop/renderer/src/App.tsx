@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, ExecutionResult, ImportedCourseSummary, ProviderStatus } from "@learnlocal/contracts";
+import type { AppErrorShape, ExecutionResult, ImportedCourseSummary, ProviderStatus, RuntimeSummary } from "@learnlocal/contracts";
 
 loader.config({ monaco });
 
@@ -35,6 +35,15 @@ function friendlyError(error: unknown): AppErrorShape {
     return { code: "REQUEST_FAILED", category: "system", message: String(error.message) };
   }
   return { code: "REQUEST_FAILED", category: "system", message: "The request could not be completed." };
+}
+
+function formatBytes(value: number | null): string {
+  if (value === null) return "Size available after installation";
+  const units = ["B", "KB", "MB", "GB"];
+  let amount = value;
+  let unit = 0;
+  while (amount >= 1024 && unit < units.length - 1) { amount /= 1024; unit += 1; }
+  return `${amount.toFixed(unit > 1 ? 1 : 0)} ${units[unit]}`;
 }
 
 function StatusDot({ status }: { status: ProviderStatus | undefined }) {
@@ -117,6 +126,9 @@ export default function App() {
   const [courses, setCourses] = useState<ImportedCourseSummary[]>([]);
   const [importing, setImporting] = useState(false);
   const [importedCourse, setImportedCourse] = useState<ImportedCourseSummary | null>(null);
+  const [showRuntimes, setShowRuntimes] = useState(false);
+  const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
+  const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [error, setError] = useState<AppErrorShape | null>(null);
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
@@ -181,6 +193,27 @@ export default function App() {
     }
   };
 
+  const openRuntimes = async () => {
+    setShowRuntimes(true);
+    try { setRuntimes(await window.learnLocal.runtimes.list()); }
+    catch (value) { setError(friendlyError(value)); }
+  };
+
+  const changeRuntime = async (runtime: RuntimeSummary) => {
+    setRuntimeOperation(runtime.id);
+    setError(null);
+    try {
+      if (runtime.status === "ready") await window.learnLocal.runtimes.remove(runtime.id);
+      else await window.learnLocal.runtimes.install(runtime.id);
+      setRuntimes(await window.learnLocal.runtimes.list());
+    } catch (value) {
+      setError(friendlyError(value));
+      setRuntimes(await window.learnLocal.runtimes.list());
+    } finally {
+      setRuntimeOperation(null);
+    }
+  };
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -188,7 +221,7 @@ export default function App() {
         <nav>
           <button className="nav-item"><span>⌂</span>Dashboard</button>
           <button className="nav-item active"><span>◫</span>My courses{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
-          <button className="nav-item"><span>⌘</span>Languages</button>
+          <button className="nav-item" onClick={() => void openRuntimes()}><span>⌘</span>Languages</button>
           <button className="nav-item" onClick={() => void importCourse()} disabled={importing}><span>↗</span>{importing ? "Validating…" : "Import course"}</button>
         </nav>
         <div className="sidebar-spacer" />
@@ -302,6 +335,38 @@ export default function App() {
             </div>
             <div className="import-meta"><span>{importedCourse.language} {importedCourse.languageVersion}</span><span>{importedCourse.level}</span><span>v{importedCourse.version}</span></div>
             <button className="submit-button modal-action" onClick={() => setImportedCourse(null)}>View course</button>
+          </section>
+        </div>
+      )}
+      {showRuntimes && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => !runtimeOperation && setShowRuntimes(false)}>
+          <section className="runtime-modal" role="dialog" aria-modal="true" aria-labelledby="runtime-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Close runtime manager" disabled={Boolean(runtimeOperation)} onClick={() => setShowRuntimes(false)}>×</button>
+            <div className="eyebrow">LANGUAGES & STORAGE</div>
+            <h2 id="runtime-title">Runtime Manager</h2>
+            <p>Install languages independently. Removing a runtime preserves courses, source code, attempts, and progress.</p>
+            <div className="runtime-list">
+              {runtimes.map((runtime) => {
+                const busy = runtimeOperation === runtime.id;
+                return (
+                  <article className="runtime-card" key={runtime.id}>
+                    <span className={`runtime-logo ${runtime.language}`}>{runtime.language === "java" ? "J" : "Py"}</span>
+                    <div className="runtime-copy">
+                      <div><strong>{runtime.displayName}</strong><span className={`runtime-state ${runtime.status}`}>{busy ? (runtime.status === "ready" ? "Removing" : "Installing") : runtime.status.replace("-", " ")}</span></div>
+                      <p>Docker · {formatBytes(runtime.sizeBytes)}</p>
+                      <small>{runtime.imageReference.slice(0, 48)}…</small>
+                    </div>
+                    <button
+                      className={runtime.status === "ready" ? "runtime-remove" : "runtime-install"}
+                      disabled={Boolean(runtimeOperation)}
+                      onClick={() => void changeRuntime(runtime)}
+                    >{busy ? "Working…" : runtime.status === "ready" ? "Remove" : runtime.status === "broken" ? "Repair" : "Install"}</button>
+                  </article>
+                );
+              })}
+            </div>
+            {error?.category === "runtime" && <div className="runtime-error"><strong>{error.message}</strong><span>{error.code}</span></div>}
+            <div className="runtime-note"><span>●</span><p>Executions use fresh containers with network disabled. No public port is opened.</p></div>
           </section>
         </div>
       )}

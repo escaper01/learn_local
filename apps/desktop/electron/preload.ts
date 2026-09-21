@@ -11,6 +11,11 @@ const api: LearnLocalApi = {
     importPack: () => ipcRenderer.invoke(IPC_CHANNELS.coursesImport),
     list: () => ipcRenderer.invoke(IPC_CHANNELS.coursesList)
   },
+  runtimes: {
+    list: () => ipcRenderer.invoke(IPC_CHANNELS.runtimesList),
+    install: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesInstall, { runtimeId }),
+    remove: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesRemove, { runtimeId })
+  },
   environment: {
     status: () => ipcRenderer.invoke(IPC_CHANNELS.environmentStatus)
   },
