@@ -101,4 +101,24 @@ dockerTest("Docker Java execution", () => {
       await provider.cleanupOwnedResources();
     }
   }, 180_000);
+
+  it("executes typed multi-argument functions in Java and Python", async () => {
+    const provider = new DockerProvider();
+    const tests = [{ id: "format", visibility: "public" as const, arguments: ["go", 3, true], expected: "GOGOGO" }];
+    const entrypoint = { name: "format", className: "Solution", parameters: [{ name: "text", type: "string" as const }, { name: "count", type: "int" as const }, { name: "upper", type: "boolean" as const }], returns: "string" as const };
+    const javaWorkspace = await java21Adapter.buildWorkspace("public class Solution { public static String format(String text, int count, boolean upper) { String value = text.repeat(count); return upper ? value.toUpperCase() : value; } }", tests, entrypoint);
+    const pythonWorkspace = await python3Adapter.buildWorkspace("def format(text, count, upper):\n    value = text * count\n    return value.upper() if upper else value\n", tests, entrypoint);
+    try {
+      const javaId = `exec_${randomUUID()}`;
+      const javaRaw = await provider.execute({ executionId: javaId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace: javaWorkspace, limits: EXECUTION_POLICY });
+      expect(java21Adapter.parseExecution(javaId, javaRaw, tests, Date.now()).tests[0]?.passed).toBe(true);
+      const pythonId = `exec_${randomUUID()}`;
+      const pythonRaw = await provider.execute({ executionId: pythonId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace: pythonWorkspace, limits: EXECUTION_POLICY });
+      expect(python3Adapter.parseExecution(pythonId, pythonRaw, tests, Date.now()).tests[0]?.passed).toBe(true);
+    } finally {
+      await rm(javaWorkspace.directory, { recursive: true, force: true });
+      await rm(pythonWorkspace.directory, { recursive: true, force: true });
+      await provider.cleanupOwnedResources();
+    }
+  }, 180_000);
 });

@@ -24,7 +24,7 @@ import {
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
 import { importLearnPack, listImportedCourses, loadImportedCourse, toCourseView } from "@learnlocal/learnpack";
-import { EXECUTION_POLICY, type FunctionEntrypoint, type OutputTestDefinition } from "@learnlocal/runner-core";
+import { EXECUTION_POLICY, type FunctionEntrypoint, type FunctionValue, type OutputTestDefinition } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
 import { DockerProvider } from "@learnlocal/sandbox-docker";
@@ -309,7 +309,7 @@ function registerIpc(): void {
         const startedAt = Date.now();
         let result;
         let exerciseId: string;
-        let importedTests: Array<{ id: string; visibility: "public" | "hidden"; arguments: number[]; expected: number }> | undefined;
+        let importedTests: Array<{ id: string; visibility: "public" | "hidden"; arguments: FunctionValue[]; expected: FunctionValue }> | undefined;
         let outputTests: OutputTestDefinition[] | undefined;
         let importedExerciseType: "function" | "debug" | "output" | "project" | undefined;
         let importedEntrypoint: FunctionEntrypoint | undefined;
@@ -341,7 +341,12 @@ function registerIpc(): void {
           if (exercise.type === "function" || exercise.type === "debug") {
             const fallback = request.language === "java" ? { className: "Solution", name: "sum" } : { name: "sum_values" };
             const className = exercise.entrypoint?.className ?? fallback.className;
-            importedEntrypoint = { ...(className ? { className } : {}), name: exercise.entrypoint?.name ?? fallback.name };
+            importedEntrypoint = {
+              ...(className ? { className } : {}),
+              name: exercise.entrypoint?.name ?? fallback.name,
+              parameters: exercise.entrypoint?.parameters ?? [{ name: "values", type: "int[]" }],
+              returns: exercise.entrypoint?.returns ?? "int"
+            };
           }
           const selectedTests = (exercise.tests ?? []).filter((test) => request.action === "submit" || test.visibility === "public");
           if (exercise.type === "output" || exercise.type === "project") {
@@ -351,11 +356,8 @@ function registerIpc(): void {
             });
           } else {
             importedTests = selectedTests.map((test) => {
-              const values = test.arguments?.[0];
-              if (!Array.isArray(values) || !values.every((value) => typeof value === "number") || typeof test.expected !== "number") {
-                throw new AppError("EXERCISE_TYPES_UNSUPPORTED", "validation", "This adapter currently supports one numeric array/list argument and a numeric result.");
-              }
-              return { id: test.id, visibility: test.visibility, arguments: values, expected: test.expected };
+              if (!test.arguments) throw new AppError("EXERCISE_TYPES_UNSUPPORTED", "validation", "Function tests require a declarative arguments array.");
+              return { id: test.id, visibility: test.visibility, arguments: test.arguments as FunctionValue[], expected: test.expected as FunctionValue };
             });
           }
           exerciseId = `${request.courseId}:${exercise.id}`;

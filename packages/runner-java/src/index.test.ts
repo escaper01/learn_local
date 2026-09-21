@@ -42,7 +42,7 @@ describe("Java adapter", () => {
     const workspace = await java21Adapter.buildWorkspace("public class Calculator { public static int total(int[] values) { return 0; } }", SUM_EXERCISE.publicTests, { className: "Calculator", name: "total" });
     try {
       expect(workspace.compileCommand).toContain("Calculator.java");
-      expect(await readFile(join(workspace.directory, "LearnLocalHarness.java"), "utf8")).toContain("Calculator.total(input)");
+      expect(await readFile(join(workspace.directory, "LearnLocalHarness.java"), "utf8")).toContain("Calculator.total(new int[]{1,2,3})");
     } finally { await rm(workspace.directory, { recursive: true, force: true }); }
   });
 });

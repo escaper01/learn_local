@@ -42,7 +42,7 @@ export interface LearnPackExercise {
   title: string;
   instructionMarkdown: string;
   starterFiles?: Array<{ path: string; content: string }>;
-  entrypoint?: { kind?: "function"; className?: string; name?: string; parameters?: unknown[]; returns?: string };
+  entrypoint?: { kind?: "function"; className?: string; name?: string; parameters?: Array<{ name: string; type: "int" | "double" | "boolean" | "string" | "int[]" | "double[]" | "boolean[]" | "string[]" }>; returns?: "int" | "double" | "boolean" | "string" | "int[]" | "double[]" | "boolean[]" | "string[]" };
   tests?: Array<{ id: string; visibility: "public" | "hidden"; arguments?: unknown[]; input?: string; expected: unknown; comparison?: string }>;
   hints?: string[];
   choices?: string[];
@@ -100,6 +100,14 @@ function isSafeArchivePath(path: string): boolean {
   if (!path || path.includes("\\") || path.includes("\0") || path.startsWith("/") || /^[a-zA-Z]:/.test(path)) return false;
   const segments = path.split("/");
   return segments.every((segment) => segment !== "" && segment !== "." && segment !== "..");
+}
+
+function matchesFunctionType(value: unknown, type: string): boolean {
+  if (type.endsWith("[]")) return Array.isArray(value) && value.every((item) => matchesFunctionType(item, type.slice(0, -2)));
+  if (type === "int") return typeof value === "number" && Number.isSafeInteger(value);
+  if (type === "double") return typeof value === "number" && Number.isFinite(value);
+  if (type === "boolean") return typeof value === "boolean";
+  return type === "string" && typeof value === "string";
 }
 
 function extension(path: string): string {
@@ -261,8 +269,16 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
           if (exercise.type === "output" || exercise.type === "project") {
             if (typeof test.input !== "string" || typeof test.expected !== "string") issues.push({ code: "PACK_OUTPUT_TEST_INVALID", severity: "error", file: location, message: `Output test '${test.id}' requires string input and expected output.` });
           } else if (exercise.type === "function" || exercise.type === "debug") {
-            const argument = test.arguments?.[0];
-            if (!Array.isArray(argument) || !argument.every((value) => typeof value === "number") || typeof test.expected !== "number") issues.push({ code: "PACK_FUNCTION_TYPES_UNSUPPORTED", severity: "error", file: location, message: `Function test '${test.id}' must use one numeric array/list argument and a numeric result.` });
+            const parameters = exercise.entrypoint?.parameters;
+            const returns = exercise.entrypoint?.returns;
+            if (!parameters || !returns) {
+              const legacyArgument = test.arguments?.[0];
+              if (!Array.isArray(legacyArgument) || !legacyArgument.every((value) => typeof value === "number" && Number.isFinite(value)) || typeof test.expected !== "number") {
+                issues.push({ code: "PACK_FUNCTION_ENTRYPOINT_INVALID", severity: "error", file: location, message: `Function exercise '${exercise.id}' requires typed entrypoint parameters for non-numeric-list tests.` });
+              }
+            } else if (!test.arguments || test.arguments.length !== parameters.length || test.arguments.some((argument, index) => !matchesFunctionType(argument, parameters[index]!.type)) || !matchesFunctionType(test.expected, returns)) {
+              issues.push({ code: "PACK_FUNCTION_TYPES_UNSUPPORTED", severity: "error", file: location, message: `Function test '${test.id}' arguments or expected value do not match its declared entrypoint types.` });
+            }
           }
         }
         for (const file of exercise.starterFiles ?? []) {

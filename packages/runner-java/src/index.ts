@@ -7,6 +7,8 @@ import type {
   JavaAdapter,
   JavaTestDefinition,
   FunctionEntrypoint,
+  FunctionType,
+  FunctionValue,
   OutputTestDefinition,
   PreparedOutputWorkspace,
   PreparedJavaWorkspace,
@@ -34,10 +36,12 @@ async function writeSources(directory: string, fallbackPath: string, sourceCode:
   return written;
 }
 
-function createHarness(tests: readonly JavaTestDefinition[], entrypoint: Required<FunctionEntrypoint>): string {
+function createHarness(tests: readonly JavaTestDefinition[], entrypoint: Required<Pick<FunctionEntrypoint, "className" | "name">> & FunctionEntrypoint): string {
+  const parameterTypes = entrypoint.parameters?.map((parameter) => parameter.type) ?? ["int[]"];
+  const returnType = entrypoint.returns ?? "int";
   const invocations = tests
     .map(
-      (test) => `runTest(${JSON.stringify(test.id)}, ${JSON.stringify(test.visibility)}, ${javaArray(test.arguments)}, ${test.expected});`
+      (test) => `runTest(${JSON.stringify(test.id)}, ${JSON.stringify(test.visibility)}, ${javaValue(test.expected, returnType)}, () -> ${entrypoint.className}.${entrypoint.name}(${test.arguments.map((argument, index) => javaValue(argument, parameterTypes[index]!)).join(", ")}));`
     )
     .join("\n    ");
 
@@ -48,15 +52,15 @@ function createHarness(tests: readonly JavaTestDefinition[], entrypoint: Require
     ${invocations}
   }
 
-  private static void runTest(String id, String visibility, int[] input, int expected) {
+  private static void runTest(String id, String visibility, Object expected, java.util.function.Supplier<Object> invocation) {
     long started = System.nanoTime();
     try {
-      int actual = ${entrypoint.className}.${entrypoint.name}(input);
+      Object actual = invocation.get();
       long durationMs = (System.nanoTime() - started) / 1_000_000;
-      boolean passed = actual == expected;
+      boolean passed = java.util.Objects.deepEquals(actual, expected);
       System.out.println(PREFIX + "{\\\"id\\\":\\\"" + escape(id) + "\\\",\\\"visibility\\\":\\\"" + visibility
-        + "\\\",\\\"passed\\\":" + passed + ",\\\"durationMs\\\":" + durationMs + ",\\\"expected\\\":" + expected
-        + ",\\\"actual\\\":" + actual + "}");
+        + "\\\",\\\"passed\\\":" + passed + ",\\\"durationMs\\\":" + durationMs + ",\\\"expected\\\":" + toJson(expected)
+        + ",\\\"actual\\\":" + toJson(actual) + "}");
     } catch (Throwable error) {
       long durationMs = (System.nanoTime() - started) / 1_000_000;
       System.out.println(PREFIX + "{\\\"id\\\":\\\"" + escape(id) + "\\\",\\\"visibility\\\":\\\"" + visibility
@@ -68,12 +72,39 @@ function createHarness(tests: readonly JavaTestDefinition[], entrypoint: Require
   private static String escape(String value) {
     return value.replace("\\\\", "\\\\\\\\").replace("\\\"", "\\\\\\\"").replace("\\n", "\\\\n").replace("\\r", "\\\\r");
   }
+  private static String toJson(Object value) {
+    if (value == null) return "null";
+    if (value instanceof String text) return "\\\"" + escape(text) + "\\\"";
+    if (value instanceof Number || value instanceof Boolean) return String.valueOf(value);
+    if (value.getClass().isArray()) {
+      StringBuilder result = new StringBuilder("[");
+      for (int index = 0; index < java.lang.reflect.Array.getLength(value); index++) {
+        if (index > 0) result.append(',');
+        result.append(toJson(java.lang.reflect.Array.get(value, index)));
+      }
+      return result.append(']').toString();
+    }
+    return "\\\"" + escape(String.valueOf(value)) + "\\\"";
+  }
 }
 `;
 }
 
 function javaString(value: string): string {
   return JSON.stringify(value).replaceAll("\\n", "\\n").replaceAll("\\r", "\\r");
+}
+
+function javaValue(value: FunctionValue, type: FunctionType): string {
+  const array = type.endsWith("[]");
+  const itemType = array ? type.slice(0, -2) : type;
+  const scalar = (item: FunctionValue): string => {
+    if (itemType === "string") return javaString(String(item));
+    if (itemType === "boolean") return String(item);
+    if (itemType === "double") return Number.isInteger(item) ? `${item}.0d` : `${item}d`;
+    return String(item);
+  };
+  if (array) return `new ${itemType === "string" ? "String" : itemType}[]{${(value as FunctionValue[]).map(scalar).join(",")}}`;
+  return scalar(value);
 }
 
 function createOutputHarness(tests: readonly OutputTestDefinition[], className: string): string {
@@ -159,7 +190,7 @@ export const java21Adapter: JavaAdapter = {
       );
     }
 
-    const resolved = { className: entrypoint.className ?? "Solution", name: entrypoint.name };
+    const resolved = { ...entrypoint, className: entrypoint.className ?? "Solution", name: entrypoint.name };
     if (!/^[A-Za-z_$][\w$]*$/.test(resolved.className) || !/^[A-Za-z_$][\w$]*$/.test(resolved.name)) throw new AppError("ENTRYPOINT_INVALID", "validation", "The Java function entrypoint is invalid.");
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-java-"));
     const sourcePaths = await writeSources(directory, `${resolved.className}.java`, sourceCode, sourceFiles);
@@ -289,10 +320,10 @@ export const SUM_EXERCISE = Object.freeze({
   id: "java-arrays-sum",
   title: "Sum an Array",
   publicTests: [
-    { id: "public-basic", visibility: "public", arguments: [1, 2, 3], expected: 6 },
-    { id: "public-empty", visibility: "public", arguments: [], expected: 0 }
+    { id: "public-basic", visibility: "public", arguments: [[1, 2, 3]], expected: 6 },
+    { id: "public-empty", visibility: "public", arguments: [[]], expected: 0 }
   ] satisfies JavaTestDefinition[],
   hiddenTests: [
-    { id: "hidden-negative", visibility: "hidden", arguments: [-2, 5, 10], expected: 13 }
+    { id: "hidden-negative", visibility: "hidden", arguments: [[-2, 5, 10]], expected: 13 }
   ] satisfies JavaTestDefinition[]
 });

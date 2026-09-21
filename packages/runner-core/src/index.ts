@@ -10,16 +10,22 @@ export interface CommandSpec {
   timeoutMs: number;
 }
 
+export type FunctionScalar = number | string | boolean | null;
+export type FunctionValue = FunctionScalar | FunctionScalar[];
+export type FunctionType = "int" | "double" | "boolean" | "string" | "int[]" | "double[]" | "boolean[]" | "string[]";
+
 export interface JavaTestDefinition {
   id: string;
   visibility: "public" | "hidden";
-  arguments: number[];
-  expected: number;
+  arguments: FunctionValue[];
+  expected: FunctionValue;
 }
 
 export interface FunctionEntrypoint {
   className?: string;
   name: string;
+  parameters?: Array<{ name: string; type: FunctionType }>;
+  returns?: FunctionType;
 }
 
 export interface OutputTestDefinition {

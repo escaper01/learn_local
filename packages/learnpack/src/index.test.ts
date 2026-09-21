@@ -161,6 +161,14 @@ describe("LearnPack semantic validation", () => {
     expect(() => validateLearnPackContent(entries)).toThrowError(/semantic validation/i);
   });
 
+  it("accepts typed multi-argument function tests", () => {
+    const entries = validEntries();
+    const exercise = (entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> }).lessons[0]!.exercises[0]!;
+    exercise.entrypoint = { kind: "function", className: "Solution", name: "format", parameters: [{ name: "text", type: "string" }, { name: "count", type: "int" }, { name: "upper", type: "boolean" }], returns: "string" };
+    exercise.tests = [{ id: "format", visibility: "public", arguments: ["go", 3, true], expected: "GOGOGO" }];
+    expect(validateLearnPackContent(entries).summary.exerciseCount).toBe(1);
+  });
+
   it("warns when course limits exceed the locked sandbox policy", () => {
     const entries = validEntries();
     const module = entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> };

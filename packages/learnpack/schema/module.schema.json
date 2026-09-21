@@ -62,8 +62,20 @@
             "kind": { "const": "function" },
             "className": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
             "name": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
-            "parameters": { "type": "array", "maxItems": 1 },
-            "returns": { "type": "string", "maxLength": 80 }
+            "parameters": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "type"],
+                "properties": {
+                  "name": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
+                  "type": { "enum": ["int", "double", "boolean", "string", "int[]", "double[]", "boolean[]", "string[]"] }
+                }
+              }
+            },
+            "returns": { "enum": ["int", "double", "boolean", "string", "int[]", "double[]", "boolean[]", "string[]"] }
           }
         },
         "tests": {

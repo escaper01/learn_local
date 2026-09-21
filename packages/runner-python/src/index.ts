@@ -2,15 +2,15 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { AppError, type CompileDiagnostic, type ExecutionResult, type SourceFile, type TestResult } from "@learnlocal/contracts";
-import type { FunctionEntrypoint, OutputTestDefinition, PreparedOutputWorkspace, RawProcessResult, RawSandboxResult } from "@learnlocal/runner-core";
+import type { FunctionEntrypoint, FunctionValue, OutputTestDefinition, PreparedOutputWorkspace, RawProcessResult, RawSandboxResult } from "@learnlocal/runner-core";
 
 const RESULT_PREFIX = "__LEARNLOCAL_RESULT__";
 
 export interface PythonTestDefinition {
   id: string;
   visibility: "public" | "hidden";
-  arguments: number[];
-  expected: number;
+  arguments: FunctionValue[];
+  expected: FunctionValue;
 }
 
 export interface PreparedPythonWorkspace {
@@ -37,12 +37,12 @@ solution = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(solution)
 
 PREFIX = ${JSON.stringify(RESULT_PREFIX)}
-TESTS = ${JSON.stringify(tests)}
+TESTS = json.loads(${JSON.stringify(JSON.stringify(tests))})
 
 for test in TESTS:
     started = time.perf_counter_ns()
     try:
-        actual = getattr(solution, ${JSON.stringify(entrypoint.name)})(list(test["arguments"]))
+        actual = getattr(solution, ${JSON.stringify(entrypoint.name)})(*test["arguments"])
         duration_ms = (time.perf_counter_ns() - started) // 1_000_000
         print(PREFIX + json.dumps({
             "id": test["id"],
@@ -232,10 +232,10 @@ export const PYTHON_SUM_EXERCISE = Object.freeze({
   id: "python-lists-sum",
   title: "Sum a List",
   publicTests: [
-    { id: "public-basic", visibility: "public", arguments: [1, 2, 3], expected: 6 },
-    { id: "public-empty", visibility: "public", arguments: [], expected: 0 }
+    { id: "public-basic", visibility: "public", arguments: [[1, 2, 3]], expected: 6 },
+    { id: "public-empty", visibility: "public", arguments: [[]], expected: 0 }
   ] satisfies PythonTestDefinition[],
   hiddenTests: [
-    { id: "hidden-negative", visibility: "hidden", arguments: [-2, 5, 10], expected: 13 }
+    { id: "hidden-negative", visibility: "hidden", arguments: [[-2, 5, 10]], expected: 13 }
   ] satisfies PythonTestDefinition[]
 });

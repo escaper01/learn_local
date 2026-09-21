@@ -48,6 +48,7 @@ MODULE AND EXERCISE REQUIREMENTS
 - Allowed exercise types are output, function, debug, multipleChoice, and project.
 - Code exercises include starterFiles using safe relative paths ending in .${language.extension}.
 - Function and output tests are declarative objects with stable id, visibility (public or hidden), arguments/input, expected value, and optional comparison mode.
+- Function entrypoints declare up to eight named parameters and a return type using int, double, boolean, string, or an array form such as int[] or string[]. Test arguments must match those types and remain JSON values.
 - Include progressive hints without revealing the final answer.
 - Use limits near timeoutMs 3000, memoryMb 256, maxOutputKb 64.
 - Include public happy-path and edge-case tests plus hidden edge cases.
