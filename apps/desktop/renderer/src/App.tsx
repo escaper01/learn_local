@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, ExecutionResult, ImportedCourseSummary, ProviderStatus, RuntimeSummary } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, ExecutionResult, ImportedCourseSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue } from "@learnlocal/contracts";
 
 loader.config({ monaco });
 
@@ -41,6 +41,19 @@ const PYTHON_SOLUTION_CODE = `def sum_values(values):
         total += value
     return total
 `;
+
+const DEFAULT_PROMPT_FORM: CoursePromptRequest = {
+  language: "java",
+  experience: "beginner",
+  goal: "Build a strong programming foundation and complete practical projects",
+  topics: "fundamentals, functions, collections, debugging, testing",
+  skipTopics: "",
+  dailyMinutes: 30,
+  durationWeeks: 6,
+  projectTheme: "useful command-line tools",
+  teachingStyle: "supportive",
+  customInstructions: ""
+};
 
 function friendlyError(error: unknown): AppErrorShape {
   if (typeof error === "object" && error && "message" in error) {
@@ -142,6 +155,12 @@ export default function App() {
   const [showRuntimes, setShowRuntimes] = useState(false);
   const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState<ResolvedSetting[]>([]);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
+  const [generatedPrompt, setGeneratedPrompt] = useState("");
+  const [copied, setCopied] = useState(false);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [error, setError] = useState<AppErrorShape | null>(null);
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
@@ -235,6 +254,55 @@ export default function App() {
     setError(null);
   };
 
+  const openSettings = async () => {
+    setShowSettings(true);
+    try { setSettings(await window.learnLocal.settings.list()); }
+    catch (value) { setError(friendlyError(value)); }
+  };
+
+  const updateSetting = async (setting: ResolvedSetting, value: SettingValue) => {
+    try { setSettings(await window.learnLocal.settings.set({ key: setting.key, value, scope: "global", scopeId: null })); }
+    catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const resetSetting = async (setting: ResolvedSetting) => {
+    try { setSettings(await window.learnLocal.settings.reset({ key: setting.key, scope: "global", scopeId: null })); }
+    catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const openPromptGenerator = async () => {
+    setShowPrompt(true);
+    try {
+      const values = await window.learnLocal.settings.list({ language });
+      const daily = values.find((setting) => setting.key === "learning.dailyMinutes")?.value;
+      const style = values.find((setting) => setting.key === "prompt.teachingStyle")?.value;
+      const custom = values.find((setting) => setting.key === "prompt.customInstructions")?.value;
+      setPromptForm((current) => ({
+        ...current,
+        language,
+        ...(typeof daily === "number" ? { dailyMinutes: daily } : {}),
+        ...(typeof style === "string" ? { teachingStyle: style as CoursePromptRequest["teachingStyle"] } : {}),
+        ...(typeof custom === "string" ? { customInstructions: custom } : {})
+      }));
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const generatePrompt = async () => {
+    try {
+      const generated = await window.learnLocal.prompts.generate(promptForm);
+      setGeneratedPrompt(generated.prompt);
+      setCopied(false);
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const copyPrompt = async () => {
+    await navigator.clipboard.writeText(generatedPrompt);
+    setCopied(true);
+  };
+
+  const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
+  const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -243,11 +311,12 @@ export default function App() {
           <button className="nav-item"><span>⌂</span>Dashboard</button>
           <button className="nav-item active"><span>◫</span>My courses{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
           <button className="nav-item" onClick={() => void openRuntimes()}><span>⌘</span>Languages</button>
+          <button className="nav-item" onClick={() => void openPromptGenerator()}><span>✦</span>Generate prompt</button>
           <button className="nav-item" onClick={() => void importCourse()} disabled={importing}><span>↗</span>{importing ? "Validating…" : "Import course"}</button>
         </nav>
         <div className="sidebar-spacer" />
         <nav>
-          <button className="nav-item"><span>⚙</span>Settings</button>
+          <button className="nav-item" onClick={() => void openSettings()}><span>⚙</span>Settings</button>
           <button className="nav-item"><span>?</span>Help & diagnostics</button>
         </nav>
         <StatusDot status={provider} />
@@ -311,14 +380,15 @@ export default function App() {
                 onChange={(value) => setSource(value ?? "")}
                 options={{
                   minimap: { enabled: false },
-                  fontSize: 14,
+                  fontSize: typeof editorFontSize === "number" ? editorFontSize : 14,
                   fontFamily: "Cascadia Code, Consolas, monospace",
                   lineHeight: 23,
                   padding: { top: 18 },
                   scrollBeyondLastLine: false,
                   smoothScrolling: true,
                   automaticLayout: true,
-                  tabSize: 2
+                  tabSize: 2,
+                  wordWrap: editorWordWrap === true ? "on" : "off"
                 }}
               />
             </div>
@@ -392,6 +462,61 @@ export default function App() {
             </div>
             {error?.category === "runtime" && <div className="runtime-error"><strong>{error.message}</strong><span>{error.code}</span></div>}
             <div className="runtime-note"><span>●</span><p>Executions use fresh containers with network disabled. No public port is opened.</p></div>
+          </section>
+        </div>
+      )}
+      {showSettings && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowSettings(false)}>
+          <section className="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Close settings" onClick={() => setShowSettings(false)}>×</button>
+            <div className="eyebrow">CUSTOMIZATION</div>
+            <h2 id="settings-title">Settings</h2>
+            <p>Values are validated and stored locally. Sandbox and Electron security policy remain locked.</p>
+            <div className="settings-list">
+              {settings.map((setting) => (
+                <label className="setting-row" key={setting.key}>
+                  <span className="setting-copy"><strong>{setting.label}</strong><small>{setting.description}</small><i>{setting.source}</i></span>
+                  <span className="setting-control">
+                    {setting.type === "boolean" && <input type="checkbox" checked={setting.value === true} onChange={(event) => void updateSetting(setting, event.target.checked)} />}
+                    {setting.type === "number" && <input type="number" min={setting.min} max={setting.max} value={Number(setting.value)} onChange={(event) => void updateSetting(setting, Number(event.target.value))} />}
+                    {setting.type === "enum" && <select value={String(setting.value)} onChange={(event) => void updateSetting(setting, event.target.value)}>{setting.options?.map((option) => <option key={option}>{option}</option>)}</select>}
+                    {setting.type === "string" && <textarea value={String(setting.value)} placeholder="No custom instructions" onChange={(event) => void updateSetting(setting, event.target.value)} />}
+                    {setting.source !== "default" && <button type="button" onClick={() => void resetSetting(setting)}>Reset</button>}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <div className="settings-actions">
+              <button className="run-button" onClick={() => void window.learnLocal.settings.importProfile().then(() => window.learnLocal.settings.list().then(setSettings))}>Import profile</button>
+              <button className="run-button" onClick={() => void window.learnLocal.settings.exportProfile()}>Export profile</button>
+              <button className="submit-button" onClick={() => setShowSettings(false)}>Done</button>
+            </div>
+          </section>
+        </div>
+      )}
+      {showPrompt && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowPrompt(false)}>
+          <section className="prompt-modal" role="dialog" aria-modal="true" aria-labelledby="prompt-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Close prompt generator" onClick={() => setShowPrompt(false)}>×</button>
+            <div className="eyebrow">PROVIDER-INDEPENDENT</div>
+            <h2 id="prompt-title">Course Prompt Generator</h2>
+            <p>Describe your goal, then paste the generated prompt into any AI assistant.</p>
+            <div className="prompt-layout">
+              <div className="prompt-form">
+                <label>Language<select value={promptForm.language} onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value as "java" | "python" })}><option value="java">Java 21</option><option value="python">Python 3.13</option></select></label>
+                <label>Experience<select value={promptForm.experience} onChange={(event) => setPromptForm({ ...promptForm, experience: event.target.value as CoursePromptRequest["experience"] })}><option value="new">Completely new</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
+                <label className="wide">Learning goal<textarea value={promptForm.goal} onChange={(event) => setPromptForm({ ...promptForm, goal: event.target.value })} /></label>
+                <label className="wide">Topics to emphasize<input value={promptForm.topics} onChange={(event) => setPromptForm({ ...promptForm, topics: event.target.value })} /></label>
+                <label>Minutes per day<input type="number" min="10" max="240" value={promptForm.dailyMinutes} onChange={(event) => setPromptForm({ ...promptForm, dailyMinutes: Number(event.target.value) })} /></label>
+                <label>Duration in weeks<input type="number" min="1" max="52" value={promptForm.durationWeeks} onChange={(event) => setPromptForm({ ...promptForm, durationWeeks: Number(event.target.value) })} /></label>
+                <label className="wide">Project theme<input value={promptForm.projectTheme} onChange={(event) => setPromptForm({ ...promptForm, projectTheme: event.target.value })} /></label>
+                <button className="submit-button prompt-generate" onClick={() => void generatePrompt()}>Generate LearnPack prompt</button>
+              </div>
+              <div className="prompt-preview">
+                {generatedPrompt ? <textarea readOnly value={generatedPrompt} aria-label="Generated course prompt" /> : <div><span>✦</span><strong>Your prompt will appear here</strong><p>It will include the LearnPack schema contract and locked security rules.</p></div>}
+                {generatedPrompt && <button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button>}
+              </div>
+            </div>
           </section>
         </div>
       )}

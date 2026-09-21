@@ -1,7 +1,14 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { ExecutionAction, ExecutionResult } from "@learnlocal/contracts";
+import type { ExecutionAction, ExecutionResult, SettingScope, SettingValue } from "@learnlocal/contracts";
+
+export interface StoredSettingRow {
+  key: string;
+  scope: SettingScope;
+  scopeId: string;
+  value: SettingValue;
+}
 
 export class AttemptRepository {
   private readonly database: DatabaseSync;
@@ -60,6 +67,42 @@ export class AttemptRepository {
     this.database.close();
   }
 
+  listSettings(): StoredSettingRow[] {
+    const rows = this.database.prepare("SELECT key, scope, scope_id, value_json FROM settings_values").all() as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+      key: String(row.key),
+      scope: String(row.scope) as SettingScope,
+      scopeId: String(row.scope_id),
+      value: JSON.parse(String(row.value_json)) as SettingValue
+    }));
+  }
+
+  setSetting(key: string, scope: SettingScope, scopeId: string, value: SettingValue): void {
+    this.database.prepare(`
+      INSERT INTO settings_values (key, scope, scope_id, value_json, updated_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT (key, scope, scope_id) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at
+    `).run(key, scope, scopeId, JSON.stringify(value), new Date().toISOString());
+  }
+
+  resetSetting(key: string, scope: SettingScope, scopeId: string): void {
+    this.database.prepare("DELETE FROM settings_values WHERE key = ? AND scope = ? AND scope_id = ?").run(key, scope, scopeId);
+  }
+
+  replaceGlobalSettings(settings: readonly { key: string; value: SettingValue }[]): void {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.database.prepare("DELETE FROM settings_values WHERE scope = 'global'").run();
+      const insert = this.database.prepare("INSERT INTO settings_values (key, scope, scope_id, value_json, updated_at) VALUES (?, 'global', '', ?, ?)");
+      const now = new Date().toISOString();
+      for (const setting of settings) insert.run(setting.key, JSON.stringify(setting.value), now);
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   private migrate(): void {
     this.database.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -86,6 +129,15 @@ export class AttemptRepository {
         passed INTEGER NOT NULL CHECK (passed IN (0, 1)),
         duration_ms INTEGER NOT NULL,
         feedback_code TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS settings_values (
+        key TEXT NOT NULL,
+        scope TEXT NOT NULL CHECK (scope IN ('global', 'language', 'course')),
+        scope_id TEXT NOT NULL,
+        value_json TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY (key, scope, scope_id)
       );
 
       INSERT OR IGNORE INTO schema_migrations (version, applied_at)

@@ -154,6 +154,40 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .runtime-note { display: flex; gap: 8px; align-items: center; padding-top: 13px; border-top: 1px solid #28332d; color: #66746c; font-size: 9px; }
 .runtime-note span { color: #53cf89; }
 .runtime-note p { margin: 0; }
+.settings-modal, .prompt-modal { position: relative; width: min(720px, 100%); max-height: min(820px, calc(100vh - 48px)); overflow: auto; padding: 29px; border: 1px solid #2a3932; border-radius: 14px; background: #121a17; box-shadow: 0 26px 80px #00000066; }
+.settings-modal h2, .prompt-modal h2 { margin: 6px 0 5px; font-size: 23px; }
+.settings-modal > p, .prompt-modal > p { margin: 0; color: #89968f; font-size: 12px; }
+.settings-list { display: grid; margin: 21px 0 17px; border: 1px solid #29362f; border-radius: 9px; overflow: hidden; }
+.setting-row { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(190px, auto); align-items: center; gap: 20px; padding: 12px 14px; border-bottom: 1px solid #29362f; background: #101713; }
+.setting-row:last-child { border-bottom: 0; }
+.setting-copy { display: grid; gap: 3px; }
+.setting-copy strong { font-size: 11px; }
+.setting-copy small { color: #718078; font-size: 9px; }
+.setting-copy i { width: fit-content; padding: 2px 5px; border-radius: 4px; color: #527a66; background: #18271f; font-size: 8px; font-style: normal; text-transform: uppercase; }
+.setting-control { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.setting-control input[type="number"], .setting-control select, .setting-control textarea,
+.prompt-form input, .prompt-form select, .prompt-form textarea { border: 1px solid #324039; border-radius: 6px; color: #d3ddd7; background: #0c1210; font: 10px/1.4 inherit; }
+.setting-control input[type="number"] { width: 70px; padding: 6px; }
+.setting-control select { min-width: 125px; padding: 6px; }
+.setting-control textarea { width: 190px; height: 45px; padding: 6px; resize: vertical; }
+.setting-control > button { border: 0; color: #7c8982; background: transparent; font-size: 9px; cursor: pointer; }
+.setting-control input[type="checkbox"] { width: 17px; height: 17px; accent-color: #48c781; }
+.settings-actions { display: flex; justify-content: flex-end; gap: 7px; }
+.prompt-modal { width: min(900px, 100%); }
+.prompt-layout { display: grid; grid-template-columns: .85fr 1.15fr; gap: 14px; min-height: 430px; margin-top: 21px; }
+.prompt-form { display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 11px; padding: 15px; border: 1px solid #29362f; border-radius: 9px; background: #101713; }
+.prompt-form label { display: grid; align-content: start; gap: 5px; color: #85928b; font-size: 9px; font-weight: 650; }
+.prompt-form label.wide { grid-column: 1 / -1; }
+.prompt-form input, .prompt-form select, .prompt-form textarea { width: 100%; padding: 8px; }
+.prompt-form textarea { min-height: 70px; resize: vertical; }
+.prompt-generate { grid-column: 1 / -1; margin-top: 4px; }
+.prompt-preview { position: relative; display: grid; min-height: 430px; border: 1px solid #29362f; border-radius: 9px; overflow: hidden; background: #090e0c; }
+.prompt-preview > div { align-self: center; padding: 30px; color: #69776f; text-align: center; }
+.prompt-preview > div span { display: block; margin-bottom: 8px; color: #55ce8c; font-size: 26px; }
+.prompt-preview > div strong { display: block; color: #aab6af; font-size: 11px; }
+.prompt-preview > div p { font-size: 9px; }
+.prompt-preview textarea { width: 100%; height: 100%; min-height: 430px; padding: 15px 15px 52px; border: 0; outline: 0; color: #aebbb4; background: transparent; font: 9px/1.55 "Cascadia Code", Consolas, monospace; resize: none; }
+.prompt-preview > button { position: absolute; right: 12px; bottom: 11px; }
 
 @media (max-width: 1150px) {
   .sidebar { width: 190px; flex-basis: 190px; }
@@ -267,3 +301,26 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .runtime-remove { color: #99434a; border-color: #d9b8bb; }
 :root[data-theme="light"] .runtime-error { color: #9e333c; background: #fff0f1; border-color: #e4bdc1; }
 :root[data-theme="light"] .runtime-note { color: #66746c; border-top-color: #dbe4df; }
+:root[data-theme="light"] .settings-modal,
+:root[data-theme="light"] .prompt-modal { background: #ffffff; border-color: #d5dfda; box-shadow: 0 26px 80px #2331292b; }
+:root[data-theme="light"] .settings-modal > p,
+:root[data-theme="light"] .prompt-modal > p { color: #65736b; }
+:root[data-theme="light"] .settings-list,
+:root[data-theme="light"] .setting-row,
+:root[data-theme="light"] .prompt-form,
+:root[data-theme="light"] .prompt-preview { border-color: #dbe4df; }
+:root[data-theme="light"] .setting-row,
+:root[data-theme="light"] .prompt-form { background: #f8faf9; }
+:root[data-theme="light"] .setting-copy small { color: #718078; }
+:root[data-theme="light"] .setting-copy i { color: #377256; background: #e3f0e9; }
+:root[data-theme="light"] .setting-control input[type="number"],
+:root[data-theme="light"] .setting-control select,
+:root[data-theme="light"] .setting-control textarea,
+:root[data-theme="light"] .prompt-form input,
+:root[data-theme="light"] .prompt-form select,
+:root[data-theme="light"] .prompt-form textarea { color: #26352d; background: #ffffff; border-color: #ccd8d1; }
+:root[data-theme="light"] .prompt-form label { color: #607068; }
+:root[data-theme="light"] .prompt-preview { background: #f2f6f4; }
+:root[data-theme="light"] .prompt-preview > div { color: #718078; }
+:root[data-theme="light"] .prompt-preview > div strong { color: #415047; }
+:root[data-theme="light"] .prompt-preview textarea { color: #34433b; }

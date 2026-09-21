@@ -1,13 +1,17 @@
 import { randomUUID } from "node:crypto";
-import { rm } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
 import {
   AppError,
   cancelRequestSchema,
+  coursePromptRequestSchema,
   IPC_CHANNELS,
   runRequestSchema,
   runtimeRequestSchema,
+  settingMutationSchema,
+  settingResetSchema,
+  settingsContextSchema,
   toAppError,
   type ExecutionFinishedEvent
 } from "@learnlocal/contracts";
@@ -17,6 +21,8 @@ import { EXECUTION_POLICY } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
 import { DockerProvider } from "@learnlocal/sandbox-docker";
+import { createSettingsProfile, parseSettingsProfile, resolveSettings, validateSettingValue } from "@learnlocal/settings-core";
+import { buildCoursePrompt } from "@learnlocal/prompt-generator";
 
 const docker = new DockerProvider();
 let attempts: AttemptRepository | undefined;
@@ -102,6 +108,64 @@ function registerIpc(): void {
     assertTrustedSender(event);
     const { runtimeId } = runtimeRequestSchema.parse(input);
     return docker.removeManagedRuntime(runtimeId);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.settingsList, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const context = settingsContextSchema.parse(input ?? {});
+    return resolveSettings(attempts?.listSettings() ?? [], context);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.settingsSet, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const mutation = settingMutationSchema.parse(input);
+    const scopeId = mutation.scope === "global" ? "" : mutation.scopeId;
+    if (!scopeId && mutation.scope !== "global") throw new AppError("SETTING_SCOPE_INVALID", "validation", "Language and course settings require a scope identifier.");
+    if (mutation.scope === "language" && scopeId !== "java" && scopeId !== "python") throw new AppError("SETTING_SCOPE_INVALID", "validation", "Unknown language scope.");
+    attempts?.setSetting(mutation.key, mutation.scope, scopeId ?? "", validateSettingValue(mutation.key, mutation.value));
+    const context = mutation.scope === "language" ? { language: scopeId as "java" | "python" } : mutation.scope === "course" ? { courseId: scopeId ?? undefined } : {};
+    return resolveSettings(attempts?.listSettings() ?? [], context);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.settingsReset, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const reset = settingResetSchema.parse(input);
+    const scopeId = reset.scope === "global" ? "" : reset.scopeId;
+    if (!scopeId && reset.scope !== "global") throw new AppError("SETTING_SCOPE_INVALID", "validation", "Language and course settings require a scope identifier.");
+    attempts?.resetSetting(reset.key, reset.scope, scopeId ?? "");
+    return resolveSettings(attempts?.listSettings() ?? []);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.settingsExport, async (event) => {
+    assertTrustedSender(event);
+    const selected = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender)!, {
+      title: "Export LearnLocal settings",
+      defaultPath: "learnlocal-settings.json",
+      filters: [{ name: "JSON", extensions: ["json"] }]
+    });
+    if (selected.canceled || !selected.filePath) return { status: "cancelled" as const };
+    const profile = createSettingsProfile(attempts?.listSettings() ?? []);
+    await writeFile(selected.filePath, JSON.stringify(profile, null, 2), "utf8");
+    return { status: "saved" as const };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.settingsImport, async (event) => {
+    assertTrustedSender(event);
+    const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender)!, {
+      title: "Import LearnLocal settings",
+      properties: ["openFile"],
+      filters: [{ name: "LearnLocal settings", extensions: ["json"] }]
+    });
+    const path = selected.filePaths[0];
+    if (selected.canceled || !path) return { status: "cancelled" as const, changed: 0 };
+    const profile = parseSettingsProfile(JSON.parse(await readFile(path, "utf8")) as unknown);
+    attempts?.replaceGlobalSettings(profile);
+    return { status: "imported" as const, changed: profile.length };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.promptsGenerate, (event, input: unknown) => {
+    assertTrustedSender(event);
+    return { prompt: buildCoursePrompt(coursePromptRequestSchema.parse(input)) };
   });
 
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {

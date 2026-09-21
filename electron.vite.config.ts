@@ -9,6 +9,8 @@ const workspacePackages = [
   "@learnlocal/runner-core",
   "@learnlocal/runner-java",
   "@learnlocal/runner-python",
+  "@learnlocal/settings-core",
+  "@learnlocal/prompt-generator",
   "@learnlocal/sandbox-docker"
 ];
 

@@ -16,6 +16,16 @@ const api: LearnLocalApi = {
     install: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesInstall, { runtimeId }),
     remove: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesRemove, { runtimeId })
   },
+  settings: {
+    list: (context = {}) => ipcRenderer.invoke(IPC_CHANNELS.settingsList, context),
+    set: (input) => ipcRenderer.invoke(IPC_CHANNELS.settingsSet, input),
+    reset: (input) => ipcRenderer.invoke(IPC_CHANNELS.settingsReset, input),
+    exportProfile: () => ipcRenderer.invoke(IPC_CHANNELS.settingsExport),
+    importProfile: () => ipcRenderer.invoke(IPC_CHANNELS.settingsImport)
+  },
+  prompts: {
+    generate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsGenerate, input)
+  },
   environment: {
     status: () => ipcRenderer.invoke(IPC_CHANNELS.environmentStatus)
   },

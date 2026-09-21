@@ -82,6 +82,55 @@ export const runtimeRequestSchema = z
   .object({ runtimeId: z.enum(["java-21", "python-3"]) })
   .strict();
 
+export type SettingValue = string | number | boolean;
+export type SettingScope = "global" | "language" | "course";
+
+export interface ResolvedSetting {
+  key: string;
+  category: string;
+  label: string;
+  description: string;
+  type: "boolean" | "number" | "string" | "enum";
+  value: SettingValue;
+  defaultValue: SettingValue;
+  source: SettingScope | "default";
+  options?: readonly string[];
+  min?: number;
+  max?: number;
+}
+
+export const settingsContextSchema = z.object({
+  language: z.enum(["java", "python"]).optional(),
+  courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional()
+}).strict();
+
+export const settingMutationSchema = z.object({
+  key: z.string().min(1).max(100),
+  value: z.union([z.string().max(10_000), z.number().finite(), z.boolean()]),
+  scope: z.enum(["global", "language", "course"]),
+  scopeId: z.string().max(100).nullable()
+}).strict();
+
+export const settingResetSchema = z.object({
+  key: z.string().min(1).max(100),
+  scope: z.enum(["global", "language", "course"]),
+  scopeId: z.string().max(100).nullable()
+}).strict();
+
+export const coursePromptRequestSchema = z.object({
+  language: z.enum(["java", "python"]),
+  experience: z.enum(["new", "beginner", "intermediate", "advanced"]),
+  goal: z.string().min(3).max(1000),
+  topics: z.string().max(1000),
+  skipTopics: z.string().max(1000),
+  dailyMinutes: z.number().int().min(10).max(240),
+  durationWeeks: z.number().int().min(1).max(52),
+  projectTheme: z.string().max(500),
+  teachingStyle: z.enum(["supportive", "concise", "socratic", "project-based"]),
+  customInstructions: z.string().max(4000)
+}).strict();
+export type CoursePromptRequest = z.infer<typeof coursePromptRequestSchema>;
+
 export interface ValidationIssue {
   code: string;
   severity: "error" | "warning";
@@ -126,6 +175,16 @@ export interface LearnLocalApi {
     install(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
     remove(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
   };
+  settings: {
+    list(context?: { language?: "java" | "python"; courseId?: string }): Promise<ResolvedSetting[]>;
+    set(input: z.infer<typeof settingMutationSchema>): Promise<ResolvedSetting[]>;
+    reset(input: z.infer<typeof settingResetSchema>): Promise<ResolvedSetting[]>;
+    exportProfile(): Promise<{ status: "saved" | "cancelled" }>;
+    importProfile(): Promise<{ status: "imported" | "cancelled"; changed: number }>;
+  };
+  prompts: {
+    generate(input: CoursePromptRequest): Promise<{ prompt: string }>;
+  };
   environment: {
     status(): Promise<ProviderStatus>;
   };
@@ -146,6 +205,12 @@ export const IPC_CHANNELS = {
   runtimesList: "runtimes:list",
   runtimesInstall: "runtimes:install",
   runtimesRemove: "runtimes:remove",
+  settingsList: "settings:list",
+  settingsSet: "settings:set",
+  settingsReset: "settings:reset",
+  settingsExport: "settings:export",
+  settingsImport: "settings:import",
+  promptsGenerate: "prompts:generate",
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",
