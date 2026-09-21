@@ -14,7 +14,7 @@ npm install
 npm run dev
 ```
 
-The prototype opens a Java exercise in Monaco. **Run** executes public tests, while **Submit** also executes a hidden test. Each compile and test run uses a restricted, disposable Docker container built from a pinned Java 21 image. Attempts are stored locally in SQLite.
+The prototype opens a Java exercise in Monaco with persistent light and dark themes. **Run** executes public tests, while **Submit** also executes a hidden test. Each compile and test run uses a restricted, disposable Docker container built from a pinned Java 21 image. Attempts are stored locally in SQLite.
 
 ## Checks
 

@@ -5,6 +5,14 @@ import type { AppErrorShape, ExecutionResult, ProviderStatus } from "@learnlocal
 
 loader.config({ monaco });
 
+type Theme = "dark" | "light";
+
+function initialTheme(): Theme {
+  const saved = localStorage.getItem("learnlocal.theme");
+  if (saved === "dark" || saved === "light") return saved;
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+}
+
 const STARTER_CODE = `public class Solution {
   public static int sum(int[] values) {
     // Add every value and return the total.
@@ -103,6 +111,7 @@ function ResultPanel({ result, error }: { result: ExecutionResult | null; error:
 }
 
 export default function App() {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
   const [source, setSource] = useState(STARTER_CODE);
   const [provider, setProvider] = useState<ProviderStatus>();
   const [result, setResult] = useState<ExecutionResult | null>(null);
@@ -110,6 +119,12 @@ export default function App() {
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
   const [activeAction, setActiveAction] = useState<"run" | "submit" | null>(null);
   const activeRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    localStorage.setItem("learnlocal.theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     void window.learnLocal.environment.status().then(setProvider).catch((value) => setError(friendlyError(value)));
@@ -167,7 +182,19 @@ export default function App() {
       <section className="workspace">
         <header className="topbar">
           <div className="crumbs"><span>Java Foundations</span><b>/</b><span>Arrays & loops</span><b>/</b><strong>Sum an Array</strong></div>
-          <div className="progress-chip"><span>Module 2</span><b>4 / 8</b></div>
+          <div className="topbar-actions">
+            <button
+              className="theme-toggle"
+              type="button"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+              onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
+            >
+              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+              {theme === "dark" ? "Light" : "Dark"}
+            </button>
+            <div className="progress-chip"><span>Module 2</span><b>4 / 8</b></div>
+          </div>
         </header>
 
         <div className="lesson-grid">
@@ -201,7 +228,7 @@ export default function App() {
             <div className="editor-wrap">
               <Editor
                 language="java"
-                theme="vs-dark"
+                theme={theme === "dark" ? "vs-dark" : "light"}
                 value={source}
                 onChange={(value) => setSource(value ?? "")}
                 options={{
