@@ -116,24 +116,28 @@ function extension(path: string): string {
   return index < 0 ? "" : name.slice(index).toLowerCase();
 }
 
-function assertEntryAllowed(entry: Entry, seen: Set<string>, state: { count: number; expanded: number }): void {
+export function normalizeArchivePath(path: string): string {
+  return path.replaceAll("\\", "/");
+}
+
+function assertEntryAllowed(entry: Entry, normalizedPath: string, seen: Set<string>, state: { count: number; expanded: number }): void {
   state.count += 1;
   state.expanded += entry.uncompressedSize;
   if (state.count > MAX_ENTRIES) throw new AppError("PACK_ENTRY_LIMIT", "validation", `LearnPack has more than ${MAX_ENTRIES} entries.`);
   if (state.expanded > MAX_EXPANDED_BYTES) throw new AppError("PACK_EXPANDED_SIZE_LIMIT", "validation", "LearnPack expands beyond the 100 MB safety limit.");
-  if (!isSafeArchivePath(entry.fileName)) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe archive path: ${entry.fileName}`);
-  if (seen.has(entry.fileName)) throw new AppError("PACK_DUPLICATE_PATH", "validation", `Duplicate archive path: ${entry.fileName}`);
-  seen.add(entry.fileName);
+  if (!isSafeArchivePath(normalizedPath)) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe archive path: ${entry.fileName}`);
+  if (seen.has(normalizedPath)) throw new AppError("PACK_DUPLICATE_PATH", "validation", `Duplicate archive path: ${normalizedPath}`);
+  seen.add(normalizedPath);
 
   const unixMode = (entry.externalFileAttributes >>> 16) & 0xffff;
   if ((unixMode & 0o170000) === 0o120000) throw new AppError("PACK_SYMLINK_NOT_ALLOWED", "validation", `Symbolic links are not allowed: ${entry.fileName}`);
-  if (FORBIDDEN_EXTENSIONS.has(extension(entry.fileName))) throw new AppError("PACK_EXECUTABLE_NOT_ALLOWED", "validation", `Executable content is not allowed: ${entry.fileName}`);
+  if (FORBIDDEN_EXTENSIONS.has(extension(normalizedPath))) throw new AppError("PACK_EXECUTABLE_NOT_ALLOWED", "validation", `Executable content is not allowed: ${normalizedPath}`);
   if (entry.uncompressedSize > MAX_ENTRY_BYTES) throw new AppError("PACK_ENTRY_SIZE_LIMIT", "validation", `Archive entry is too large: ${entry.fileName}`);
 }
 
 function openZip(path: string): Promise<ZipFile> {
   return new Promise((resolve, reject) => {
-    yauzl.open(path, { lazyEntries: true, autoClose: true, strictFileNames: true, validateEntrySizes: true }, (error, zip) => {
+    yauzl.open(path, { lazyEntries: true, autoClose: true, strictFileNames: false, validateEntrySizes: true }, (error, zip) => {
       if (error || !zip) reject(error ?? new Error("Unable to open ZIP archive."));
       else resolve(zip);
     });
@@ -188,17 +192,18 @@ async function readJsonEntries(path: string): Promise<Map<string, unknown>> {
     zip.on("entry", (entry) => {
       void (async () => {
         try {
-          if (entry.fileName.endsWith("/")) {
+          const normalizedPath = normalizeArchivePath(entry.fileName);
+          if (normalizedPath.endsWith("/")) {
             zip.readEntry();
             return;
           }
-          assertEntryAllowed(entry, seen, limits);
-          if (extension(entry.fileName) === ".json") {
+          assertEntryAllowed(entry, normalizedPath, seen, limits);
+          if (extension(normalizedPath) === ".json") {
             const content = await readEntry(zip, entry);
             try {
-              values.set(entry.fileName, JSON.parse(content.toString("utf8")) as unknown);
+              values.set(normalizedPath, JSON.parse(content.toString("utf8")) as unknown);
             } catch {
-              throw new AppError("PACK_INVALID_JSON", "validation", `Invalid JSON in ${entry.fileName}.`, { file: entry.fileName });
+              throw new AppError("PACK_INVALID_JSON", "validation", `Invalid JSON in ${normalizedPath}.`, { file: normalizedPath });
             }
           }
           zip.readEntry();

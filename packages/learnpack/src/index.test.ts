@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolve } from "node:path";
-import { mkdtemp, rm } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { importLearnPack, inspectLearnPack, loadImportedCourse, toCourseView, validateLearnPackContent } from "./index";
+import { importLearnPack, inspectLearnPack, loadImportedCourse, normalizeArchivePath, toCourseView, validateLearnPackContent } from "./index";
 
 function validEntries(): Map<string, unknown> {
   return new Map([
@@ -46,6 +46,34 @@ function validEntries(): Map<string, unknown> {
 }
 
 describe("LearnPack semantic validation", () => {
+  it("normalizes Windows ZIP separators before validating paths", () => {
+    expect(normalizeArchivePath("content\\module-01.json")).toBe("content/module-01.json");
+    expect(normalizeArchivePath("..\\manifest.json")).toBe("../manifest.json");
+  });
+
+  it("imports an otherwise valid archive containing Windows ZIP separators", async () => {
+    const directory = await mkdtemp(resolve(tmpdir(), "learnlocal-windows-zip-"));
+    const source = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
+    const archive = join(directory, "windows.learnpack");
+    try {
+      const bytes = await readFile(source);
+      const slashPath = Buffer.from("content/01-arrays.json");
+      const windowsPath = Buffer.from("content\\01-arrays.json");
+      let replaced = 0;
+      for (let offset = 0; offset <= bytes.length - slashPath.length; offset += 1) {
+        if (bytes.subarray(offset, offset + slashPath.length).equals(slashPath)) {
+          windowsPath.copy(bytes, offset);
+          replaced += 1;
+        }
+      }
+      expect(replaced).toBeGreaterThanOrEqual(2);
+      await writeFile(archive, bytes);
+      await expect(inspectLearnPack(archive)).resolves.toMatchObject({ summary: { id: "java-foundations" } });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it("inspects the canonical LearnPack archive without extracting it", async () => {
     const path = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
     const pack = await inspectLearnPack(path);
