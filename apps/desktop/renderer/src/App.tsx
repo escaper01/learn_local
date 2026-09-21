@@ -145,6 +145,7 @@ function ResultPanel({ result, error }: { result: ExecutionResult | null; error:
 }
 
 export default function App() {
+  const [onboardingStep, setOnboardingStep] = useState(() => localStorage.getItem("learnlocal.onboarding.complete") === "1" ? -1 : 0);
   const [view, setView] = useState<"lesson" | "dashboard" | "courses">("lesson");
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [language, setLanguage] = useState<"java" | "python">("java");
@@ -314,6 +315,12 @@ export default function App() {
     setActiveFilePath(null);
     setResult(null);
     setError(null);
+  };
+
+  const finishOnboarding = () => {
+    localStorage.setItem("learnlocal.onboarding.complete", "1");
+    setOnboardingStep(-1);
+    setView("lesson");
   };
 
   const openImportedCourse = async (course: ImportedCourseSummary) => {
@@ -721,6 +728,17 @@ export default function App() {
                 {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save each response at its requested path, place manifest.json at the folder root, ZIP the folder contents, then rename the archive extension to .learnpack.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
               </div>
             </div>
+          </section>
+        </div>
+      )}
+      {onboardingStep >= 0 && (
+        <div className="modal-backdrop onboarding-backdrop">
+          <section className="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+            <div className="onboarding-progress" aria-label={`Onboarding step ${onboardingStep + 1} of 3`}><i className="active"/><i className={onboardingStep >= 1 ? "active" : ""}/><i className={onboardingStep >= 2 ? "active" : ""}/></div>
+            {onboardingStep === 0 && <><span className="onboarding-mark">L</span><div className="eyebrow">WELCOME TO LEARNLOCAL</div><h2 id="onboarding-title">Learn programming privately, on your computer</h2><p>Courses, code, settings, and progress stay on this device. LearnLocal does not require an account and does not send your work to an AI service.</p><div className="onboarding-points"><span>✓ Portable LearnPack courses</span><span>✓ Disposable, network-disabled runtimes</span><span>✓ Progress stored locally</span></div></>}
+            {onboardingStep === 1 && <><div className="eyebrow">CHOOSE A STARTING LANGUAGE</div><h2 id="onboarding-title">What would you like to learn first?</h2><p>You can switch languages and import other courses at any time.</p><div className="onboarding-languages"><button className={language === "java" ? "active" : ""} onClick={() => switchLanguage("java")}><b>J</b><strong>Java 21</strong><small>Structured and widely used</small></button><button className={language === "python" ? "active" : ""} onClick={() => switchLanguage("python")}><b>Py</b><strong>Python 3.13</strong><small>Readable and beginner-friendly</small></button></div></>}
+            {onboardingStep === 2 && <><div className="eyebrow">ENVIRONMENT CHECK</div><h2 id="onboarding-title">{provider?.available ? "Your local runner is ready" : "Finish setting up Docker"}</h2><p>{provider?.available ? `Docker ${provider.version ?? ""} is available. Install a language runtime when you run your first exercise.` : "LearnLocal needs Docker Desktop or Docker Engine to run code safely. You can still browse courses and generate prompts before installing it."}</p><div className={`onboarding-status ${provider?.available ? "ready" : "warning"}`}><span>{provider?.available ? "✓" : "!"}</span><div><strong>{provider?.available ? "Sandbox provider detected" : "Docker is not available yet"}</strong><small>{provider?.message ?? "Checking the local environment…"}</small></div></div></>}
+            <footer><button className="ghost-button" disabled={onboardingStep === 0} onClick={() => setOnboardingStep((step) => Math.max(0, step - 1))}>Back</button>{onboardingStep < 2 ? <button className="submit-button" onClick={() => setOnboardingStep((step) => step + 1)}>Continue</button> : <button className="submit-button" onClick={finishOnboarding}>Start learning</button>}</footer>
           </section>
         </div>
       )}

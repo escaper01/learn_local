@@ -434,3 +434,28 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .project-milestones article p { margin: 6px 0 0; color: #89968f; font-size: 9px; line-height: 1.45; white-space: pre-wrap; }
 :root[data-theme="light"] .project-milestones article { border-color: #d9e2dd; background: #f4f7f5; }
 :root[data-theme="light"] .project-milestones article p { color: #65736b; }
+.onboarding-backdrop { z-index: 50; backdrop-filter: blur(8px); }
+.onboarding-modal { width: min(560px, 100%); padding: 34px; border: 1px solid #2a3932; border-radius: 16px; background: #121a17; box-shadow: 0 30px 100px #0009; text-align: center; }
+.onboarding-progress { display: flex; justify-content: center; gap: 6px; margin-bottom: 24px; }
+.onboarding-progress i { width: 28px; height: 3px; border-radius: 4px; background: #344139; }
+.onboarding-progress i.active { background: #55ce8c; }
+.onboarding-mark { display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto 16px; border-radius: 15px; color: #07120d; background: linear-gradient(145deg, #75e9a7, #41c87d); font-size: 27px; font-weight: 900; }
+.onboarding-modal h2 { margin: 7px auto 10px; max-width: 440px; font-size: 27px; }
+.onboarding-modal > p { max-width: 460px; margin: 0 auto; color: #95a199; font-size: 13px; line-height: 1.65; }
+.onboarding-points { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 25px 0 8px; }
+.onboarding-points span { padding: 7px 10px; border-radius: 20px; color: #b8c5bd; background: #1a2520; font-size: 10px; }
+.onboarding-languages { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
+.onboarding-languages button { display: grid; gap: 4px; padding: 22px 14px; border: 1px solid #2d3b34; border-radius: 11px; color: #aebbb4; background: #101713; cursor: pointer; }
+.onboarding-languages button.active { border-color: #55ce8c; box-shadow: inset 0 0 0 1px #55ce8c55; }
+.onboarding-languages b { display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 9px; color: #07120d; background: #55ce8c; }
+.onboarding-languages small { color: #7f8d85; }
+.onboarding-status { display: flex; gap: 12px; align-items: center; margin: 25px 0 5px; padding: 15px; border: 1px solid #2b3c33; border-radius: 10px; text-align: left; background: #101713; }
+.onboarding-status > span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: #0b1710; background: #55ce8c; font-weight: 900; }
+.onboarding-status.warning > span { background: #e5b95f; }
+.onboarding-status div { display: grid; gap: 3px; }
+.onboarding-status small { color: #849189; }
+.onboarding-modal footer { display: flex; justify-content: space-between; margin-top: 30px; }
+:root[data-theme="light"] .onboarding-modal { border-color: #d5dfda; background: #fff; box-shadow: 0 30px 100px #23312944; }
+:root[data-theme="light"] .onboarding-modal > p { color: #65736b; }
+:root[data-theme="light"] .onboarding-points span { color: #435149; background: #edf3f0; }
+:root[data-theme="light"] .onboarding-languages button, :root[data-theme="light"] .onboarding-status { color: #34433b; border-color: #d6e0da; background: #f5f8f6; }
