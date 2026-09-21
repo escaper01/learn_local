@@ -115,6 +115,6 @@ If a requested feature conflicts with these rules, stop and redesign the boundar
 
 ## Current implementation boundary
 
-The repository currently implements the Phase 0 vertical slice: secure Electron shell, React/Monaco lesson workspace, typed IPC, Java adapter, restricted Docker execution, public versus hidden tests, cancellation plumbing, normalized results, and SQLite attempt storage.
+The repository now implements the V1 foundation: secure Electron shell, light/dark React and Monaco workspace, Java and Python adapters, restricted Docker execution, runtime lifecycle management, LearnPack 1.0 import/revalidation, imported-course execution, public versus hidden tests, cancellation, normalized results, SQLite settings/workspaces/attempts/progress, dashboard, prompt generation, diagnostics export, packaging, and CI.
 
-The next coherent batch should start LearnPack 1.0: schemas, path-safe archive inspection, semantic validation, fixtures, and an import preview. Keep runtime management and Python behind the existing interfaces rather than expanding the prototype with shortcuts.
+Future work must extend exercise type coverage and richer multi-file project navigation through the adapter and LearnPack contracts. Do not bypass those boundaries with renderer commands or course-provided scripts. Signed public releases require owner-provided platform credentials.
