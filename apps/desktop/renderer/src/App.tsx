@@ -6,6 +6,13 @@ import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, I
 loader.config({ monaco });
 
 type Theme = "dark" | "light";
+type PromptTemplate = { id: string; name: string; form: CoursePromptRequest };
+type PromptHistoryItem = { id: string; createdAt: string; prompt: string };
+
+function loadLocalList<T>(key: string): T[] {
+  try { const value = JSON.parse(localStorage.getItem(key) ?? "[]"); return Array.isArray(value) ? value as T[] : []; }
+  catch { return []; }
+}
 
 function initialTheme(): Theme {
   const saved = localStorage.getItem("learnlocal.theme");
@@ -210,6 +217,8 @@ export default function App() {
   const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>(() => loadLocalList("learnlocal.promptTemplates"));
+  const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>(() => loadLocalList("learnlocal.promptHistory"));
   const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
   const [activeCourse, setActiveCourse] = useState<CourseView | null>(null);
   const [activeLesson, setActiveLesson] = useState<CourseView["modules"][number]["lessons"][number] | null>(null);
@@ -554,8 +563,25 @@ export default function App() {
     try {
       const generated = await window.learnLocal.prompts.generate(promptForm);
       setGeneratedPrompt(generated.prompt);
+      const next = [{ id: crypto.randomUUID(), createdAt: new Date().toISOString(), prompt: generated.prompt }, ...promptHistory].slice(0, 10);
+      setPromptHistory(next);
+      localStorage.setItem("learnlocal.promptHistory", JSON.stringify(next));
       setCopied(false);
     } catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const savePromptTemplate = () => {
+    const name = window.prompt("Template name", `${promptForm.language === "java" ? "Java" : "Python"} course` )?.trim();
+    if (!name) return;
+    const next = [{ id: crypto.randomUUID(), name, form: promptForm }, ...promptTemplates].slice(0, 20);
+    setPromptTemplates(next);
+    localStorage.setItem("learnlocal.promptTemplates", JSON.stringify(next));
+  };
+
+  const removePromptTemplate = (id: string) => {
+    const next = promptTemplates.filter((template) => template.id !== id);
+    setPromptTemplates(next);
+    localStorage.setItem("learnlocal.promptTemplates", JSON.stringify(next));
   };
 
   const copyPrompt = async () => {
@@ -829,6 +855,8 @@ export default function App() {
             <p>Describe your goal, then paste the prompt into any AI assistant. It will generate one JSON file at a time; you package the completed files into a .learnpack.</p>
             <div className="prompt-layout">
               <div className="prompt-form">
+                <div className="prompt-template-bar"><select aria-label="Load prompt template" defaultValue="" onChange={(event) => { const template = promptTemplates.find((candidate) => candidate.id === event.target.value); if (template) setPromptForm(template.form); event.target.value = ""; }}><option value="">Load template…</option>{promptTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button type="button" onClick={savePromptTemplate}>Save current</button></div>
+                {promptTemplates.length > 0 && <div className="prompt-template-chips">{promptTemplates.map((template) => <span key={template.id}><button type="button" onClick={() => setPromptForm(template.form)}>{template.name}</button><button type="button" aria-label={`Delete ${template.name} template`} onClick={() => removePromptTemplate(template.id)}>×</button></span>)}</div>}
                 <label>Language<select value={promptForm.language} onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value as "java" | "python" })}><option value="java">Java 21</option><option value="python">Python 3.13</option></select></label>
                 <label>Experience<select value={promptForm.experience} onChange={(event) => setPromptForm({ ...promptForm, experience: event.target.value as CoursePromptRequest["experience"] })}><option value="new">Completely new</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
                 <label className="wide">Learning goal<textarea value={promptForm.goal} onChange={(event) => setPromptForm({ ...promptForm, goal: event.target.value })} /></label>
@@ -843,6 +871,7 @@ export default function App() {
                 {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save each response at its requested path, place manifest.json at the folder root, ZIP the folder contents, then rename the archive extension to .learnpack.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
               </div>
             </div>
+            {promptHistory.length > 0 && <details className="prompt-history"><summary>Local prompt history ({promptHistory.length})</summary><div>{promptHistory.map((item, index) => <article key={item.id}><span>{new Date(item.createdAt).toLocaleString()}</span><small>{item.prompt.length.toLocaleString()} characters</small><button type="button" onClick={() => setGeneratedPrompt(item.prompt)}>Restore</button>{index === 0 || !generatedPrompt || item.prompt === generatedPrompt ? null : <details><summary>Compare with current</summary><div className="prompt-compare"><pre>{item.prompt}</pre><pre>{generatedPrompt}</pre></div></details>}</article>)}</div></details>}
           </section>
         </div>
       )}

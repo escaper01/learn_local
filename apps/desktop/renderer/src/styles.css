@@ -514,3 +514,21 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+.prompt-template-bar { grid-column: 1 / -1; display: flex; gap: 7px; }
+.prompt-template-bar select { flex: 1; }
+.prompt-template-bar button, .prompt-template-chips button { border: 1px solid #355042; border-radius: 6px; color: #8fdaaF; background: #15241c; font-size: 9px; cursor: pointer; }
+.prompt-template-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; }
+.prompt-template-chips span { display: flex; }
+.prompt-template-chips span button { padding: 4px 7px; border-radius: 5px 0 0 5px; }
+.prompt-template-chips span button:last-child { padding: 4px 6px; border-left: 0; border-radius: 0 5px 5px 0; }
+.prompt-history { margin-top: 14px; border-top: 1px solid #29362f; padding-top: 10px; color: #8d9b93; font-size: 10px; }
+.prompt-history > summary { cursor: pointer; }
+.prompt-history article { display: grid; grid-template-columns: 1fr auto auto; gap: 9px; align-items: center; padding: 7px 0; border-bottom: 1px solid #26322c; }
+.prompt-history article > button { padding: 4px 8px; border: 1px solid #355042; border-radius: 5px; color: #8fdaaf; background: transparent; font-size: 8px; }
+.prompt-history article > details { grid-column: 1 / -1; }
+.prompt-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 7px; }
+.prompt-compare pre { max-height: 180px; overflow: auto; margin: 0; padding: 8px; border-radius: 6px; color: #9eaba4; background: #0b110e; font: 8px/1.45 monospace; white-space: pre-wrap; }
+:root[data-theme="light"] .prompt-template-bar button, :root[data-theme="light"] .prompt-template-chips button { color: #2d704c; border-color: #bcd5c7; background: #edf5f0; }
+:root[data-theme="light"] .prompt-history { border-color: #d7e0db; color: #617068; }
+:root[data-theme="light"] .prompt-history article { border-color: #dce4e0; }
+:root[data-theme="light"] .prompt-compare pre { color: #435149; background: #f1f5f3; }
