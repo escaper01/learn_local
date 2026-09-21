@@ -31,6 +31,9 @@ describe("local database", () => {
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 3, completedExercises: 1, passedSubmissions: 1 });
       repository.recordQuizAttempt("quiz_00000000-0000-0000-0000-000000000002", "course:quiz", 1, true);
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 4, completedExercises: 2, passedSubmissions: 2 });
+      expect(repository.revealedHintCount("course:exercise")).toBe(0);
+      expect(repository.revealHint("course:exercise", 0)).toBe(1);
+      expect(repository.revealHint("course:exercise", 0)).toBe(1);
       repository.writeWorkspace("python", "def answer(): return 42\n");
       expect(repository.readWorkspace("python")).toContain("42");
     } finally {

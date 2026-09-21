@@ -60,6 +60,7 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .hint { margin-top: 17px; border: 1px solid #26313b; border-radius: 8px; padding: 12px 14px; color: #95a1ad; font-size: 12px; }
 .hint summary { color: #c5ced7; cursor: pointer; }
 .hint p { margin: 10px 0 2px; }
+.reveal-hint { margin-top: 10px; }
 .course-outline { display: grid; gap: 8px; padding: 11px; margin-bottom: 24px; border: 1px solid #29343d; border-radius: 8px; background: #0d1319; }
 .course-outline > strong { color: #7f8c96; font-size: 9px; text-transform: uppercase; letter-spacing: .6px; }
 .course-outline > div { display: grid; gap: 3px; }

@@ -7,6 +7,7 @@ import {
   cancelRequestSchema,
   courseOpenSchema,
   coursePromptRequestSchema,
+  hintRevealSchema,
   IPC_CHANNELS,
   runRequestSchema,
   quizSubmitSchema,
@@ -100,7 +101,8 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.coursesOpen, async (event, input: unknown) => {
     assertTrustedSender(event);
     const { courseId, version } = courseOpenSchema.parse(input);
-    return toCourseView(await loadImportedCourse(join(app.getPath("userData"), "courses"), courseId, version));
+    const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), courseId, version);
+    return toCourseView(pack, (exerciseId) => attempts?.revealedHintCount(`${courseId}:${exerciseId}`) ?? 0);
   });
 
   ipcMain.handle(IPC_CHANNELS.runtimesList, async (event) => {
@@ -193,6 +195,20 @@ function registerIpc(): void {
     const correct = request.choiceIndex === exercise.correctChoice;
     attempts?.recordQuizAttempt(`quiz_${randomUUID()}`, `${request.courseId}:${exercise.id}`, request.choiceIndex, correct);
     return { correct };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.progressRevealHint, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const request = hintRevealSchema.parse(input);
+    const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.version);
+    const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
+    const hint = exercise?.hints?.[request.hintIndex];
+    if (!exercise || hint === undefined) throw new AppError("HINT_NOT_FOUND", "validation", "The requested hint is unavailable.");
+    const progressId = `${request.courseId}:${exercise.id}`;
+    const revealed = attempts?.revealedHintCount(progressId) ?? 0;
+    if (request.hintIndex > revealed) throw new AppError("HINT_ORDER_INVALID", "validation", "Hints must be revealed in order.");
+    const revealedCount = attempts?.revealHint(progressId, request.hintIndex) ?? request.hintIndex + 1;
+    return { hint, revealedCount };
   });
 
   ipcMain.handle(IPC_CHANNELS.workspaceRead, (event, input: unknown) => {

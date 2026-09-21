@@ -96,6 +96,19 @@ describe("LearnPack semantic validation", () => {
     expect(exercise).not.toHaveProperty("correctChoice");
   });
 
+  it("only exposes hints that the learner already revealed", () => {
+    const entries = validEntries();
+    const module = entries.get("content/01-basics.json") as {
+      lessons: Array<{ exercises: Array<Record<string, unknown>> }>;
+    };
+    module.lessons[0]!.exercises[0]!.hints = ["Start small", "Use a loop"];
+    const pack = validateLearnPackContent(entries);
+    const hidden = toCourseView(pack).modules[0]!.lessons[0]!.exercises[0]!;
+    const revealed = toCourseView(pack, () => 1).modules[0]!.lessons[0]!.exercises[0]!;
+    expect(hidden).toMatchObject({ hints: [], hintCount: 2 });
+    expect(revealed.hints).toEqual(["Start small"]);
+  });
+
   it("rejects missing referenced modules", () => {
     const entries = validEntries();
     entries.delete("content/01-basics.json");

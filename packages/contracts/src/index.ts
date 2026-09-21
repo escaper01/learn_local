@@ -198,6 +198,7 @@ export interface CourseView {
         instructionMarkdown: string;
         starterFiles: Array<{ path: string; content: string }>;
         hints: string[];
+        hintCount: number;
         choices?: string[];
         publicTestCount: number;
         hiddenTestCount: number;
@@ -216,6 +217,13 @@ export const quizSubmitSchema = z.object({
   version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
   exerciseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
   choiceIndex: z.number().int().min(0).max(11)
+}).strict();
+
+export const hintRevealSchema = z.object({
+  courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+  version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
+  exerciseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+  hintIndex: z.number().int().min(0).max(9)
 }).strict();
 
 export type CourseImportResult =
@@ -253,6 +261,7 @@ export interface LearnLocalApi {
   progress: {
     summary(): Promise<LearningSummary>;
     submitQuiz(input: z.infer<typeof quizSubmitSchema>): Promise<{ correct: boolean }>;
+    revealHint(input: z.infer<typeof hintRevealSchema>): Promise<{ hint: string; revealedCount: number }>;
   };
   workspace: {
     read(language: "java" | "python"): Promise<{ content: string | null }>;
@@ -290,6 +299,7 @@ export const IPC_CHANNELS = {
   promptsGenerate: "prompts:generate",
   progressSummary: "progress:summary",
   progressSubmitQuiz: "progress:submit-quiz",
+  progressRevealHint: "progress:reveal-hint",
   workspaceRead: "workspace:read",
   workspaceWrite: "workspace:write",
   diagnosticsExport: "diagnostics:export",

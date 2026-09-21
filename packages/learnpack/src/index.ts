@@ -323,7 +323,7 @@ export async function loadImportedCourse(libraryDirectory: string, courseId: str
   }
 }
 
-export function toCourseView(pack: ValidatedLearnPack): CourseView {
+export function toCourseView(pack: ValidatedLearnPack, revealedHintCount: (exerciseId: string) => number = () => 0): CourseView {
   return {
     summary: pack.summary,
     modules: pack.modules.map((module) => ({
@@ -339,7 +339,8 @@ export function toCourseView(pack: ValidatedLearnPack): CourseView {
           title: exercise.title,
           instructionMarkdown: exercise.instructionMarkdown,
           starterFiles: exercise.starterFiles ?? [],
-          hints: exercise.hints ?? [],
+          hints: (exercise.hints ?? []).slice(0, revealedHintCount(exercise.id)),
+          hintCount: exercise.hints?.length ?? 0,
           ...(exercise.choices ? { choices: exercise.choices } : {}),
           publicTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "public").length,
           hiddenTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "hidden").length

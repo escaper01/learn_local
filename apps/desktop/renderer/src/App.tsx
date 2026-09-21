@@ -319,6 +319,19 @@ export default function App() {
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
+  const revealNextHint = async () => {
+    if (!activeCourse || !activeImportedExercise || activeImportedExercise.hints.length >= activeImportedExercise.hintCount) return;
+    try {
+      const answer = await window.learnLocal.progress.revealHint({
+        courseId: activeCourse.summary.id,
+        version: activeCourse.summary.version,
+        exerciseId: activeImportedExercise.id,
+        hintIndex: activeImportedExercise.hints.length
+      });
+      setActiveImportedExercise((current) => current ? { ...current, hints: [...current.hints, answer.hint] } : current);
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
   const openSettings = async () => {
     setShowSettings(true);
     try { setSettings(await window.learnLocal.settings.list()); }
@@ -424,7 +437,8 @@ export default function App() {
               <li>Do not change the class or method signature.</li>
             </ul>
             <div className="example-block"><span>Example</span><code>{language === "java" ? "sum(new int[] {1, 2, 3}) → 6" : "sum_values([1, 2, 3]) → 6"}</code></div></>}
-            {(activeImportedExercise?.hints ?? ["Create a variable named total before the loop."]).map((hint, index) => <details className="hint" key={hint}><summary>Hint {index + 1} of {activeImportedExercise?.hints.length ?? 3}</summary><p>{hint}</p></details>)}
+            {(activeImportedExercise?.hints ?? ["Create a variable named total before the loop."]).map((hint, index) => <details className="hint" key={`${index}-${hint}`} open><summary>Hint {index + 1} of {activeImportedExercise?.hintCount ?? 1}</summary><p>{hint}</p></details>)}
+            {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && <button className="ghost-button reveal-hint" type="button" onClick={() => void revealNextHint()}>Reveal hint {activeImportedExercise.hints.length + 1}</button>}
           </article>
 
           {activeImportedExercise?.type === "multipleChoice" ? (

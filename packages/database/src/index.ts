@@ -191,6 +191,19 @@ export class AttemptRepository {
     }
   }
 
+  revealedHintCount(exerciseId: string): number {
+    const row = this.database.prepare("SELECT COUNT(*) AS count FROM hint_reveals WHERE exercise_id = ?").get(exerciseId) as { count: number };
+    return Number(row.count);
+  }
+
+  revealHint(exerciseId: string, hintIndex: number): number {
+    this.database.prepare(`
+      INSERT OR IGNORE INTO hint_reveals (exercise_id, hint_index, revealed_at)
+      VALUES (?, ?, ?)
+    `).run(exerciseId, hintIndex, new Date().toISOString());
+    return this.revealedHintCount(exerciseId);
+  }
+
   private migrate(): void {
     this.database.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -248,6 +261,13 @@ export class AttemptRepository {
         choice_index INTEGER NOT NULL,
         correct INTEGER NOT NULL CHECK (correct IN (0, 1)),
         created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS hint_reveals (
+        exercise_id TEXT NOT NULL,
+        hint_index INTEGER NOT NULL,
+        revealed_at TEXT NOT NULL,
+        PRIMARY KEY (exercise_id, hint_index)
       );
 
       INSERT OR IGNORE INTO schema_migrations (version, applied_at)
