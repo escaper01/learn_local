@@ -160,6 +160,7 @@ export interface LearningSummary {
     createdAt: string;
   }>;
   activity: Array<{ date: string; attempts: number }>;
+  mastery: Array<{ exerciseId: string; confidence: number; attempts: number }>;
 }
 
 export const workspaceReadSchema = z.object({ language: z.enum(["java", "python"]) }).strict();

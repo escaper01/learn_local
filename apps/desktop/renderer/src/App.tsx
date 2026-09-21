@@ -170,7 +170,7 @@ export default function App() {
   const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
-  const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [] });
+  const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
   const [activeCourse, setActiveCourse] = useState<CourseView | null>(null);
   const [activeLesson, setActiveLesson] = useState<CourseView["modules"][number]["lessons"][number] | null>(null);
   const [activeImportedExercise, setActiveImportedExercise] = useState<CourseView["modules"][number]["lessons"][number]["exercises"][number] | null>(null);
@@ -661,6 +661,7 @@ export default function App() {
               return <i key={key} className={attempts > 0 ? "active" : ""} style={{ opacity: attempts > 0 ? Math.min(.35 + attempts * .18, 1) : 1 }} title={`${key}: ${attempts} attempts`} />;
             })}</div></article>
             <article className="recent-card"><div><strong>Recent attempts</strong><span>{learningSummary.recentAttempts.length}</span></div>{learningSummary.recentAttempts.length ? learningSummary.recentAttempts.map((attempt) => <div className="recent-row" key={`${attempt.createdAt}-${attempt.exerciseId}`}><span className={attempt.passed ? "pass" : "neutral"}>{attempt.passed ? "✓" : "•"}</span><p><strong>{attempt.exerciseId.replaceAll("-", " ")}</strong><small>{attempt.action} · {new Date(attempt.createdAt).toLocaleString()}</small></p></div>) : <p className="dashboard-empty">Run your first exercise to start building activity.</p>}</article>
+            <article className="mastery-card"><div><strong>Current confidence</strong><span>Recent submissions</span></div>{learningSummary.mastery.length ? learningSummary.mastery.map((item) => <div className="mastery-row" key={item.exerciseId}><p><strong>{item.exerciseId.split(":").at(-1)?.replaceAll("-", " ")}</strong><small>{item.attempts} recent attempt{item.attempts === 1 ? "" : "s"}</small></p><div><i style={{ width: `${item.confidence}%` }}/></div><b>{item.confidence}%</b></div>) : <p className="dashboard-empty">Submit an exercise to calculate confidence.</p>}</article>
           </div>
         </section>
       )}

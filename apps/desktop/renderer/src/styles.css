@@ -483,3 +483,17 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .settings-scope-note strong { color: #55ce8c; }
 :root[data-theme="light"] .settings-scopes, :root[data-theme="light"] .settings-toolbar input { border-color: #ccd8d1; color: #34433b; background: #f4f7f5; }
 :root[data-theme="light"] .settings-scopes button.active { color: #244735; background: #dcece3; }
+.mastery-card { grid-column: 1 / -1; padding: 17px; border: 1px solid #242f29; border-radius: 10px; background: #111814; }
+.mastery-card > div:first-child { display: flex; justify-content: space-between; margin-bottom: 10px; color: #aeb9b2; font-size: 11px; }
+.mastery-card > div:first-child span { color: #718078; font-size: 9px; }
+.mastery-row { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr 38px; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #253029; }
+.mastery-row p { display: grid; gap: 2px; margin: 0; text-transform: capitalize; }
+.mastery-row p strong { color: #aab6af; font-size: 10px; }
+.mastery-row p small { color: #6e7b73; font-size: 8px; }
+.mastery-row > div { height: 6px; overflow: hidden; border-radius: 5px; background: #263129; }
+.mastery-row > div i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #3aaf6d, #69dc99); }
+.mastery-row > b { color: #75d99d; font-size: 10px; text-align: right; }
+:root[data-theme="light"] .mastery-card { border-color: #d9e2dd; background: #fff; }
+:root[data-theme="light"] .mastery-row { border-top-color: #dce4e0; }
+:root[data-theme="light"] .mastery-row p strong { color: #435149; }
+:root[data-theme="light"] .mastery-row > div { background: #e1e8e4; }

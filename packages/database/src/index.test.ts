@@ -28,6 +28,7 @@ describe("local database", () => {
       expect(repository.isExerciseCompleted("exercise")).toBe(false);
       repository.record("exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000002"));
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 2, completedExercises: 1, passedSubmissions: 1 });
+      expect(repository.learningSummary().mastery).toContainEqual({ exerciseId: "exercise", confidence: 100, attempts: 1 });
       expect(repository.isExerciseCompleted("exercise")).toBe(true);
       repository.recordQuizAttempt("quiz_00000000-0000-0000-0000-000000000001", "course:quiz", 0, false);
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 3, completedExercises: 1, passedSubmissions: 1 });

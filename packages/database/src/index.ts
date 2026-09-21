@@ -189,6 +189,20 @@ export class AttemptRepository {
       WHERE created_at >= datetime('now', '-27 days')
       GROUP BY substr(created_at, 1, 10) ORDER BY date
     `).all() as Array<{ date: string; attempts: number }>;
+    const masteryRows = this.database.prepare(`
+      WITH ranked AS (
+        SELECT exercise_id, passed,
+               ROW_NUMBER() OVER (PARTITION BY exercise_id ORDER BY created_at DESC) AS recent_rank
+        FROM exercise_attempts WHERE action = 'submit'
+      )
+      SELECT exercise_id,
+             ROUND(100.0 * SUM(passed * (6 - recent_rank)) / SUM(6 - recent_rank)) AS confidence,
+             COUNT(*) AS attempts
+      FROM ranked WHERE recent_rank <= 5
+      GROUP BY exercise_id
+      ORDER BY confidence ASC, attempts DESC, exercise_id
+      LIMIT 8
+    `).all() as Array<{ exercise_id: string; confidence: number; attempts: number }>;
     const activeDates = new Set(activityRows.map((row) => row.date));
     let streak = 0;
     const cursor = new Date();
@@ -210,7 +224,8 @@ export class AttemptRepository {
         passed: Number(row.passed) === 1,
         createdAt: String(row.created_at)
       })),
-      activity: activityRows.map((row) => ({ date: row.date, attempts: Number(row.attempts) }))
+      activity: activityRows.map((row) => ({ date: row.date, attempts: Number(row.attempts) })),
+      mastery: masteryRows.map((row) => ({ exerciseId: row.exercise_id, confidence: Number(row.confidence), attempts: Number(row.attempts) }))
     };
   }
 
