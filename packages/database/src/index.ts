@@ -196,6 +196,10 @@ export class AttemptRepository {
     return Number(row.count);
   }
 
+  isExerciseCompleted(exerciseId: string): boolean {
+    return Boolean(this.database.prepare("SELECT 1 AS completed FROM exercise_progress WHERE exercise_id = ? AND completed_at IS NOT NULL").get(exerciseId));
+  }
+
   revealHint(exerciseId: string, hintIndex: number): number {
     this.database.prepare(`
       INSERT OR IGNORE INTO hint_reveals (exercise_id, hint_index, revealed_at)

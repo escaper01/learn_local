@@ -102,7 +102,11 @@ function registerIpc(): void {
     assertTrustedSender(event);
     const { courseId, version } = courseOpenSchema.parse(input);
     const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), courseId, version);
-    return toCourseView(pack, (exerciseId) => attempts?.revealedHintCount(`${courseId}:${exerciseId}`) ?? 0);
+    return toCourseView(
+      pack,
+      (exerciseId) => attempts?.revealedHintCount(`${courseId}:${exerciseId}`) ?? 0,
+      (exerciseId) => attempts?.isExerciseCompleted(`${courseId}:${exerciseId}`) ?? false
+    );
   });
 
   ipcMain.handle(IPC_CHANNELS.runtimesList, async (event) => {

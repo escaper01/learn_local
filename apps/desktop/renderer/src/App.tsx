@@ -173,6 +173,8 @@ export default function App() {
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
   const [activeAction, setActiveAction] = useState<"run" | "submit" | null>(null);
   const activeRef = useRef<string | null>(null);
+  const activeActionRef = useRef<"run" | "submit" | null>(null);
+  const activeCourseRef = useRef<CourseView | null>(null);
   const hydratedLanguage = useRef<"java" | "python" | null>(null);
 
   useEffect(() => {
@@ -191,14 +193,24 @@ export default function App() {
         setResult(event.result);
         setError(null);
         void window.learnLocal.progress.summary().then(setLearningSummary);
+        const currentCourse = activeCourseRef.current;
+        if (currentCourse && activeActionRef.current === "submit" && event.result.tests.length > 0 && event.result.tests.every((test) => test.passed)) {
+          void window.learnLocal.courses.open(currentCourse.summary.id, currentCourse.summary.version).then((course) => {
+            activeCourseRef.current = course;
+            setActiveCourse(course);
+          });
+        }
       } else {
         setError(event.error);
       }
       activeRef.current = null;
+      activeActionRef.current = null;
       setActiveExecution(null);
       setActiveAction(null);
     });
   }, []);
+
+  useEffect(() => { activeCourseRef.current = activeCourse; }, [activeCourse]);
 
   useEffect(() => {
     if (activeCourse) return;
@@ -219,6 +231,7 @@ export default function App() {
     setResult(null);
     setError(null);
     setActiveAction(action);
+    activeActionRef.current = action;
     try {
       const courseReference = activeCourse && activeImportedExercise ? { courseId: activeCourse.summary.id, courseVersion: activeCourse.summary.version, exerciseId: activeImportedExercise.id } : {};
       const { executionId } = await window.learnLocal.execution.start({ action, language, sourceCode: source, ...courseReference });
@@ -227,6 +240,7 @@ export default function App() {
     } catch (value) {
       setError(friendlyError(value));
       setActiveAction(null);
+      activeActionRef.current = null;
     }
   };
 
@@ -290,6 +304,7 @@ export default function App() {
       if (!lesson || !exercise) throw new Error("This course has no exercises.");
       const starter = exercise.starterFiles[0];
       setActiveCourse(detail);
+      activeCourseRef.current = detail;
       setActiveLesson(lesson);
       setActiveImportedExercise(exercise);
       setLanguage(course.language);
@@ -315,6 +330,12 @@ export default function App() {
     try {
       const answer = await window.learnLocal.progress.submitQuiz({ courseId: activeCourse.summary.id, version: activeCourse.summary.version, exerciseId: activeImportedExercise.id, choiceIndex: selectedChoice });
       setQuizCorrect(answer.correct);
+      if (answer.correct) {
+        const updated = await window.learnLocal.courses.open(activeCourse.summary.id, activeCourse.summary.version);
+        activeCourseRef.current = updated;
+        setActiveCourse(updated);
+        setActiveImportedExercise((current) => current ? { ...current, completed: true } : current);
+      }
       setLearningSummary(await window.learnLocal.progress.summary());
     } catch (reason) { setError(friendlyError(reason)); }
   };
@@ -381,6 +402,8 @@ export default function App() {
   const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
   const activeStarter = activeImportedExercise?.starterFiles[0];
+  const courseExercises = activeCourse?.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises) ?? [];
+  const completedCourseExercises = courseExercises.filter((exercise) => exercise.completed).length;
 
   return (
     <main className="app-shell">
@@ -415,13 +438,13 @@ export default function App() {
               <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
               {theme === "dark" ? "Light" : "Dark"}
             </button>
-            <div className="progress-chip"><span>Module 2</span><b>4 / 8</b></div>
+            <div className="progress-chip"><span>{activeCourse ? "Course progress" : "Exercises completed"}</span><b>{activeCourse ? `${completedCourseExercises} / ${courseExercises.length}` : learningSummary.completedExercises}</b></div>
           </div>
         </header>
 
         <div className="lesson-grid">
           <article className="lesson-pane">
-            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={exercise.id === activeImportedExercise?.id ? "active" : ""} key={exercise.id} onClick={() => selectCourseExercise(lesson, exercise)}>{exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : "›"} {exercise.title}</button>)}</div>)}</div>}
+            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={`${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => selectCourseExercise(lesson, exercise)}>{exercise.completed ? "✓" : exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : "›"} {exercise.title}</button>)}</div>)}</div>}
             <div className="eyebrow">{(activeImportedExercise?.type ?? "function").toUpperCase()} EXERCISE · {language === "java" ? "JAVA 21" : "PYTHON 3.13"}</div>
             <h1>{activeImportedExercise?.title ?? `Sum ${language === "java" ? "an Array" : "a List"}`}</h1>
             <p className="lede">{activeImportedExercise?.instructionMarkdown ?? `Practice traversing ${language === "java" ? "an array" : "a list"} and carrying a result through each iteration.`}</p>

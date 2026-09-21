@@ -67,6 +67,7 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .course-outline > div > span { color: #66737e; font-size: 9px; }
 .course-outline button { padding: 6px 8px; border: 0; border-radius: 5px; color: #8d99a4; background: transparent; font-size: 10px; text-align: left; cursor: pointer; }
 .course-outline button:hover, .course-outline button.active { color: #c9f1da; background: #1a3527; }
+.course-outline button.completed { color: #58d394; }
 
 .coding-pane { min-width: 0; min-height: 0; display: grid; grid-template-rows: 43px minmax(225px, 1fr) 58px minmax(210px, .72fr); background: #0d1218; }
 .editor-toolbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242d37; background: #11171e; }

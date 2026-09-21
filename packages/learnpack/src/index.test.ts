@@ -109,6 +109,12 @@ describe("LearnPack semantic validation", () => {
     expect(revealed.hints).toEqual(["Start small"]);
   });
 
+  it("maps persisted completion into the course outline", () => {
+    const pack = validateLearnPackContent(validEntries());
+    const exercise = toCourseView(pack, () => 0, (id) => id === "sum-array").modules[0]!.lessons[0]!.exercises[0]!;
+    expect(exercise.completed).toBe(true);
+  });
+
   it("rejects missing referenced modules", () => {
     const entries = validEntries();
     entries.delete("content/01-basics.json");

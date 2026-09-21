@@ -199,6 +199,7 @@ export interface CourseView {
         starterFiles: Array<{ path: string; content: string }>;
         hints: string[];
         hintCount: number;
+        completed: boolean;
         choices?: string[];
         publicTestCount: number;
         hiddenTestCount: number;
