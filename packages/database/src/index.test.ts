@@ -23,6 +23,7 @@ describe("local database", () => {
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-"));
     const repository = new AttemptRepository(join(directory, "test.sqlite"));
     try {
+      expect(repository.health()).toMatchObject({ integrity: "ok", schemaVersion: 2 });
       repository.record("exercise", "run", passingResult("exec_00000000-0000-0000-0000-000000000001"));
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 1, completedExercises: 0 });
       expect(repository.isExerciseCompleted("exercise")).toBe(false);

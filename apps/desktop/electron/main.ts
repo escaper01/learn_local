@@ -299,6 +299,7 @@ function registerIpc(): void {
       platform: { os: process.platform, architecture: process.arch },
       provider: await docker.detect(),
       runtimes: await docker.listRuntimes(),
+      database: attempts?.health(),
       learning: attempts?.learningSummary()
     };
     await writeFile(selected.filePath, JSON.stringify(diagnostics, null, 2), "utf8");

@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { ExecutionAction, ExecutionResult, LearningSummary, SettingScope, SettingValue } from "@learnlocal/contracts";
+import { AppError, type ExecutionAction, type ExecutionResult, type LearningSummary, type SettingScope, type SettingValue } from "@learnlocal/contracts";
 
 export interface StoredSettingRow {
   key: string;
@@ -12,10 +12,18 @@ export interface StoredSettingRow {
 
 export class AttemptRepository {
   private readonly database: DatabaseSync;
+  private readonly backupPath: string;
 
   constructor(databasePath: string) {
     mkdirSync(dirname(databasePath), { recursive: true });
-    if (existsSync(databasePath) && statSync(databasePath).size > 0) copyFileSync(databasePath, `${databasePath}.backup`);
+    this.backupPath = `${databasePath}.backup`;
+    if (existsSync(databasePath) && statSync(databasePath).size > 0) {
+      const inspection = new DatabaseSync(databasePath);
+      const integrity = inspection.prepare("PRAGMA integrity_check").get() as { integrity_check?: unknown } | undefined;
+      inspection.close();
+      if (integrity?.integrity_check !== "ok") throw new AppError("DATABASE_INTEGRITY_FAILED", "system", "The local learning database is damaged. A previous .backup file was preserved for recovery.", { databasePath, backupPath: this.backupPath });
+      copyFileSync(databasePath, this.backupPath);
+    }
     this.database = new DatabaseSync(databasePath);
     this.database.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
     this.migrate();
@@ -74,6 +82,14 @@ export class AttemptRepository {
 
   close(): void {
     this.database.close();
+  }
+
+  health(): { integrity: "ok"; schemaVersion: number; backupAvailable: boolean; backupBytes: number } {
+    const integrity = this.database.prepare("PRAGMA integrity_check").get() as { integrity_check?: unknown } | undefined;
+    if (integrity?.integrity_check !== "ok") throw new AppError("DATABASE_INTEGRITY_FAILED", "system", "The local learning database failed its integrity check.");
+    const version = this.database.prepare("SELECT COALESCE(MAX(version), 0) AS version FROM schema_migrations").get() as { version: number };
+    const backupAvailable = existsSync(this.backupPath);
+    return { integrity: "ok", schemaVersion: Number(version.version), backupAvailable, backupBytes: backupAvailable ? statSync(this.backupPath).size : 0 };
   }
 
   listSettings(): StoredSettingRow[] {
@@ -338,5 +354,23 @@ export class AttemptRepository {
       INSERT OR IGNORE INTO schema_migrations (version, applied_at)
       VALUES (1, datetime('now'));
     `);
+    const version = this.database.prepare("SELECT COALESCE(MAX(version), 0) AS version FROM schema_migrations").get() as { version: number };
+    if (Number(version.version) < 2) {
+      this.database.exec("BEGIN IMMEDIATE");
+      try {
+        this.database.exec(`
+          CREATE TABLE IF NOT EXISTS app_metadata (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          );
+          INSERT INTO schema_migrations (version, applied_at) VALUES (2, datetime('now'));
+        `);
+        this.database.exec("COMMIT");
+      } catch (error) {
+        this.database.exec("ROLLBACK");
+        throw error;
+      }
+    }
   }
 }
