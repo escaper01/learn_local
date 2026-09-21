@@ -3,11 +3,18 @@ import { z } from "zod";
 export const executionActionSchema = z.enum(["run", "submit"]);
 export type ExecutionAction = z.infer<typeof executionActionSchema>;
 
+export const sourceFileSchema = z.object({
+  path: z.string().min(1).max(240),
+  content: z.string().max(500_000)
+}).strict();
+export type SourceFile = z.infer<typeof sourceFileSchema>;
+
 export const runRequestSchema = z
   .object({
     action: executionActionSchema,
     language: z.enum(["java", "python"]),
-    sourceCode: z.string().min(1).max(100_000),
+    sourceCode: z.string().min(1).max(500_000),
+    sourceFiles: z.array(sourceFileSchema).min(1).max(50).optional(),
     courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional(),
     courseVersion: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/).optional(),
     exerciseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional()
@@ -159,6 +166,15 @@ export const workspaceWriteSchema = z.object({
   content: z.string().max(500_000)
 }).strict();
 
+export const exerciseWorkspaceSchema = z.object({
+  courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+  version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
+  exerciseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/)
+}).strict();
+export const exerciseWorkspaceWriteSchema = exerciseWorkspaceSchema.extend({
+  files: z.array(sourceFileSchema).min(1).max(50)
+}).strict();
+
 export interface ValidationIssue {
   code: string;
   severity: "error" | "warning";
@@ -267,6 +283,8 @@ export interface LearnLocalApi {
   workspace: {
     read(language: "java" | "python"): Promise<{ content: string | null }>;
     write(language: "java" | "python", content: string): Promise<void>;
+    readExercise(input: z.infer<typeof exerciseWorkspaceSchema>): Promise<{ files: SourceFile[] }>;
+    writeExercise(input: z.infer<typeof exerciseWorkspaceWriteSchema>): Promise<void>;
   };
   diagnostics: {
     export(): Promise<{ status: "saved" | "cancelled" }>;
@@ -303,6 +321,8 @@ export const IPC_CHANNELS = {
   progressRevealHint: "progress:reveal-hint",
   workspaceRead: "workspace:read",
   workspaceWrite: "workspace:write",
+  workspaceExerciseRead: "workspace:exercise-read",
+  workspaceExerciseWrite: "workspace:exercise-write",
   diagnosticsExport: "diagnostics:export",
   environmentStatus: "environment:status",
   executionStart: "execution:start",

@@ -1,7 +1,7 @@
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import type { CompileDiagnostic, ExecutionResult, TestResult } from "@learnlocal/contracts";
+import { dirname, join, relative, resolve, sep } from "node:path";
+import type { CompileDiagnostic, ExecutionResult, SourceFile, TestResult } from "@learnlocal/contracts";
 import { AppError } from "@learnlocal/contracts";
 import type {
   JavaAdapter,
@@ -18,6 +18,20 @@ const RESULT_PREFIX = "__LEARNLOCAL_RESULT__";
 
 function javaArray(values: readonly number[]): string {
   return `new int[]{${values.join(",")}}`;
+}
+
+async function writeSources(directory: string, fallbackPath: string, sourceCode: string, sourceFiles?: readonly SourceFile[]): Promise<string[]> {
+  const files = sourceFiles?.length ? sourceFiles : [{ path: fallbackPath, content: sourceCode }];
+  const written: string[] = [];
+  for (const file of files) {
+    const target = resolve(directory, file.path);
+    const fromRoot = relative(directory, target);
+    if (!fromRoot || fromRoot.startsWith("..") || fromRoot.includes(`..${sep}`)) throw new AppError("WORKSPACE_PATH_INVALID", "validation", "A source file path escapes the workspace.");
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, file.content, "utf8");
+    written.push(file.path.replaceAll("\\", "/"));
+  }
+  return written;
 }
 
 function createHarness(tests: readonly JavaTestDefinition[], entrypoint: Required<FunctionEntrypoint>): string {
@@ -136,7 +150,7 @@ export const java21Adapter: JavaAdapter = {
   languageVersions: ["21"],
   imageReference: "eclipse-temurin@sha256:c7d5863b5dd8f26b90c64f1d80cc2b0e5a5e4642f8db9955a370d348edd8f438",
 
-  async buildWorkspace(sourceCode, tests, entrypoint = { className: "Solution", name: "sum" }): Promise<PreparedJavaWorkspace> {
+  async buildWorkspace(sourceCode, tests, entrypoint = { className: "Solution", name: "sum" }, sourceFiles): Promise<PreparedJavaWorkspace> {
     if (/^\s*package\s+/m.test(sourceCode)) {
       throw new AppError(
         "JAVA_PACKAGE_NOT_ALLOWED",
@@ -148,30 +162,26 @@ export const java21Adapter: JavaAdapter = {
     const resolved = { className: entrypoint.className ?? "Solution", name: entrypoint.name };
     if (!/^[A-Za-z_$][\w$]*$/.test(resolved.className) || !/^[A-Za-z_$][\w$]*$/.test(resolved.name)) throw new AppError("ENTRYPOINT_INVALID", "validation", "The Java function entrypoint is invalid.");
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-java-"));
-    await Promise.all([
-      writeFile(join(directory, `${resolved.className}.java`), sourceCode, "utf8"),
-      writeFile(join(directory, "LearnLocalHarness.java"), createHarness(tests, resolved), "utf8")
-    ]);
+    const sourcePaths = await writeSources(directory, `${resolved.className}.java`, sourceCode, sourceFiles);
+    await writeFile(join(directory, "LearnLocalHarness.java"), createHarness(tests, resolved), "utf8");
 
     return {
       directory,
-      compileCommand: ["javac", "-encoding", "UTF-8", `${resolved.className}.java`, "LearnLocalHarness.java"],
+      compileCommand: ["javac", "-encoding", "UTF-8", "-d", ".", ...sourcePaths, "LearnLocalHarness.java"],
       runCommand: ["java", "-Xms16m", "-Xmx128m", "LearnLocalHarness"],
       tests
     };
   },
 
-  async buildOutputWorkspace(sourceCode, tests): Promise<PreparedOutputWorkspace> {
+  async buildOutputWorkspace(sourceCode, tests, sourceFiles): Promise<PreparedOutputWorkspace> {
     if (/^\s*package\s+/m.test(sourceCode)) throw new AppError("JAVA_PACKAGE_NOT_ALLOWED", "validation", "Package declarations are not supported in this exercise.");
     const className = /public\s+(?:final\s+)?class\s+([A-Za-z_$][\w$]*)/.exec(sourceCode)?.[1] ?? "Main";
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-java-output-"));
-    await Promise.all([
-      writeFile(join(directory, `${className}.java`), sourceCode, "utf8"),
-      writeFile(join(directory, "LearnLocalOutputHarness.java"), createOutputHarness(tests, className), "utf8")
-    ]);
+    const sourcePaths = await writeSources(directory, `${className}.java`, sourceCode, sourceFiles);
+    await writeFile(join(directory, "LearnLocalOutputHarness.java"), createOutputHarness(tests, className), "utf8");
     return {
       directory,
-      compileCommand: ["javac", "-encoding", "UTF-8", `${className}.java`, "LearnLocalOutputHarness.java"],
+      compileCommand: ["javac", "-encoding", "UTF-8", "-d", ".", ...sourcePaths, "LearnLocalOutputHarness.java"],
       runCommand: ["java", "-Xms16m", "-Xmx128m", "LearnLocalOutputHarness"],
       tests
     };

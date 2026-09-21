@@ -1,4 +1,4 @@
-import type { CompileResult, ExecutionResult, ProviderStatus } from "@learnlocal/contracts";
+import type { CompileResult, ExecutionResult, ProviderStatus, SourceFile } from "@learnlocal/contracts";
 
 export * from "./policy";
 
@@ -86,8 +86,8 @@ export interface JavaAdapter {
   readonly adapterVersion: string;
   readonly languageVersions: readonly ["21"];
   readonly imageReference: string;
-  buildWorkspace(sourceCode: string, tests: readonly JavaTestDefinition[], entrypoint?: FunctionEntrypoint): Promise<PreparedJavaWorkspace>;
-  buildOutputWorkspace(sourceCode: string, tests: readonly OutputTestDefinition[]): Promise<PreparedOutputWorkspace>;
+  buildWorkspace(sourceCode: string, tests: readonly JavaTestDefinition[], entrypoint?: FunctionEntrypoint, sourceFiles?: readonly SourceFile[]): Promise<PreparedJavaWorkspace>;
+  buildOutputWorkspace(sourceCode: string, tests: readonly OutputTestDefinition[], sourceFiles?: readonly SourceFile[]): Promise<PreparedOutputWorkspace>;
   parseExecution(
     executionId: string,
     raw: RawSandboxResult,

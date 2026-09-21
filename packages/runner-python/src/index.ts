@@ -1,7 +1,7 @@
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import type { CompileDiagnostic, ExecutionResult, TestResult } from "@learnlocal/contracts";
+import { dirname, join, relative, resolve, sep } from "node:path";
+import { AppError, type CompileDiagnostic, type ExecutionResult, type SourceFile, type TestResult } from "@learnlocal/contracts";
 import type { FunctionEntrypoint, OutputTestDefinition, PreparedOutputWorkspace, RawProcessResult, RawSandboxResult } from "@learnlocal/runner-core";
 
 const RESULT_PREFIX = "__LEARNLOCAL_RESULT__";
@@ -20,14 +20,17 @@ export interface PreparedPythonWorkspace {
   tests: readonly PythonTestDefinition[];
 }
 
-function harness(tests: readonly PythonTestDefinition[], entrypoint: FunctionEntrypoint): string {
+function harness(tests: readonly PythonTestDefinition[], entrypoint: FunctionEntrypoint, solutionPath: string): string {
   return `import json
 import importlib.util
 import time
 import traceback
 from pathlib import Path
+import sys
 
-spec = importlib.util.spec_from_file_location("learnlocal_solution", Path(__file__).with_name("solution.py"))
+sys.path.insert(0, str(Path(__file__).parent))
+
+spec = importlib.util.spec_from_file_location("learnlocal_solution", Path(__file__).parent / ${JSON.stringify(solutionPath)})
 if spec is None or spec.loader is None:
     raise RuntimeError("Unable to load solution.py")
 solution = importlib.util.module_from_spec(spec)
@@ -61,7 +64,7 @@ for test in TESTS:
 `;
 }
 
-function outputHarness(tests: readonly OutputTestDefinition[]): string {
+function outputHarness(tests: readonly OutputTestDefinition[], solutionPath: string): string {
   return `import json
 import subprocess
 import sys
@@ -80,7 +83,8 @@ def normalize(value, mode):
 
 for test in TESTS:
     started = time.perf_counter_ns()
-    completed = subprocess.run([sys.executable, "-I", "solution.py"], input=test["input"], text=True, capture_output=True)
+    launcher = "import runpy,sys;sys.path.insert(0,'.');runpy.run_path(" + repr(${JSON.stringify(solutionPath)}) + ",run_name='__main__')"
+    completed = subprocess.run([sys.executable, "-I", "-c", launcher], input=test["input"], text=True, capture_output=True)
     actual = completed.stdout + completed.stderr
     passed = completed.returncode == 0 and normalize(actual, test["comparison"]) == normalize(test["expected"], test["comparison"])
     print(PREFIX + json.dumps({"id": test["id"], "visibility": test["visibility"], "passed": passed, "durationMs": (time.perf_counter_ns() - started) // 1_000_000, "expected": test["expected"], "actual": actual}, separators=(",", ":")))
@@ -97,6 +101,20 @@ function parseTaggedResults(stdout: string): { parsed: Map<string, Record<string
     } else if (line) consoleLines.push(line);
   }
   return { parsed, consoleLines };
+}
+
+async function writeSources(directory: string, fallbackPath: string, sourceCode: string, sourceFiles?: readonly SourceFile[]): Promise<string[]> {
+  const files = sourceFiles?.length ? sourceFiles : [{ path: fallbackPath, content: sourceCode }];
+  const written: string[] = [];
+  for (const file of files) {
+    const target = resolve(directory, file.path);
+    const fromRoot = relative(directory, target);
+    if (!fromRoot || fromRoot.startsWith("..") || fromRoot.includes(`..${sep}`)) throw new AppError("WORKSPACE_PATH_INVALID", "validation", "A source file path escapes the workspace.");
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, file.content, "utf8");
+    written.push(file.path.replaceAll("\\", "/"));
+  }
+  return written;
 }
 
 function diagnostics(stderr: string): CompileDiagnostic[] {
@@ -122,28 +140,25 @@ export const python3Adapter = {
   languageVersions: ["3.13"] as const,
   imageReference: "python@sha256:2325bb286ec344af3e5898cc224b5844e2707ac6e26b1632516fd3edc84a5e26",
 
-  async buildWorkspace(sourceCode: string, tests: readonly PythonTestDefinition[], entrypoint: FunctionEntrypoint = { name: "sum_values" }): Promise<PreparedPythonWorkspace> {
-    if (!/^[A-Za-z_]\w*$/.test(entrypoint.name)) throw new Error("The Python function entrypoint is invalid.");
+  async buildWorkspace(sourceCode: string, tests: readonly PythonTestDefinition[], entrypoint: FunctionEntrypoint = { name: "sum_values" }, sourceFiles?: readonly SourceFile[]): Promise<PreparedPythonWorkspace> {
+    if (!/^[A-Za-z_]\w*$/.test(entrypoint.name)) throw new AppError("ENTRYPOINT_INVALID", "validation", "The Python function entrypoint is invalid.");
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-python-"));
-    await Promise.all([
-      writeFile(join(directory, "solution.py"), sourceCode, "utf8"),
-      writeFile(join(directory, "_learnlocal_harness.py"), harness(tests, entrypoint), "utf8")
-    ]);
+    const sourcePaths = await writeSources(directory, "solution.py", sourceCode, sourceFiles);
+    const solutionPath = sourcePaths[0] ?? "solution.py";
+    await writeFile(join(directory, "_learnlocal_harness.py"), harness(tests, entrypoint, solutionPath), "utf8");
     return {
       directory,
-      compileCommand: ["python", "-I", "-m", "py_compile", "solution.py", "_learnlocal_harness.py"],
+      compileCommand: ["python", "-I", "-m", "py_compile", ...sourcePaths, "_learnlocal_harness.py"],
       runCommand: ["python", "-I", "_learnlocal_harness.py"],
       tests
     };
   },
 
-  async buildOutputWorkspace(sourceCode: string, tests: readonly OutputTestDefinition[]): Promise<PreparedOutputWorkspace> {
+  async buildOutputWorkspace(sourceCode: string, tests: readonly OutputTestDefinition[], sourceFiles?: readonly SourceFile[]): Promise<PreparedOutputWorkspace> {
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-python-output-"));
-    await Promise.all([
-      writeFile(join(directory, "solution.py"), sourceCode, "utf8"),
-      writeFile(join(directory, "_learnlocal_output.py"), outputHarness(tests), "utf8")
-    ]);
-    return { directory, compileCommand: ["python", "-I", "-m", "py_compile", "solution.py", "_learnlocal_output.py"], runCommand: ["python", "-I", "_learnlocal_output.py"], tests };
+    const sourcePaths = await writeSources(directory, "solution.py", sourceCode, sourceFiles);
+    await writeFile(join(directory, "_learnlocal_output.py"), outputHarness(tests, sourcePaths[0] ?? "solution.py"), "utf8");
+    return { directory, compileCommand: ["python", "-I", "-m", "py_compile", ...sourcePaths, "_learnlocal_output.py"], runCommand: ["python", "-I", "_learnlocal_output.py"], tests };
   },
 
   parseExecution(executionId: string, raw: RawSandboxResult, tests: readonly PythonTestDefinition[], startedAt: number): ExecutionResult {

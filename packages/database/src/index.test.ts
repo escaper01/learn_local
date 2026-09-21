@@ -38,6 +38,11 @@ describe("local database", () => {
       expect(repository.revealHint("course:exercise", 0)).toBe(1);
       repository.writeWorkspace("python", "def answer(): return 42\n");
       expect(repository.readWorkspace("python")).toContain("42");
+      repository.writeWorkspaceFiles("course:test", [{ path: "main.py", content: "import helper" }, { path: "helper.py", content: "answer = 42" }]);
+      expect(repository.readWorkspaceFiles("course:test")).toEqual([
+        { path: "helper.py", content: "answer = 42" },
+        { path: "main.py", content: "import helper" }
+      ]);
     } finally {
       repository.close();
       await rm(directory, { recursive: true, force: true });

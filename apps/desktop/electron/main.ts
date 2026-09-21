@@ -7,6 +7,8 @@ import {
   cancelRequestSchema,
   courseOpenSchema,
   coursePromptRequestSchema,
+  exerciseWorkspaceSchema,
+  exerciseWorkspaceWriteSchema,
   hintRevealSchema,
   IPC_CHANNELS,
   runRequestSchema,
@@ -80,6 +82,21 @@ function createWindow(): void {
     void window.loadURL(process.env.ELECTRON_RENDERER_URL);
   } else {
     void window.loadFile(join(__dirname, "../renderer/index.html"));
+  }
+}
+
+function importedWorkspaceId(courseId: string, version: string, exerciseId: string): string {
+  return `course:${courseId}@${version}:${exerciseId}`;
+}
+
+function validateWorkspaceFiles(
+  starters: readonly { path: string; content: string }[],
+  files: readonly { path: string; content: string }[]
+): void {
+  const expected = [...starters.map((file) => file.path)].sort();
+  const received = [...files.map((file) => file.path)].sort();
+  if (new Set(received).size !== received.length || expected.length !== received.length || expected.some((path, index) => path !== received[index])) {
+    throw new AppError("WORKSPACE_FILES_INVALID", "validation", "Workspace files must exactly match the exercise starter files.");
   }
 }
 
@@ -231,6 +248,28 @@ function registerIpc(): void {
     attempts?.writeWorkspace(language, content);
   });
 
+  ipcMain.handle(IPC_CHANNELS.workspaceExerciseRead, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const request = exerciseWorkspaceSchema.parse(input);
+    const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.version);
+    const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
+    if (!exercise?.starterFiles?.length) throw new AppError("WORKSPACE_NOT_FOUND", "validation", "This exercise does not have an editable workspace.");
+    const saved = attempts?.readWorkspaceFiles(importedWorkspaceId(request.courseId, request.version, request.exerciseId)) ?? [];
+    if (saved.length) validateWorkspaceFiles(exercise.starterFiles, saved);
+    const savedByPath = new Map(saved.map((file) => [file.path, file]));
+    return { files: saved.length ? exercise.starterFiles.map((file) => savedByPath.get(file.path)!) : exercise.starterFiles };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.workspaceExerciseWrite, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const request = exerciseWorkspaceWriteSchema.parse(input);
+    const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.version);
+    const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
+    if (!exercise?.starterFiles?.length) throw new AppError("WORKSPACE_NOT_FOUND", "validation", "This exercise does not have an editable workspace.");
+    validateWorkspaceFiles(exercise.starterFiles, request.files);
+    attempts?.writeWorkspaceFiles(importedWorkspaceId(request.courseId, request.version, request.exerciseId), request.files);
+  });
+
   ipcMain.handle(IPC_CHANNELS.diagnosticsExport, async (event) => {
     assertTrustedSender(event);
     const selected = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender)!, {
@@ -275,12 +314,23 @@ function registerIpc(): void {
         let importedExerciseType: "function" | "debug" | "output" | "project" | undefined;
         let importedEntrypoint: FunctionEntrypoint | undefined;
         let executionLimits: { [Key in keyof typeof EXECUTION_POLICY]: number } = EXECUTION_POLICY;
+        let executionSource = request.sourceCode;
+        let importedSourceFiles: Array<{ path: string; content: string }> | undefined;
         if (request.courseId && request.courseVersion && request.exerciseId) {
           const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.courseVersion);
           if (pack.manifest.course.language !== request.language) throw new AppError("PACK_LANGUAGE_MISMATCH", "validation", "The requested exercise does not match the selected language.");
           const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
           if (!exercise) throw new AppError("EXERCISE_NOT_FOUND", "validation", "The requested exercise is unavailable.");
           if (exercise.type !== "function" && exercise.type !== "debug" && exercise.type !== "output" && exercise.type !== "project") throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This exercise type does not use the code runner.");
+          const starters = exercise.starterFiles ?? [];
+          if (request.sourceFiles) {
+            validateWorkspaceFiles(starters, request.sourceFiles);
+            const requestedByPath = new Map(request.sourceFiles.map((file) => [file.path, file]));
+            importedSourceFiles = starters.map((file) => requestedByPath.get(file.path)!);
+            executionSource = importedSourceFiles[0]?.content ?? request.sourceCode;
+          } else if (starters.length > 1) {
+            throw new AppError("WORKSPACE_FILES_REQUIRED", "validation", "This multi-file exercise requires all workspace files.");
+          }
           importedExerciseType = exercise.type;
           executionLimits = {
             ...EXECUTION_POLICY,
@@ -314,7 +364,7 @@ function registerIpc(): void {
         }
         if (request.language === "java") {
           if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
-            const workspace = await java21Adapter.buildOutputWorkspace(request.sourceCode, outputTests);
+            const workspace = await java21Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
             workspaceDirectory = workspace.directory;
             const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits });
             result = java21Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
@@ -322,14 +372,14 @@ function registerIpc(): void {
           const tests = importedTests ?? (request.action === "submit"
             ? [...SUM_EXERCISE.publicTests, ...SUM_EXERCISE.hiddenTests]
             : SUM_EXERCISE.publicTests);
-          const workspace = await java21Adapter.buildWorkspace(request.sourceCode, tests, importedEntrypoint);
+          const workspace = await java21Adapter.buildWorkspace(executionSource, tests, importedEntrypoint, importedSourceFiles);
           workspaceDirectory = workspace.directory;
           const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits });
           result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
           }
         } else {
           if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
-            const workspace = await python3Adapter.buildOutputWorkspace(request.sourceCode, outputTests);
+            const workspace = await python3Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
             workspaceDirectory = workspace.directory;
             const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits });
             result = python3Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
@@ -337,7 +387,7 @@ function registerIpc(): void {
           const tests = importedTests ?? (request.action === "submit"
             ? [...PYTHON_SUM_EXERCISE.publicTests, ...PYTHON_SUM_EXERCISE.hiddenTests]
             : PYTHON_SUM_EXERCISE.publicTests);
-          const workspace = await python3Adapter.buildWorkspace(request.sourceCode, tests, importedEntrypoint);
+          const workspace = await python3Adapter.buildWorkspace(executionSource, tests, importedEntrypoint, importedSourceFiles);
           workspaceDirectory = workspace.directory;
           const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits });
           result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);

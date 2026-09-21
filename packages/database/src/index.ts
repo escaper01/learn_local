@@ -126,6 +126,32 @@ export class AttemptRepository {
     `).run(`builtin-${language}`, path, content, new Date().toISOString());
   }
 
+  readWorkspaceFiles(workspaceId: string): Array<{ path: string; content: string }> {
+    const rows = this.database.prepare("SELECT path, content FROM workspace_files WHERE workspace_id = ? ORDER BY path").all(workspaceId) as Array<{ path: string; content: string }>;
+    return rows.map((row) => ({ path: String(row.path), content: String(row.content) }));
+  }
+
+  writeWorkspaceFiles(workspaceId: string, files: readonly { path: string; content: string }[]): void {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const allowed = new Set(files.map((file) => file.path));
+      const existing = this.database.prepare("SELECT path FROM workspace_files WHERE workspace_id = ?").all(workspaceId) as Array<{ path: string }>;
+      const remove = this.database.prepare("DELETE FROM workspace_files WHERE workspace_id = ? AND path = ?");
+      for (const row of existing) if (!allowed.has(row.path)) remove.run(workspaceId, row.path);
+      const upsert = this.database.prepare(`
+        INSERT INTO workspace_files (workspace_id, path, content, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (workspace_id, path) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at
+      `);
+      const now = new Date().toISOString();
+      for (const file of files) upsert.run(workspaceId, file.path, file.content, now);
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   learningSummary(): LearningSummary {
     const totals = this.database.prepare(`
       SELECT COUNT(*) AS total_attempts,

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue, ValidationIssue } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue, SourceFile, ValidationIssue } from "@learnlocal/contracts";
 
 loader.config({ monaco });
 
@@ -149,6 +149,8 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [language, setLanguage] = useState<"java" | "python">("java");
   const [source, setSource] = useState(STARTER_CODE);
+  const [sourceFiles, setSourceFiles] = useState<SourceFile[]>([]);
+  const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
   const [provider, setProvider] = useState<ProviderStatus>();
   const [courses, setCourses] = useState<ImportedCourseSummary[]>([]);
   const [importing, setImporting] = useState(false);
@@ -228,6 +230,20 @@ export default function App() {
     return () => window.clearTimeout(timeout);
   }, [language, source, activeCourse]);
 
+  useEffect(() => {
+    if (!activeCourse || !activeImportedExercise || !sourceFiles.length) return;
+    const expectedPaths = activeImportedExercise.starterFiles.map((file) => file.path).sort();
+    const currentPaths = sourceFiles.map((file) => file.path).sort();
+    if (expectedPaths.length !== currentPaths.length || expectedPaths.some((path, index) => path !== currentPaths[index])) return;
+    const timeout = window.setTimeout(() => void window.learnLocal.workspace.writeExercise({
+      courseId: activeCourse.summary.id,
+      version: activeCourse.summary.version,
+      exerciseId: activeImportedExercise.id,
+      files: sourceFiles
+    }).catch((reason) => setError(friendlyError(reason))), 600);
+    return () => window.clearTimeout(timeout);
+  }, [activeCourse, activeImportedExercise, sourceFiles]);
+
   const execute = async (action: "run" | "submit") => {
     setResult(null);
     setError(null);
@@ -235,7 +251,7 @@ export default function App() {
     activeActionRef.current = action;
     try {
       const courseReference = activeCourse && activeImportedExercise ? { courseId: activeCourse.summary.id, courseVersion: activeCourse.summary.version, exerciseId: activeImportedExercise.id } : {};
-      const { executionId } = await window.learnLocal.execution.start({ action, language, sourceCode: source, ...courseReference });
+      const { executionId } = await window.learnLocal.execution.start({ action, language, sourceCode: source, ...(sourceFiles.length ? { sourceFiles } : {}), ...courseReference });
       activeRef.current = executionId;
       setActiveExecution(executionId);
     } catch (value) {
@@ -294,6 +310,8 @@ export default function App() {
     setActiveCourse(null);
     setActiveLesson(null);
     setActiveImportedExercise(null);
+    setSourceFiles([]);
+    setActiveFilePath(null);
     setResult(null);
     setError(null);
   };
@@ -304,13 +322,21 @@ export default function App() {
       const lesson = detail.modules.flatMap((module) => module.lessons).find((candidate) => candidate.exercises.length > 0);
       const exercise = lesson?.exercises[0];
       if (!lesson || !exercise) throw new Error("This course has no exercises.");
-      const starter = exercise.starterFiles[0];
       setActiveCourse(detail);
       activeCourseRef.current = detail;
       setActiveLesson(lesson);
       setActiveImportedExercise(exercise);
       setLanguage(course.language);
-      setSource(starter?.content ?? "");
+      if (exercise.starterFiles.length) {
+        const workspace = await window.learnLocal.workspace.readExercise({ courseId: course.id, version: course.version, exerciseId: exercise.id });
+        setSourceFiles(workspace.files);
+        setActiveFilePath(workspace.files[0]?.path ?? null);
+        setSource(workspace.files[0]?.content ?? "");
+      } else {
+        setSourceFiles([]);
+        setActiveFilePath(null);
+        setSource("");
+      }
       setResult(null);
       setSelectedChoice(null);
       setQuizCorrect(null);
@@ -318,13 +344,45 @@ export default function App() {
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
-  const selectCourseExercise = (lesson: CourseView["modules"][number]["lessons"][number], exercise: CourseView["modules"][number]["lessons"][number]["exercises"][number]) => {
+  const selectCourseExercise = async (lesson: CourseView["modules"][number]["lessons"][number], exercise: CourseView["modules"][number]["lessons"][number]["exercises"][number]) => {
     setActiveLesson(lesson);
     setActiveImportedExercise(exercise);
-    setSource(exercise.starterFiles[0]?.content ?? "");
+    if (activeCourse && exercise.starterFiles.length) {
+      const workspace = await window.learnLocal.workspace.readExercise({ courseId: activeCourse.summary.id, version: activeCourse.summary.version, exerciseId: exercise.id });
+      setSourceFiles(workspace.files);
+      setActiveFilePath(workspace.files[0]?.path ?? null);
+      setSource(workspace.files[0]?.content ?? "");
+    } else {
+      setSourceFiles([]);
+      setActiveFilePath(null);
+      setSource("");
+    }
     setSelectedChoice(null);
     setQuizCorrect(null);
     setResult(null);
+  };
+
+  const editSource = (content: string) => {
+    setSource(content);
+    if (activeFilePath) setSourceFiles((files) => files.map((file) => file.path === activeFilePath ? { ...file, content } : file));
+  };
+
+  const selectFile = (path: string) => {
+    const file = sourceFiles.find((candidate) => candidate.path === path);
+    if (!file) return;
+    setActiveFilePath(path);
+    setSource(file.content);
+  };
+
+  const resetExerciseWorkspace = () => {
+    if (!activeImportedExercise) {
+      setSource(language === "java" ? STARTER_CODE : PYTHON_STARTER_CODE);
+      return;
+    }
+    const files = activeImportedExercise.starterFiles;
+    setSourceFiles(files);
+    setActiveFilePath(files[0]?.path ?? null);
+    setSource(files[0]?.content ?? "");
   };
 
   const submitQuiz = async () => {
@@ -403,7 +461,7 @@ export default function App() {
 
   const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
-  const activeStarter = activeImportedExercise?.starterFiles[0];
+  const activeStarter = activeImportedExercise?.starterFiles.find((file) => file.path === activeFilePath) ?? activeImportedExercise?.starterFiles[0];
   const courseExercises = activeCourse?.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises) ?? [];
   const completedCourseExercises = courseExercises.filter((exercise) => exercise.completed).length;
 
@@ -446,7 +504,7 @@ export default function App() {
 
         <div className="lesson-grid">
           <article className="lesson-pane">
-            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={`${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => selectCourseExercise(lesson, exercise)}>{exercise.completed ? "✓" : exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : "›"} {exercise.title}</button>)}</div>)}</div>}
+            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={`${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => void selectCourseExercise(lesson, exercise)}>{exercise.completed ? "✓" : exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : "›"} {exercise.title}</button>)}</div>)}</div>}
             <div className="eyebrow">{(activeImportedExercise?.type ?? "function").toUpperCase()} EXERCISE · {language === "java" ? "JAVA 21" : "PYTHON 3.13"}</div>
             <h1>{activeImportedExercise?.title ?? `Sum ${language === "java" ? "an Array" : "a List"}`}</h1>
             <p className="lede">{activeImportedExercise?.instructionMarkdown ?? `Practice traversing ${language === "java" ? "an array" : "a list"} and carrying a result through each iteration.`}</p>
@@ -476,13 +534,13 @@ export default function App() {
           ) : (
           <section className="coding-pane">
             <div className="editor-toolbar">
-              <div className="file-tab"><span className={`java-icon ${language}`}>{language === "java" ? "J" : "Py"}</span>{activeStarter?.path ?? (language === "java" ? "Solution.java" : "solution.py")} <i>●</i></div>
+              <div className="file-tabs">{sourceFiles.length ? sourceFiles.map((file) => <button type="button" className={`file-tab ${file.path === activeFilePath ? "active" : ""}`} key={file.path} onClick={() => selectFile(file.path)}><span className={`java-icon ${language}`}>{language === "java" ? "J" : "Py"}</span>{file.path}</button>) : <div className="file-tab active"><span className={`java-icon ${language}`}>{language === "java" ? "J" : "Py"}</span>{language === "java" ? "Solution.java" : "solution.py"} <i>●</i></div>}</div>
               <div className="toolbar-actions">
                 <div className="language-switch" aria-label="Exercise language">
                   <button className={language === "java" ? "active" : ""} onClick={() => switchLanguage("java")}>Java</button>
                   <button className={language === "python" ? "active" : ""} onClick={() => switchLanguage("python")}>Python</button>
                 </div>
-                <button className="ghost-button" onClick={() => setSource(activeStarter?.content ?? (language === "java" ? STARTER_CODE : PYTHON_STARTER_CODE))} disabled={Boolean(activeAction)}>Reset</button>
+                <button className="ghost-button" onClick={resetExerciseWorkspace} disabled={Boolean(activeAction)}>Reset</button>
                 {!activeCourse && <button className="ghost-button" onClick={() => setSource(language === "java" ? SOLUTION_CODE : PYTHON_SOLUTION_CODE)} disabled={Boolean(activeAction)}>Show solution</button>}
               </div>
             </div>
@@ -491,7 +549,7 @@ export default function App() {
                 language={language}
                 theme={theme === "dark" ? "vs-dark" : "light"}
                 value={source}
-                onChange={(value) => setSource(value ?? "")}
+                onChange={(value) => editSource(value ?? "")}
                 options={{
                   minimap: { enabled: false },
                   fontSize: typeof editorFontSize === "number" ? editorFontSize : 14,

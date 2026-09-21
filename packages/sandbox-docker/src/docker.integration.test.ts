@@ -78,8 +78,16 @@ dockerTest("Docker Java execution", () => {
   it("executes Java and Python output exercises with trusted comparisons", async () => {
     const provider = new DockerProvider();
     const tests = [{ id: "answer", visibility: "public" as const, input: "", expected: "42", comparison: "trimmed" as const }];
-    const javaWorkspace = await java21Adapter.buildOutputWorkspace("public class Main { public static void main(String[] args) { System.out.println(42); } }", tests);
-    const pythonWorkspace = await python3Adapter.buildOutputWorkspace("print(42)\n", tests);
+    const javaSource = "public class Main { public static void main(String[] args) { System.out.println(Helper.answer()); } }";
+    const javaWorkspace = await java21Adapter.buildOutputWorkspace(javaSource, tests, [
+      { path: "Main.java", content: javaSource },
+      { path: "Helper.java", content: "public final class Helper { static int answer() { return 42; } }" }
+    ]);
+    const pythonSource = "from helper import answer\nprint(answer())\n";
+    const pythonWorkspace = await python3Adapter.buildOutputWorkspace(pythonSource, tests, [
+      { path: "solution.py", content: pythonSource },
+      { path: "helper.py", content: "def answer(): return 42\n" }
+    ]);
     try {
       const javaId = `exec_${randomUUID()}`;
       const javaRaw = await provider.execute({ executionId: javaId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace: javaWorkspace, limits: EXECUTION_POLICY });
