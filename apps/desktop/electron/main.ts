@@ -32,6 +32,10 @@ import { buildCoursePrompt } from "@learnlocal/prompt-generator";
 const docker = new DockerProvider();
 let attempts: AttemptRepository | undefined;
 
+// Electron/Chromium GPU compositing can produce a fully rendered but visually blank
+// window on some Windows driver combinations. Monaco does not require GPU rendering.
+if (process.platform === "win32") app.disableHardwareAcceleration();
+
 function assertTrustedSender(event: IpcMainInvokeEvent): void {
   if (event.senderFrame !== event.sender.mainFrame) {
     throw new AppError("IPC_UNTRUSTED_SENDER", "system", "This request did not come from the main application frame.");
