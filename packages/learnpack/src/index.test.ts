@@ -124,6 +124,26 @@ describe("LearnPack semantic validation", () => {
     });
   });
 
+  it("names unexpected and missing manifest properties in repair details", () => {
+    const entries = validEntries();
+    const manifest = entries.get("manifest.json") as Record<string, unknown>;
+    manifest.title = "Wrong location";
+    delete (manifest.course as Record<string, unknown>).title;
+    try {
+      validateLearnPackContent(entries);
+      throw new Error("Expected manifest validation to fail.");
+    } catch (error) {
+      expect(error).toMatchObject({
+        details: {
+          issues: expect.arrayContaining([
+            expect.objectContaining({ message: 'Unexpected property "title".' }),
+            expect.objectContaining({ path: "/course", message: 'Missing required property "title".' })
+          ])
+        }
+      });
+    }
+  });
+
   it("exposes quiz choices without revealing the trusted answer", () => {
     const entries = validEntries();
     const module = entries.get("content/01-basics.json") as {

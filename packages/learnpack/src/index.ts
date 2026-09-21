@@ -99,7 +99,11 @@ function schemaIssues(errors: ErrorObject[] | null | undefined, file: string): V
     severity: "error",
     file,
     path: error.instancePath || "/",
-    message: error.message ?? "Value does not match the LearnPack schema."
+    message: error.keyword === "additionalProperties" && typeof error.params.additionalProperty === "string"
+      ? `Unexpected property "${error.params.additionalProperty}".`
+      : error.keyword === "required" && typeof error.params.missingProperty === "string"
+        ? `Missing required property "${error.params.missingProperty}".`
+        : error.message ?? "Value does not match the LearnPack schema."
   }));
 }
 

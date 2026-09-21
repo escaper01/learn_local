@@ -50,6 +50,8 @@ MANIFEST REQUIREMENTS
 - runtime.adapter must be "${language.adapter}", runtime.adapterRange must be ">=0.1.0 <2.0.0", and runtime.runtimeVersion must be "${language.version}".
 - Reference module files under content/ and project files under projects/.
 - Each project file contains id, title, descriptionMarkdown, optional learningObjectives, and an ordered checkpointExerciseIds list. Every referenced checkpoint must be an exercise whose type is project.
+- Use exactly this top-level shape and do not place title or description at the root:
+  { "format": "learnpack", "schemaVersion": "1.0.0", "id": "course-id", "version": "1.0.0", "course": { "title": "...", "description": "...", "language": "${input.language}", "languageVersion": "${language.version}", "level": "beginner", "estimatedHours": 20, "authors": [{ "name": "AI-generated for local use" }] }, "runtime": { "adapter": "${language.adapter}", "adapterRange": ">=0.1.0 <2.0.0", "runtimeVersion": "${language.version}" }, "modules": ["content/module-01.json"], "projects": ["projects/final-project.json"] }
 
 MODULE AND EXERCISE REQUIREMENTS
 - Every module contains stable id, title, optional description, and lessons.
