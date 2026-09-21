@@ -215,8 +215,10 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .prompt-preview > div span { display: block; margin-bottom: 8px; color: #55ce8c; font-size: 26px; }
 .prompt-preview > div strong { display: block; color: #aab6af; font-size: 11px; }
 .prompt-preview > div p { font-size: 9px; }
-.prompt-preview textarea { width: 100%; height: 100%; min-height: 430px; padding: 15px 15px 52px; border: 0; outline: 0; color: #aebbb4; background: transparent; font: 9px/1.55 "Cascadia Code", Consolas, monospace; resize: none; }
+.prompt-preview textarea { width: 100%; height: 100%; min-height: 430px; padding: 15px 15px 76px; border: 0; outline: 0; color: #aebbb4; background: transparent; font: 9px/1.55 "Cascadia Code", Consolas, monospace; resize: none; }
 .prompt-preview > button { position: absolute; right: 12px; bottom: 11px; }
+.prompt-pack-note { position: absolute; right: 118px; bottom: 10px; left: 12px; display: flex; gap: 8px; align-items: center; color: #8f9d95; font-size: 8px; line-height: 1.35; }
+.prompt-pack-note strong { flex: 0 0 auto; color: #55ce8c; text-transform: uppercase; }
 .content-view { position: fixed; z-index: 20; inset: 0 0 0 224px; overflow: auto; padding: 44px clamp(32px, 5vw, 72px); background: #0e141a; }
 .content-view > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 26px; border-bottom: 1px solid #242e37; }
 .content-view > header h1 { margin: 7px 0 4px; }
@@ -405,6 +407,7 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .prompt-preview > div { color: #718078; }
 :root[data-theme="light"] .prompt-preview > div strong { color: #415047; }
 :root[data-theme="light"] .prompt-preview textarea { color: #34433b; }
+:root[data-theme="light"] .prompt-pack-note { color: #617068; }
 :root[data-theme="light"] .content-view { background: #f4f7f6; }
 :root[data-theme="light"] .content-view > header { border-bottom-color: #d9e2dd; }
 :root[data-theme="light"] .content-view > header p { color: #69776f; }

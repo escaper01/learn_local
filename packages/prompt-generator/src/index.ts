@@ -21,7 +21,18 @@ LEARNER PROFILE
 ${input.customInstructions ? `- Additional instructions: ${input.customInstructions}` : ""}
 
 DELIVERABLE
-Return a LearnPack 1.0 course as JSON files. Do not wrap JSON in Markdown fences. First return manifest.json, then each referenced module as a separately labeled JSON object. Keep the course achievable within the schedule and move through concept, worked example, tiny exercise, function exercise, debugging task, concept check, checkpoint, reflection, and milestone project.
+Create a LearnPack 1.0 course as separate JSON files. The learner will save the files and compress them into the final .learnpack archive; do not create or simulate an archive.
+
+FILE-BY-FILE RESPONSE PROTOCOL
+- Produce exactly one file per response, beginning with manifest.json.
+- Start with a single line in the form: SAVE AS: manifest.json
+- Then provide exactly one JSON code block containing only that file's valid JSON.
+- Never combine multiple files into one response or embed one file as a JSON string inside another.
+- After each file, stop and wait for the learner to say "next file".
+- On later responses, use the exact safe relative path declared by manifest.json, for example SAVE AS: content/module-01.json.
+- After the final file, say that generation is complete and list all paths once so the learner can verify the folder before packaging.
+
+Keep the course achievable within the schedule and move through concept, worked example, tiny exercise, function exercise, debugging task, concept check, checkpoint, reflection, and milestone project.
 
 MANIFEST REQUIREMENTS
 - format must be "learnpack" and schemaVersion must be "1.0.0".
@@ -54,6 +65,7 @@ QUALITY CHECK BEFORE RESPONDING
 4. Public tests provide useful feedback and hidden tests do not expose expected values in lesson text.
 5. The final milestone integrates the course goals without requiring network access.
 6. All JSON is syntactically valid and contains no comments or trailing commas.
+7. The final file list exactly matches the files referenced by manifest.json, with manifest.json at the archive root.
 
-Begin with manifest.json.`;
+Begin now with only manifest.json and then wait for "next file".`;
 }

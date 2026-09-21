@@ -704,7 +704,7 @@ export default function App() {
             <button className="modal-close" aria-label="Close prompt generator" onClick={() => setShowPrompt(false)}>×</button>
             <div className="eyebrow">PROVIDER-INDEPENDENT</div>
             <h2 id="prompt-title">Course Prompt Generator</h2>
-            <p>Describe your goal, then paste the generated prompt into any AI assistant.</p>
+            <p>Describe your goal, then paste the prompt into any AI assistant. It will generate one JSON file at a time; you package the completed files into a .learnpack.</p>
             <div className="prompt-layout">
               <div className="prompt-form">
                 <label>Language<select value={promptForm.language} onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value as "java" | "python" })}><option value="java">Java 21</option><option value="python">Python 3.13</option></select></label>
@@ -718,7 +718,7 @@ export default function App() {
               </div>
               <div className="prompt-preview">
                 {generatedPrompt ? <textarea readOnly value={generatedPrompt} aria-label="Generated course prompt" /> : <div><span>✦</span><strong>Your prompt will appear here</strong><p>It will include the LearnPack schema contract and locked security rules.</p></div>}
-                {generatedPrompt && <button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button>}
+                {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save each response at its requested path, place manifest.json at the folder root, ZIP the folder contents, then rename the archive extension to .learnpack.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
               </div>
             </div>
           </section>

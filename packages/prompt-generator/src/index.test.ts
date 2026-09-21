@@ -19,5 +19,8 @@ describe("course prompt generator", () => {
     expect(prompt).toContain("runtime.adapter must be \"python\"");
     expect(prompt).toContain("Shell commands");
     expect(prompt).toContain("Use short lessons.");
+    expect(prompt).toContain("exactly one file per response");
+    expect(prompt).toContain("compress them into the final .learnpack archive");
+    expect(prompt).toContain('wait for the learner to say "next file"');
   });
 });

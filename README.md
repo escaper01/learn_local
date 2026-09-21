@@ -52,3 +52,5 @@ npm run dist   # platform installer
 Installer output is written to `release/`. The manual packaging workflow builds Windows, macOS, and Linux artifacts. Public trusted releases still require repository-owner signing credentials and an update distribution endpoint.
 
 The repository also includes a canonical importable course at `learnpack-spec/examples/java-foundations.learnpack`.
+
+To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). The AI produces one JSON file at a time; you save those files and package them into the `.learnpack` archive yourself.
