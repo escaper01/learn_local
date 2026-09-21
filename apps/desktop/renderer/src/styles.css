@@ -34,6 +34,7 @@ button { font: inherit; }
 .theme-toggle span { width: 13px; color: #f3c96c; font-size: 13px; line-height: 1; }
 .theme-toggle:hover { color: #d7dee5; border-color: #3a4855; background: #1c252e; }
 .theme-toggle:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid #4bcd87; outline-offset: 2px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid #4bcd87; outline-offset: 2px; }
 .crumbs { display: flex; gap: 10px; align-items: center; color: #76818e; font-size: 12px; }
 .crumbs b { font-weight: 400; color: #3b4652; }
 .crumbs strong { color: #c6ced7; font-weight: 600; }
@@ -509,3 +510,7 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 :root[data-theme="light"] .safe-markdown h2, :root[data-theme="light"] .safe-markdown h3 { color: #2c3d34; }
 :root[data-theme="light"] .safe-markdown pre { color: #256743; border-color: #d6e0da; background: #edf3f0; }
 :root[data-theme="light"] .safe-markdown code { color: #247045; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

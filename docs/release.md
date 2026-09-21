@@ -1,6 +1,6 @@
 # Release process
 
-1. Run `npm ci`, `npm run check`, the Docker conformance suite, and `npm audit`.
+1. Confirm CI passes checks on Windows, macOS, and Linux, plus the Linux Docker conformance and dependency-audit jobs.
 2. Update the application version and release notes.
 3. Trigger **Package desktop apps** in GitHub Actions for unsigned Windows, macOS, and Linux artifacts.
 4. For a public release, configure trusted Windows code-signing and Apple Developer ID/notarization credentials in repository secrets, then rerun packaging.
