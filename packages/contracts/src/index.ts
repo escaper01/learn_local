@@ -249,6 +249,9 @@ export interface LearnLocalApi {
     read(language: "java" | "python"): Promise<{ content: string | null }>;
     write(language: "java" | "python", content: string): Promise<void>;
   };
+  diagnostics: {
+    export(): Promise<{ status: "saved" | "cancelled" }>;
+  };
   environment: {
     status(): Promise<ProviderStatus>;
   };
@@ -279,6 +282,7 @@ export const IPC_CHANNELS = {
   progressSummary: "progress:summary",
   workspaceRead: "workspace:read",
   workspaceWrite: "workspace:write",
+  diagnosticsExport: "diagnostics:export",
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",

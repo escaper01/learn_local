@@ -361,7 +361,7 @@ export default function App() {
         <div className="sidebar-spacer" />
         <nav>
           <button className="nav-item" onClick={() => void openSettings()}><span>⚙</span>Settings</button>
-          <button className="nav-item"><span>?</span>Help & diagnostics</button>
+          <button className="nav-item" onClick={() => void window.learnLocal.diagnostics.export()}><span>?</span>Export diagnostics</button>
         </nav>
         <StatusDot status={provider} />
       </aside>

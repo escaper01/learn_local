@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, session, shell, type IpcMainInvokeEvent } from "electron";
 import {
   AppError,
   cancelRequestSchema,
@@ -194,6 +194,28 @@ function registerIpc(): void {
     attempts?.writeWorkspace(language, content);
   });
 
+  ipcMain.handle(IPC_CHANNELS.diagnosticsExport, async (event) => {
+    assertTrustedSender(event);
+    const selected = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender)!, {
+      title: "Export LearnLocal diagnostics",
+      defaultPath: `learnlocal-diagnostics-${new Date().toISOString().slice(0, 10)}.json`,
+      filters: [{ name: "JSON", extensions: ["json"] }]
+    });
+    if (selected.canceled || !selected.filePath) return { status: "cancelled" as const };
+    const diagnostics = {
+      format: "learnlocal-diagnostics",
+      schemaVersion: "1.0.0",
+      createdAt: new Date().toISOString(),
+      application: { version: app.getVersion(), electron: process.versions.electron, node: process.versions.node },
+      platform: { os: process.platform, architecture: process.arch },
+      provider: await docker.detect(),
+      runtimes: await docker.listRuntimes(),
+      learning: attempts?.learningSummary()
+    };
+    await writeFile(selected.filePath, JSON.stringify(diagnostics, null, 2), "utf8");
+    return { status: "saved" as const };
+  });
+
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {
     assertTrustedSender(event);
     return docker.detect();
@@ -275,6 +297,15 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(async () => {
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"],
+        "X-Content-Type-Options": ["nosniff"]
+      }
+    });
+  });
   attempts = new AttemptRepository(join(app.getPath("userData"), "learnlocal.sqlite"));
   registerIpc();
   await docker.cleanupOwnedResources();

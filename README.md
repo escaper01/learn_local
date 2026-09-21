@@ -23,3 +23,14 @@ npm run check
 ```
 
 The first Docker execution may take longer while the pinned Java image is downloaded.
+
+## Packaging
+
+```bash
+npm run pack   # unpacked application for local validation
+npm run dist   # platform installer
+```
+
+Installer output is written to `release/`. Production releases still require platform signing credentials and CI builds on Windows, macOS, and Linux.
+
+The repository also includes a canonical importable course at `learnpack-spec/examples/java-foundations.learnpack`.

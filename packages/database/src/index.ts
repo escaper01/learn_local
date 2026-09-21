@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { ExecutionAction, ExecutionResult, LearningSummary, SettingScope, SettingValue } from "@learnlocal/contracts";
@@ -15,6 +15,7 @@ export class AttemptRepository {
 
   constructor(databasePath: string) {
     mkdirSync(dirname(databasePath), { recursive: true });
+    if (existsSync(databasePath) && statSync(databasePath).size > 0) copyFileSync(databasePath, `${databasePath}.backup`);
     this.database = new DatabaseSync(databasePath);
     this.database.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
     this.migrate();

@@ -34,6 +34,9 @@ const api: LearnLocalApi = {
     read: (language) => ipcRenderer.invoke(IPC_CHANNELS.workspaceRead, { language }),
     write: (language, content) => ipcRenderer.invoke(IPC_CHANNELS.workspaceWrite, { language, content })
   },
+  diagnostics: {
+    export: () => ipcRenderer.invoke(IPC_CHANNELS.diagnosticsExport)
+  },
   environment: {
     status: () => ipcRenderer.invoke(IPC_CHANNELS.environmentStatus)
   },
