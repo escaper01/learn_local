@@ -1,0 +1,45 @@
+import { rm } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { describe, expect, it } from "vitest";
+import { EXECUTION_POLICY } from "@learnlocal/runner-core";
+import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
+import { DockerProvider } from "./index";
+
+const dockerTest = process.env.RUN_DOCKER_TESTS === "1" ? describe : describe.skip;
+
+dockerTest("Docker Java execution", () => {
+  it("compiles and executes public and hidden tests in disposable containers", async () => {
+    const provider = new DockerProvider();
+    const tests = [...SUM_EXERCISE.publicTests, ...SUM_EXERCISE.hiddenTests];
+    const workspace = await java21Adapter.buildWorkspace(
+      `public class Solution {
+        public static int sum(int[] values) {
+          int total = 0;
+          for (int value : values) total += value;
+          return total;
+        }
+      }`,
+      tests
+    );
+    const executionId = `exec_${randomUUID()}`;
+    const startedAt = Date.now();
+
+    try {
+      const raw = await provider.execute({
+        executionId,
+        runtimeId: "java-21",
+        imageReference: java21Adapter.imageReference,
+        workspace,
+        limits: EXECUTION_POLICY
+      });
+      const result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
+      expect(result.status).toBe("finished");
+      expect(result.compile.success).toBe(true);
+      expect(result.tests).toHaveLength(3);
+      expect(result.tests.every((test) => test.passed)).toBe(true);
+    } finally {
+      await rm(workspace.directory, { recursive: true, force: true });
+      await provider.cleanupOwnedResources();
+    }
+  }, 180_000);
+});
