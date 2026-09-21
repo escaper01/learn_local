@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue, SourceFile, ValidationIssue } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingScope, SettingValue, SourceFile, ValidationIssue } from "@learnlocal/contracts";
 
 loader.config({ monaco });
 
@@ -164,6 +164,8 @@ export default function App() {
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<ResolvedSetting[]>([]);
+  const [settingsScope, setSettingsScope] = useState<SettingScope>("global");
+  const [settingsSearch, setSettingsSearch] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
   const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
@@ -454,17 +456,34 @@ export default function App() {
 
   const openSettings = async () => {
     setShowSettings(true);
+    setSettingsScope("global");
     try { setSettings(await window.learnLocal.settings.list()); }
     catch (value) { setError(friendlyError(value)); }
   };
 
+  const settingsContext = (scope: SettingScope) => scope === "global" ? {} : scope === "language" ? { language } : { language, ...(activeCourse ? { courseId: activeCourse.summary.id } : {}) };
+  const settingsScopeId = (scope: SettingScope) => scope === "global" ? null : scope === "language" ? language : activeCourse?.summary.id ?? null;
+
+  const changeSettingsScope = async (scope: SettingScope) => {
+    if (scope === "course" && !activeCourse) return;
+    setSettingsScope(scope);
+    try { setSettings(await window.learnLocal.settings.list(settingsContext(scope))); }
+    catch (reason) { setError(friendlyError(reason)); }
+  };
+
   const updateSetting = async (setting: ResolvedSetting, value: SettingValue) => {
-    try { setSettings(await window.learnLocal.settings.set({ key: setting.key, value, scope: "global", scopeId: null })); }
+    try {
+      await window.learnLocal.settings.set({ key: setting.key, value, scope: settingsScope, scopeId: settingsScopeId(settingsScope) });
+      setSettings(await window.learnLocal.settings.list(settingsContext(settingsScope)));
+    }
     catch (reason) { setError(friendlyError(reason)); }
   };
 
   const resetSetting = async (setting: ResolvedSetting) => {
-    try { setSettings(await window.learnLocal.settings.reset({ key: setting.key, scope: "global", scopeId: null })); }
+    try {
+      await window.learnLocal.settings.reset({ key: setting.key, scope: settingsScope, scopeId: settingsScopeId(settingsScope) });
+      setSettings(await window.learnLocal.settings.list(settingsContext(settingsScope)));
+    }
     catch (reason) { setError(friendlyError(reason)); }
   };
 
@@ -730,8 +749,10 @@ export default function App() {
             <div className="eyebrow">CUSTOMIZATION</div>
             <h2 id="settings-title">Settings</h2>
             <p>Values are validated and stored locally. Sandbox and Electron security policy remain locked.</p>
+            <div className="settings-toolbar"><div className="settings-scopes"><button className={settingsScope === "global" ? "active" : ""} onClick={() => void changeSettingsScope("global")}>Global</button><button className={settingsScope === "language" ? "active" : ""} onClick={() => void changeSettingsScope("language")}>{language === "java" ? "Java" : "Python"}</button><button className={settingsScope === "course" ? "active" : ""} disabled={!activeCourse} title={activeCourse ? activeCourse.summary.title : "Open an imported course to edit course settings"} onClick={() => void changeSettingsScope("course")}>Course</button></div><input type="search" value={settingsSearch} placeholder="Search settings" aria-label="Search settings" onChange={(event) => setSettingsSearch(event.target.value)} /></div>
+            <div className="settings-scope-note">Editing <strong>{settingsScope}</strong> settings{settingsScope === "language" ? ` for ${language}` : settingsScope === "course" && activeCourse ? ` for ${activeCourse.summary.title}` : ""}. More specific values override broader ones.</div>
             <div className="settings-list">
-              {settings.map((setting) => (
+              {settings.filter((setting) => `${setting.label} ${setting.description} ${setting.category}`.toLowerCase().includes(settingsSearch.toLowerCase())).map((setting) => (
                 <label className="setting-row" key={setting.key}>
                   <span className="setting-copy"><strong>{setting.label}</strong><small>{setting.description}</small><i>{setting.source}</i></span>
                   <span className="setting-control">
@@ -739,13 +760,13 @@ export default function App() {
                     {setting.type === "number" && <input type="number" min={setting.min} max={setting.max} value={Number(setting.value)} onChange={(event) => void updateSetting(setting, Number(event.target.value))} />}
                     {setting.type === "enum" && <select value={String(setting.value)} onChange={(event) => void updateSetting(setting, event.target.value)}>{setting.options?.map((option) => <option key={option}>{option}</option>)}</select>}
                     {setting.type === "string" && <textarea value={String(setting.value)} placeholder="No custom instructions" onChange={(event) => void updateSetting(setting, event.target.value)} />}
-                    {setting.source !== "default" && <button type="button" onClick={() => void resetSetting(setting)}>Reset</button>}
+                    {setting.source === settingsScope && <button type="button" onClick={() => void resetSetting(setting)}>Reset override</button>}
                   </span>
                 </label>
               ))}
             </div>
             <div className="settings-actions">
-              <button className="run-button" onClick={() => void window.learnLocal.settings.importProfile().then(() => window.learnLocal.settings.list().then(setSettings))}>Import profile</button>
+              <button className="run-button" onClick={() => void window.learnLocal.settings.importProfile().then(() => window.learnLocal.settings.list(settingsContext(settingsScope)).then(setSettings))}>Import profile</button>
               <button className="run-button" onClick={() => void window.learnLocal.settings.exportProfile()}>Export profile</button>
               <button className="submit-button" onClick={() => setShowSettings(false)}>Done</button>
             </div>
