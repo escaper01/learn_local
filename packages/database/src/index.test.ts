@@ -27,6 +27,10 @@ describe("local database", () => {
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 1, completedExercises: 0 });
       repository.record("exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000002"));
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 2, completedExercises: 1, passedSubmissions: 1 });
+      repository.recordQuizAttempt("quiz_00000000-0000-0000-0000-000000000001", "course:quiz", 0, false);
+      expect(repository.learningSummary()).toMatchObject({ totalAttempts: 3, completedExercises: 1, passedSubmissions: 1 });
+      repository.recordQuizAttempt("quiz_00000000-0000-0000-0000-000000000002", "course:quiz", 1, true);
+      expect(repository.learningSummary()).toMatchObject({ totalAttempts: 4, completedExercises: 2, passedSubmissions: 2 });
       repository.writeWorkspace("python", "def answer(): return 42\n");
       expect(repository.readWorkspace("python")).toContain("42");
     } finally {

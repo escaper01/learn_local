@@ -168,6 +168,29 @@ export class AttemptRepository {
     };
   }
 
+  recordQuizAttempt(attemptId: string, exerciseId: string, choiceIndex: number, correct: boolean): void {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const now = new Date().toISOString();
+      this.database.prepare(`
+        INSERT INTO exercise_attempts (id, exercise_id, action, status, passed, compile_success, wall_time_ms, created_at)
+        VALUES (?, ?, 'submit', 'finished', ?, 1, 0, ?)
+      `).run(attemptId, exerciseId, Number(correct), now);
+      this.database.prepare("INSERT INTO quiz_attempts (id, exercise_id, choice_index, correct, created_at) VALUES (?, ?, ?, ?, ?)").run(attemptId, exerciseId, choiceIndex, Number(correct), now);
+      if (correct) {
+        this.database.prepare(`
+          INSERT INTO exercise_progress (exercise_id, completed_at, last_attempt_id)
+          VALUES (?, ?, ?)
+          ON CONFLICT (exercise_id) DO UPDATE SET completed_at = COALESCE(exercise_progress.completed_at, excluded.completed_at), last_attempt_id = excluded.last_attempt_id
+        `).run(exerciseId, now, attemptId);
+      }
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   private migrate(): void {
     this.database.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -217,6 +240,14 @@ export class AttemptRepository {
         content TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         PRIMARY KEY (workspace_id, path)
+      );
+
+      CREATE TABLE IF NOT EXISTS quiz_attempts (
+        id TEXT PRIMARY KEY,
+        exercise_id TEXT NOT NULL,
+        choice_index INTEGER NOT NULL,
+        correct INTEGER NOT NULL CHECK (correct IN (0, 1)),
+        created_at TEXT NOT NULL
       );
 
       INSERT OR IGNORE INTO schema_migrations (version, applied_at)

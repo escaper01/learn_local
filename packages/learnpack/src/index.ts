@@ -43,6 +43,8 @@ export interface LearnPackExercise {
   starterFiles?: Array<{ path: string; content: string }>;
   tests?: Array<{ id: string; visibility: "public" | "hidden"; arguments?: unknown[]; input?: string; expected: unknown; comparison?: string }>;
   hints?: string[];
+  choices?: string[];
+  correctChoice?: number;
   limits?: { timeoutMs?: number; memoryMb?: number; maxOutputKb?: number };
 }
 
@@ -338,6 +340,7 @@ export function toCourseView(pack: ValidatedLearnPack): CourseView {
           instructionMarkdown: exercise.instructionMarkdown,
           starterFiles: exercise.starterFiles ?? [],
           hints: exercise.hints ?? [],
+          ...(exercise.choices ? { choices: exercise.choices } : {}),
           publicTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "public").length,
           hiddenTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "hidden").length
         }))

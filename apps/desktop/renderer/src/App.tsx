@@ -166,6 +166,8 @@ export default function App() {
   const [activeCourse, setActiveCourse] = useState<CourseView | null>(null);
   const [activeLesson, setActiveLesson] = useState<CourseView["modules"][number]["lessons"][number] | null>(null);
   const [activeImportedExercise, setActiveImportedExercise] = useState<CourseView["modules"][number]["lessons"][number]["exercises"][number] | null>(null);
+  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+  const [quizCorrect, setQuizCorrect] = useState<boolean | null>(null);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [error, setError] = useState<AppErrorShape | null>(null);
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
@@ -283,9 +285,9 @@ export default function App() {
   const openImportedCourse = async (course: ImportedCourseSummary) => {
     try {
       const detail = await window.learnLocal.courses.open(course.id, course.version);
-      const lesson = detail.modules.flatMap((module) => module.lessons).find((candidate) => candidate.exercises.some((exercise) => exercise.starterFiles.length > 0));
-      const exercise = lesson?.exercises.find((candidate) => candidate.starterFiles.length > 0);
-      if (!lesson || !exercise) throw new Error("This course has no runnable starter exercise.");
+      const lesson = detail.modules.flatMap((module) => module.lessons).find((candidate) => candidate.exercises.length > 0);
+      const exercise = lesson?.exercises[0];
+      if (!lesson || !exercise) throw new Error("This course has no exercises.");
       const starter = exercise.starterFiles[0];
       setActiveCourse(detail);
       setActiveLesson(lesson);
@@ -293,7 +295,27 @@ export default function App() {
       setLanguage(course.language);
       setSource(starter?.content ?? "");
       setResult(null);
+      setSelectedChoice(null);
+      setQuizCorrect(null);
       setView("lesson");
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const selectCourseExercise = (lesson: CourseView["modules"][number]["lessons"][number], exercise: CourseView["modules"][number]["lessons"][number]["exercises"][number]) => {
+    setActiveLesson(lesson);
+    setActiveImportedExercise(exercise);
+    setSource(exercise.starterFiles[0]?.content ?? "");
+    setSelectedChoice(null);
+    setQuizCorrect(null);
+    setResult(null);
+  };
+
+  const submitQuiz = async () => {
+    if (!activeCourse || !activeImportedExercise || selectedChoice === null) return;
+    try {
+      const answer = await window.learnLocal.progress.submitQuiz({ courseId: activeCourse.summary.id, version: activeCourse.summary.version, exerciseId: activeImportedExercise.id, choiceIndex: selectedChoice });
+      setQuizCorrect(answer.correct);
+      setLearningSummary(await window.learnLocal.progress.summary());
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
@@ -386,24 +408,33 @@ export default function App() {
 
         <div className="lesson-grid">
           <article className="lesson-pane">
-            <div className="eyebrow">FUNCTION EXERCISE · {language === "java" ? "JAVA 21" : "PYTHON 3.13"}</div>
+            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={exercise.id === activeImportedExercise?.id ? "active" : ""} key={exercise.id} onClick={() => selectCourseExercise(lesson, exercise)}>{exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : "›"} {exercise.title}</button>)}</div>)}</div>}
+            <div className="eyebrow">{(activeImportedExercise?.type ?? "function").toUpperCase()} EXERCISE · {language === "java" ? "JAVA 21" : "PYTHON 3.13"}</div>
             <h1>{activeImportedExercise?.title ?? `Sum ${language === "java" ? "an Array" : "a List"}`}</h1>
             <p className="lede">{activeImportedExercise?.instructionMarkdown ?? `Practice traversing ${language === "java" ? "an array" : "a list"} and carrying a result through each iteration.`}</p>
             <div className="concept-card">
               <span className="concept-icon">∑</span>
               <div><strong>{activeLesson?.title ?? "The accumulator pattern"}</strong><p>{activeLesson?.theoryMarkdown ?? "Start with a neutral value, update it once per element, then return the final result."}</p></div>
             </div>
-            <h2>Your task</h2>
+            {activeImportedExercise?.type !== "multipleChoice" && <><h2>Your task</h2>
             <p>Complete <code>{language === "java" ? "sum" : "sum_values"}</code> so it returns the total of every number in <code>values</code>.</p>
             <ul>
               <li>An empty array should return <code>0</code>.</li>
               <li>Values may be positive, negative, or zero.</li>
               <li>Do not change the class or method signature.</li>
             </ul>
-            <div className="example-block"><span>Example</span><code>{language === "java" ? "sum(new int[] {1, 2, 3}) → 6" : "sum_values([1, 2, 3]) → 6"}</code></div>
+            <div className="example-block"><span>Example</span><code>{language === "java" ? "sum(new int[] {1, 2, 3}) → 6" : "sum_values([1, 2, 3]) → 6"}</code></div></>}
             {(activeImportedExercise?.hints ?? ["Create a variable named total before the loop."]).map((hint, index) => <details className="hint" key={hint}><summary>Hint {index + 1} of {activeImportedExercise?.hints.length ?? 3}</summary><p>{hint}</p></details>)}
           </article>
 
+          {activeImportedExercise?.type === "multipleChoice" ? (
+            <section className="quiz-pane">
+              <div className="quiz-heading"><span>CONCEPT CHECK</span><strong>{activeImportedExercise.title}</strong><p>{activeImportedExercise.instructionMarkdown}</p></div>
+              <div className="quiz-choices">{activeImportedExercise.choices?.map((choice, index) => <button key={choice} className={`${selectedChoice === index ? "selected" : ""} ${quizCorrect !== null && selectedChoice === index ? quizCorrect ? "correct" : "incorrect" : ""}`} disabled={quizCorrect === true} onClick={() => { setSelectedChoice(index); setQuizCorrect(null); }}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
+              {quizCorrect !== null && <div className={`quiz-feedback ${quizCorrect ? "correct" : "incorrect"}`}><strong>{quizCorrect ? "Correct" : "Not quite"}</strong><p>{quizCorrect ? "Concept check completed. Your progress was saved." : "Review the lesson and try another answer."}</p></div>}
+              <div className="quiz-actions"><button className="submit-button" disabled={selectedChoice === null || quizCorrect === true} onClick={() => void submitQuiz()}>{quizCorrect === false ? "Try again" : "Check answer"}</button></div>
+            </section>
+          ) : (
           <section className="coding-pane">
             <div className="editor-toolbar">
               <div className="file-tab"><span className={`java-icon ${language}`}>{language === "java" ? "J" : "Py"}</span>{activeStarter?.path ?? (language === "java" ? "Solution.java" : "solution.py")} <i>●</i></div>
@@ -455,6 +486,7 @@ export default function App() {
               {activeAction ? <div className="running-state"><span className="spinner"/><strong>Preparing an isolated {language === "java" ? "Java" : "Python"} workspace…</strong><p>The first run can take longer while Docker downloads the pinned runtime.</p></div> : <ResultPanel result={result} error={error} />}
             </section>
           </section>
+          )}
         </div>
       </section>
 

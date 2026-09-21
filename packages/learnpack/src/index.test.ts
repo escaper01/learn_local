@@ -76,6 +76,26 @@ describe("LearnPack semantic validation", () => {
     });
   });
 
+  it("exposes quiz choices without revealing the trusted answer", () => {
+    const entries = validEntries();
+    const module = entries.get("content/01-basics.json") as {
+      lessons: Array<{ exercises: Array<Record<string, unknown>> }>;
+    };
+    module.lessons[0]?.exercises.push({
+      id: "array-concept",
+      type: "multipleChoice",
+      title: "Choose the array",
+      instructionMarkdown: "Which value is an array?",
+      choices: ["1", "[1, 2]", "true"],
+      correctChoice: 1
+    });
+
+    const pack = validateLearnPackContent(entries);
+    const exercise = toCourseView(pack).modules[0]?.lessons[0]?.exercises[1];
+    expect(exercise?.choices).toEqual(["1", "[1, 2]", "true"]);
+    expect(exercise).not.toHaveProperty("correctChoice");
+  });
+
   it("rejects missing referenced modules", () => {
     const entries = validEntries();
     entries.delete("content/01-basics.json");

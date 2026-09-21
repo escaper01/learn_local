@@ -9,6 +9,7 @@ import {
   coursePromptRequestSchema,
   IPC_CHANNELS,
   runRequestSchema,
+  quizSubmitSchema,
   runtimeRequestSchema,
   settingMutationSchema,
   settingResetSchema,
@@ -182,6 +183,18 @@ function registerIpc(): void {
     return attempts?.learningSummary() ?? { totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [] };
   });
 
+  ipcMain.handle(IPC_CHANNELS.progressSubmitQuiz, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const request = quizSubmitSchema.parse(input);
+    const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.version);
+    const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
+    if (!exercise || exercise.type !== "multipleChoice" || !exercise.choices || exercise.correctChoice === undefined) throw new AppError("QUIZ_NOT_FOUND", "validation", "The requested concept check is unavailable.");
+    if (request.choiceIndex >= exercise.choices.length) throw new AppError("QUIZ_CHOICE_INVALID", "validation", "The selected answer is unavailable.");
+    const correct = request.choiceIndex === exercise.correctChoice;
+    attempts?.recordQuizAttempt(`quiz_${randomUUID()}`, `${request.courseId}:${exercise.id}`, request.choiceIndex, correct);
+    return { correct };
+  });
+
   ipcMain.handle(IPC_CHANNELS.workspaceRead, (event, input: unknown) => {
     assertTrustedSender(event);
     const { language } = workspaceReadSchema.parse(input);
@@ -239,7 +252,7 @@ function registerIpc(): void {
           if (pack.manifest.course.language !== request.language) throw new AppError("PACK_LANGUAGE_MISMATCH", "validation", "The requested exercise does not match the selected language.");
           const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
           if (!exercise) throw new AppError("EXERCISE_NOT_FOUND", "validation", "The requested exercise is unavailable.");
-          if (exercise.type !== "function") throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This prototype runner currently executes imported function exercises.");
+          if (exercise.type !== "function" && exercise.type !== "debug") throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This runner executes imported function and debugging exercises; concept checks use the quiz flow.");
           importedTests = (exercise.tests ?? [])
             .filter((test) => request.action === "submit" || test.visibility === "public")
             .map((test) => {

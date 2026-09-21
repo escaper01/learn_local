@@ -28,7 +28,8 @@ const api: LearnLocalApi = {
     generate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsGenerate, input)
   },
   progress: {
-    summary: () => ipcRenderer.invoke(IPC_CHANNELS.progressSummary)
+    summary: () => ipcRenderer.invoke(IPC_CHANNELS.progressSummary),
+    submitQuiz: (input) => ipcRenderer.invoke(IPC_CHANNELS.progressSubmitQuiz, input)
   },
   workspace: {
     read: (language) => ipcRenderer.invoke(IPC_CHANNELS.workspaceRead, { language }),
