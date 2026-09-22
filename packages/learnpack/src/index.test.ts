@@ -124,6 +124,29 @@ describe("LearnPack semantic validation", () => {
     });
   });
 
+  it("imports an arbitrary language as study content with declared runtime metadata", () => {
+    const entries = validEntries();
+    const manifest = entries.get("manifest.json") as {
+      course: Record<string, unknown>;
+      runtime: Record<string, unknown>;
+    };
+    manifest.course.title = "Rust Foundations";
+    manifest.course.language = "rust";
+    manifest.course.languageVersion = "1.82";
+    manifest.course.fileExtension = "rs";
+    manifest.runtime.adapter = "rust";
+    manifest.runtime.runtimeVersion = "1.82";
+    manifest.runtime.containerRequirements = "Rust 1.82 compiler and Cargo";
+    const exercise = (entries.get("content/01-basics.json") as { lessons: Array<{ exercises: Array<Record<string, unknown>> }> }).lessons[0]!.exercises[0]!;
+    exercise.starterFiles = [{ path: "solution.rs", content: "fn main() {}" }];
+
+    expect(validateLearnPackContent(entries).summary).toMatchObject({
+      title: "Rust Foundations",
+      language: "rust",
+      languageVersion: "1.82"
+    });
+  });
+
   it("names unexpected and missing manifest properties in repair details", () => {
     const entries = validEntries();
     const manifest = entries.get("manifest.json") as Record<string, unknown>;

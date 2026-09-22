@@ -2,6 +2,9 @@ import { z } from "zod";
 
 export const executionActionSchema = z.enum(["run", "submit"]);
 export type ExecutionAction = z.infer<typeof executionActionSchema>;
+export const supportedLanguageSchema = z.enum(["java", "python"]);
+export type SupportedLanguage = z.infer<typeof supportedLanguageSchema>;
+export const languageIdSchema = z.string().regex(/^[a-z][a-z0-9-]{0,39}$/);
 
 export const sourceFileSchema = z.object({
   path: z.string().min(1).max(240),
@@ -12,7 +15,7 @@ export type SourceFile = z.infer<typeof sourceFileSchema>;
 export const runRequestSchema = z
   .object({
     action: executionActionSchema,
-    language: z.enum(["java", "python"]),
+    language: supportedLanguageSchema,
     sourceCode: z.string().min(1).max(500_000),
     sourceFiles: z.array(sourceFileSchema).min(1).max(50).optional(),
     courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional(),
@@ -134,7 +137,11 @@ export const settingResetSchema = z.object({
 }).strict();
 
 export const coursePromptRequestSchema = z.object({
-  language: z.enum(["java", "python"]),
+  language: languageIdSchema,
+  languageName: z.string().min(1).max(80),
+  runtimeVersion: z.string().min(1).max(40),
+  fileExtension: z.string().regex(/^[a-zA-Z0-9]{1,12}$/),
+  containerRequirements: z.string().min(1).max(1000),
   experience: z.enum(["new", "beginner", "intermediate", "advanced"]),
   goal: z.string().min(3).max(1000),
   topics: z.string().max(4000),
@@ -191,7 +198,7 @@ export interface ImportedCourseSummary {
   version: string;
   title: string;
   description: string;
-  language: "java" | "python";
+  language: string;
   languageVersion: string;
   level: "beginner" | "intermediate" | "advanced";
   estimatedHours: number;

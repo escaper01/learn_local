@@ -4,7 +4,7 @@ LearnLocal's prompt generator asks an AI assistant to produce every required JSO
 
 ## Generate the JSON files
 
-1. Open **Generate prompt** in LearnLocal, choose the course details, and copy the generated prompt.
+1. Open **Generate prompt** in LearnLocal. Enter any programming language, its safe lowercase identifier, version, source extension, descriptive runtime/toolchain requirements, required topics, and topics to exclude. Then copy the generated prompt.
 2. Paste it into your AI assistant. Its response should begin with `manifest.json`, then contain every referenced module and project as a separate labeled JSON block.
 3. Save the JSON as `manifest.json` in a new empty course folder. Do not copy the `SAVE AS:` line or Markdown code fences into the file.
 4. In LearnLocal's prompt generator, select **Create files from manifest** and choose the saved manifest. During development the file picker opens in `learnpack-spec/examples`; otherwise it opens in Documents. LearnLocal creates every referenced path and preserves any file that already exists.
@@ -42,5 +42,7 @@ zip -r ../my-course.learnpack manifest.json content projects
 ```
 
 Import the resulting file from **My courses > Import LearnPack**. LearnLocal validates the archive, paths, schema, language metadata, exercises, and tests before installing it.
+
+Any valid language can be imported and followed through the learning path. Java and Python currently have trusted local execution adapters. Other languages open in study mode: lessons, quizzes, hints, completion state, starter code, and projects remain available, while Run and Submit stay disabled until LearnLocal ships a trusted adapter. The descriptive `runtime.containerRequirements` field does not authorize a course to choose an image or execute installation commands.
 
 If the import fails, correct the named JSON file or path, rebuild the archive, and import it again. Keep the original JSON folder as the editable source; the `.learnpack` is its distributable copy.

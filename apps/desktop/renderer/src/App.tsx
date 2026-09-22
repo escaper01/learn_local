@@ -9,6 +9,25 @@ type Theme = "dark" | "light";
 type PromptTemplate = { id: string; name: string; form: CoursePromptRequest };
 type PromptHistoryItem = { id: string; createdAt: string; prompt: string };
 
+function isSupportedLanguage(value: string): value is "java" | "python" {
+  return value === "java" || value === "python";
+}
+
+function languageBadge(value: string): string {
+  if (value === "java") return "J";
+  if (value === "python") return "Py";
+  return value.slice(0, 2).toUpperCase();
+}
+
+function exerciseIcon(type: string, completed: boolean): string {
+  if (completed) return "✓";
+  if (type === "multipleChoice") return "?";
+  if (type === "debug") return "⌁";
+  if (type === "project") return "◆";
+  if (type === "output") return "▶";
+  return "⌘";
+}
+
 function loadLocalList<T>(key: string): T[] {
   try { const value = JSON.parse(localStorage.getItem(key) ?? "[]"); return Array.isArray(value) ? value as T[] : []; }
   catch { return []; }
@@ -51,6 +70,10 @@ const PYTHON_SOLUTION_CODE = `def sum_values(values):
 
 const DEFAULT_PROMPT_FORM: CoursePromptRequest = {
   language: "java",
+  languageName: "Java",
+  runtimeVersion: "21",
+  fileExtension: "java",
+  containerRequirements: "Java 21 JDK with the standard library",
   experience: "beginner",
   goal: "Build a strong programming foundation and complete practical projects",
   topics: "fundamentals, functions, collections, debugging, testing",
@@ -193,7 +216,7 @@ function ResultPanel({ result, error }: { result: ExecutionResult | null; error:
 
 export default function App() {
   const [onboardingStep, setOnboardingStep] = useState(() => localStorage.getItem("learnlocal.onboarding.complete") === "1" ? -1 : 0);
-  const [view, setView] = useState<"lesson" | "dashboard" | "courses">("lesson");
+  const [view, setView] = useState<"lesson" | "dashboard" | "courses">("courses");
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [language, setLanguage] = useState<"java" | "python">("java");
   const [source, setSource] = useState(STARTER_CODE);
@@ -306,6 +329,10 @@ export default function App() {
   }, [activeCourse, activeImportedExercise, sourceFiles]);
 
   const execute = async (action: "run" | "submit") => {
+    if (activeCourse && !isSupportedLanguage(activeCourse.summary.language)) {
+      setError({ code: "ADAPTER_NOT_AVAILABLE", category: "runtime", message: `${activeCourse.summary.language} courses can be studied, but code execution requires a trusted LearnLocal adapter.` });
+      return;
+    }
     setResult(null);
     setError(null);
     setActiveAction(action);
@@ -396,6 +423,7 @@ export default function App() {
       setCourses(await window.learnLocal.courses.list());
       setLearningSummary(await window.learnLocal.progress.summary());
       if (activeCourse?.summary.language === runtime.language) switchLanguage(runtime.language === "java" ? "python" : "java");
+      if (activeCourse?.summary.language === runtime.language) setView("courses");
     } catch (value) { setError(friendlyError(value)); }
     finally { setRuntimeOperation(null); }
   };
@@ -415,20 +443,21 @@ export default function App() {
   const finishOnboarding = () => {
     localStorage.setItem("learnlocal.onboarding.complete", "1");
     setOnboardingStep(-1);
-    setView("lesson");
+    setView("courses");
   };
 
   const openImportedCourse = async (course: ImportedCourseSummary) => {
     try {
       const detail = await window.learnLocal.courses.open(course.id, course.version);
-      const lesson = detail.modules.flatMap((module) => module.lessons).find((candidate) => candidate.exercises.length > 0);
-      const exercise = lesson?.exercises[0];
-      if (!lesson || !exercise) throw new Error("This course has no exercises.");
+      const tasks = detail.modules.flatMap((module) => module.lessons.flatMap((lesson) => lesson.exercises.map((exercise) => ({ lesson, exercise }))));
+      const nextTask = tasks.find(({ exercise }) => !exercise.completed) ?? tasks[0];
+      if (!nextTask) throw new Error("This course has no exercises.");
+      const { lesson, exercise } = nextTask;
       setActiveCourse(detail);
       activeCourseRef.current = detail;
       setActiveLesson(lesson);
       setActiveImportedExercise(exercise);
-      setLanguage(course.language);
+      if (isSupportedLanguage(course.language)) setLanguage(course.language);
       if (exercise.starterFiles.length) {
         const workspace = await window.learnLocal.workspace.readExercise({ courseId: course.id, version: course.version, exerciseId: exercise.id });
         setSourceFiles(workspace.files);
@@ -462,6 +491,20 @@ export default function App() {
     setSelectedChoice(null);
     setQuizCorrect(null);
     setResult(null);
+  };
+
+  const selectProject = async (project: CourseView["projects"][number]) => {
+    if (!activeCourse) return;
+    const checkpointId = project.checkpointExerciseIds.find((id) => !courseExercises.find((exercise) => exercise.id === id)?.completed) ?? project.checkpointExerciseIds[0];
+    for (const module of activeCourse.modules) {
+      for (const lesson of module.lessons) {
+        const exercise = lesson.exercises.find((candidate) => candidate.id === checkpointId);
+        if (exercise) {
+          await selectCourseExercise(lesson, exercise);
+          return;
+        }
+      }
+    }
   };
 
   const editSource = (content: string) => {
@@ -558,6 +601,10 @@ export default function App() {
       setPromptForm((current) => ({
         ...current,
         language,
+        languageName: language === "java" ? "Java" : "Python",
+        runtimeVersion: language === "java" ? "21" : "3.13",
+        fileExtension: language === "java" ? "java" : "py",
+        containerRequirements: language === "java" ? "Java 21 JDK with the standard library" : "Python 3.13 with the standard library",
         ...(typeof daily === "number" ? { dailyMinutes: daily } : {}),
         ...(typeof style === "string" ? { teachingStyle: style as CoursePromptRequest["teachingStyle"] } : {}),
         ...(typeof custom === "string" ? { customInstructions: custom } : {})
@@ -577,7 +624,7 @@ export default function App() {
   };
 
   const savePromptTemplate = () => {
-    const name = window.prompt("Template name", `${promptForm.language === "java" ? "Java" : "Python"} course` )?.trim();
+    const name = window.prompt("Template name", `${promptForm.languageName} course` )?.trim();
     if (!name) return;
     const next = [{ id: crypto.randomUUID(), name, form: promptForm }, ...promptTemplates].slice(0, 20);
     setPromptTemplates(next);
@@ -630,7 +677,7 @@ export default function App() {
 
       <section className="workspace">
         <header className="topbar">
-          <div className="crumbs"><span>{activeCourse?.summary.title ?? `${language === "java" ? "Java" : "Python"} Foundations`}</span><b>/</b><span>{activeLesson?.title ?? `${language === "java" ? "Arrays" : "Lists"} & loops`}</span><b>/</b><strong>{activeImportedExercise?.title ?? `Sum ${language === "java" ? "an Array" : "a List"}`}</strong></div>
+          <div className="crumbs"><span>{activeCourse?.summary.title ?? "Choose a course"}</span>{activeLesson && <><b>/</b><span>{activeLesson.title}</span></>}{activeImportedExercise && <><b>/</b><strong>{activeImportedExercise.title}</strong></>}</div>
           <div className="topbar-actions">
             <button
               className="theme-toggle"
@@ -648,23 +695,26 @@ export default function App() {
 
         <div className="lesson-grid">
           <article className="lesson-pane">
-            {activeCourse && <div className="course-outline"><strong>Course outline</strong>{activeCourse.modules.flatMap((module) => module.lessons).map((lesson) => <div key={lesson.id}><span>{lesson.title}</span>{lesson.exercises.map((exercise) => <button className={`${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => void selectCourseExercise(lesson, exercise)}>{exercise.completed ? "✓" : exercise.type === "multipleChoice" ? "?" : exercise.type === "debug" ? "⌁" : exercise.type === "project" ? "◆" : "›"} {exercise.title}</button>)}</div>)}{activeCourse.projects.length > 0 && <div className="project-milestones"><span>Project milestones</span>{activeCourse.projects.map((project) => <article key={project.id}><strong>{project.title}</strong><small>{project.checkpointExerciseIds.filter((id) => courseExercises.find((exercise) => exercise.id === id)?.completed).length} / {project.checkpointExerciseIds.length} checkpoints</small><SafeMarkdown value={project.descriptionMarkdown}/></article>)}</div>}</div>}
-            <div className="eyebrow">{(activeImportedExercise?.type ?? "function").toUpperCase()} EXERCISE · {language === "java" ? "JAVA 21" : "PYTHON 3.13"}</div>
-            <h1>{activeImportedExercise?.title ?? `Sum ${language === "java" ? "an Array" : "a List"}`}</h1>
-            <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? `Practice traversing ${language === "java" ? "an array" : "a list"} and carrying a result through each iteration.`}/>
+            {activeCourse && <div className="learning-path">
+              <div className="path-heading"><span>YOUR LEARNING PATH</span><strong>{completedCourseExercises} of {courseExercises.length} tasks done</strong></div>
+              {activeCourse.modules.map((module, moduleIndex) => {
+                const moduleExercises = module.lessons.flatMap((lesson) => lesson.exercises);
+                const done = moduleExercises.filter((exercise) => exercise.completed).length;
+                return <section className="path-module" key={module.id}>
+                  <header><span>Unit {moduleIndex + 1}</span><strong>{module.title}</strong><small>{done}/{moduleExercises.length}</small></header>
+                  {module.lessons.map((lesson) => <div className="path-topic" key={lesson.id}><h3>{lesson.title}</h3><div>{lesson.exercises.map((exercise, index) => <button type="button" className={`path-node shift-${index % 3} ${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => void selectCourseExercise(lesson, exercise)}><i>{exerciseIcon(exercise.type, exercise.completed)}</i><span><strong>{exercise.title}</strong><small>{exercise.completed ? "Completed" : exercise.type.replace(/([A-Z])/g, " $1")}</small></span></button>)}</div></div>)}
+                </section>;
+              })}
+              {activeCourse.projects.length > 0 && <section className="path-projects"><header><span>PROJECTS</span><strong>Put your skills together</strong></header>{activeCourse.projects.map((project) => <button type="button" key={project.id} onClick={() => void selectProject(project)}><i>★</i><span><strong>{project.title}</strong><small>{project.checkpointExerciseIds.filter((id) => courseExercises.find((exercise) => exercise.id === id)?.completed).length} of {project.checkpointExerciseIds.length} checkpoints done</small></span></button>)}</section>}
+            </div>}
+            <div className="eyebrow">{(activeImportedExercise?.type ?? "course").toUpperCase()} · {(activeCourse?.summary.language ?? language).toUpperCase()} {activeCourse?.summary.languageVersion ?? ""}</div>
+            <h1>{activeImportedExercise?.title ?? "Choose your next task"}</h1>
+            <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? "Open a course and choose a task from its learning path."}/>
             <div className="concept-card">
               <span className="concept-icon">∑</span>
-              <div><strong>{activeLesson?.title ?? "The accumulator pattern"}</strong><SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Start with a neutral value, update it once per element, then return the final result."}/></div>
+              <div><strong>{activeLesson?.title ?? "Course lesson"}</strong><SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
             </div>
-            {!activeImportedExercise && <><h2>Your task</h2>
-            <p>Complete <code>{language === "java" ? "sum" : "sum_values"}</code> so it returns the total of every number in <code>values</code>.</p>
-            <ul>
-              <li>An empty array should return <code>0</code>.</li>
-              <li>Values may be positive, negative, or zero.</li>
-              <li>Do not change the class or method signature.</li>
-            </ul>
-            <div className="example-block"><span>Example</span><code>{language === "java" ? "sum(new int[] {1, 2, 3}) → 6" : "sum_values([1, 2, 3]) → 6"}</code></div></>}
-            {(activeImportedExercise?.hints ?? ["Create a variable named total before the loop."]).map((hint, index) => <details className="hint" key={`${index}-${hint}`} open><summary>Hint {index + 1} of {activeImportedExercise?.hintCount ?? 1}</summary><p>{hint}</p></details>)}
+            {(activeImportedExercise?.hints ?? []).map((hint, index) => <details className="hint" key={`${index}-${hint}`} open><summary>Hint {index + 1} of {activeImportedExercise?.hintCount ?? 0}</summary><p>{hint}</p></details>)}
             {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && <button className="ghost-button reveal-hint" type="button" onClick={() => void revealNextHint()}>Reveal hint {activeImportedExercise.hints.length + 1}</button>}
           </article>
 
@@ -678,19 +728,18 @@ export default function App() {
           ) : (
           <section className="coding-pane">
             <div className="editor-toolbar">
-              <div className="file-tabs">{sourceFiles.length ? sourceFiles.map((file) => <button type="button" className={`file-tab ${file.path === activeFilePath ? "active" : ""}`} key={file.path} onClick={() => selectFile(file.path)}><span className={`java-icon ${language}`}>{language === "java" ? "J" : "Py"}</span>{file.path}</button>) : <div className="file-tab active"><span className={`java-icon ${language}`}>{language === "java" ? "J" : "Py"}</span>{language === "java" ? "Solution.java" : "solution.py"} <i>●</i></div>}</div>
+              <div className="file-tabs">{sourceFiles.map((file) => <button type="button" className={`file-tab ${file.path === activeFilePath ? "active" : ""}`} key={file.path} onClick={() => selectFile(file.path)}><span className={`java-icon ${activeCourse?.summary.language ?? language}`}>{languageBadge(activeCourse?.summary.language ?? language)}</span>{file.path}</button>)}</div>
               <div className="toolbar-actions">
-                <div className="language-switch" aria-label="Exercise language">
+                {!activeCourse && <div className="language-switch" aria-label="Exercise language">
                   <button className={language === "java" ? "active" : ""} onClick={() => switchLanguage("java")}>Java</button>
                   <button className={language === "python" ? "active" : ""} onClick={() => switchLanguage("python")}>Python</button>
-                </div>
+                </div>}
                 <button className="ghost-button" onClick={resetExerciseWorkspace} disabled={Boolean(activeAction)}>Reset</button>
-                {!activeCourse && <button className="ghost-button" onClick={() => setSource(language === "java" ? SOLUTION_CODE : PYTHON_SOLUTION_CODE)} disabled={Boolean(activeAction)}>Show solution</button>}
               </div>
             </div>
             <div className="editor-wrap">
               <Editor
-                language={language}
+                language={activeCourse?.summary.language ?? language}
                 theme={theme === "dark" ? "vs-dark" : "light"}
                 value={source}
                 onChange={(value) => editSource(value ?? "")}
@@ -709,14 +758,14 @@ export default function App() {
               />
             </div>
             <div className="action-bar">
-              <span className="save-state">Saved locally</span>
+              <span className={`save-state ${activeCourse && !isSupportedLanguage(activeCourse.summary.language) ? "adapter-required" : ""}`}>{activeCourse && !isSupportedLanguage(activeCourse.summary.language) ? `Study mode · ${activeCourse.summary.language} adapter required to run code` : "Saved locally"}</span>
               <div>
                 {activeAction ? (
                   <button className="cancel-button" onClick={cancel}>Cancel {activeAction}</button>
                 ) : (
                   <>
-                    <button className="run-button" onClick={() => void execute("run")} disabled={provider?.available === false}>▶ Run</button>
-                    <button className="submit-button" onClick={() => void execute("submit")} disabled={provider?.available === false}>Submit solution</button>
+                    <button className="run-button" onClick={() => void execute("run")} disabled={provider?.available === false || Boolean(activeCourse && !isSupportedLanguage(activeCourse.summary.language))}>▶ Run</button>
+                    <button className="submit-button" onClick={() => void execute("submit")} disabled={provider?.available === false || Boolean(activeCourse && !isSupportedLanguage(activeCourse.summary.language))}>Submit solution</button>
                   </>
                 )}
               </div>
@@ -733,7 +782,7 @@ export default function App() {
 
       {view === "dashboard" && (
         <section className="content-view dashboard-view">
-          <header><div><div className="eyebrow">LOCAL LEARNING OVERVIEW</div><h1>Welcome back</h1><p>Your practice data stays on this device.</p></div><button className="submit-button" onClick={() => setView("lesson")}>Continue learning</button></header>
+          <header><div><div className="eyebrow">LOCAL LEARNING OVERVIEW</div><h1>Welcome back</h1><p>Your practice data stays on this device.</p></div><button className="submit-button" onClick={() => setView(activeCourse ? "lesson" : "courses")}>{activeCourse ? "Continue learning" : "Choose a course"}</button></header>
           <div className="metric-grid">
             <article><span>Attempts</span><strong>{learningSummary.totalAttempts}</strong><small>All local runs and submissions</small></article>
             <article><span>Completed</span><strong>{learningSummary.completedExercises}</strong><small>Exercises passed on Submit</small></article>
@@ -753,11 +802,10 @@ export default function App() {
       )}
       {view === "courses" && (
         <section className="content-view courses-view">
-          <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Built-in and imported courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import LearnPack</button></header>
+          <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import LearnPack</button></header>
           <div className="course-grid">
-            <article className="course-card"><span className="course-language java">J</span><div><small>BUILT IN · JAVA 21</small><h2>Java Foundations</h2><p>Arrays, loops, functions, debugging, and tests.</p><div><span>Interactive exercise</span><span>Local runtime</span></div></div><button className="submit-button" onClick={() => { switchLanguage("java"); setView("lesson"); }}>Continue</button></article>
-            <article className="course-card"><span className="course-language python">Py</span><div><small>BUILT IN · PYTHON 3.13</small><h2>Python Foundations</h2><p>Lists, loops, functions, tracebacks, and tests.</p><div><span>Interactive exercise</span><span>Local runtime</span></div></div><button className="submit-button" onClick={() => { switchLanguage("python"); setView("lesson"); }}>Continue</button></article>
-            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{course.language === "java" ? "J" : "Py"}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} modules</span><span>{course.exerciseCount} exercises</span><span>{course.estimatedHours} hours</span></div></div><button className="run-button" onClick={() => void openImportedCourse(course)}>Open</button></article>)}
+            {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Build your first learning path</h2><p>Generate a course prompt for any language, package the JSON files, then import the LearnPack.</p><button className="submit-button" onClick={() => void openPromptGenerator()}>Generate course prompt</button></article>}
+            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} modules</span><span>{course.exerciseCount} exercises</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><button className="run-button" onClick={() => void openImportedCourse(course)}>Open path</button></article>)}
           </div>
         </section>
       )}
@@ -778,7 +826,7 @@ export default function App() {
             </div>
             <div className="import-meta"><span>{importedCourse.language} {importedCourse.languageVersion}</span><span>{importedCourse.level}</span><span>v{importedCourse.version}</span></div>
             {importWarnings.length > 0 && <div className="import-warnings"><strong>Imported with {importWarnings.length} warning{importWarnings.length === 1 ? "" : "s"}</strong>{importWarnings.map((warning, index) => <p key={`${warning.code}-${index}`}><span>{warning.code}</span>{warning.message}</p>)}</div>}
-            <button className="submit-button modal-action" onClick={() => setImportedCourse(null)}>View course</button>
+            <button className="submit-button modal-action" onClick={() => { const course = importedCourse; setImportedCourse(null); void openImportedCourse(course); }}>View learning path</button>
           </section>
         </div>
       )}
@@ -873,7 +921,11 @@ export default function App() {
               <div className="prompt-form">
                 <div className="prompt-template-bar"><select aria-label="Load prompt template" defaultValue="" onChange={(event) => { const template = promptTemplates.find((candidate) => candidate.id === event.target.value); if (template) setPromptForm(template.form); event.target.value = ""; }}><option value="">Load template…</option>{promptTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button type="button" onClick={savePromptTemplate}>Save current</button></div>
                 {promptTemplates.length > 0 && <div className="prompt-template-chips">{promptTemplates.map((template) => <span key={template.id}><button type="button" onClick={() => setPromptForm(template.form)}>{template.name}</button><button type="button" aria-label={`Delete ${template.name} template`} onClick={() => removePromptTemplate(template.id)}>×</button></span>)}</div>}
-                <label>Language<select value={promptForm.language} onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value as "java" | "python" })}><option value="java">Java 21</option><option value="python">Python 3.13</option></select></label>
+                <label>Language name<input value={promptForm.languageName} placeholder="Rust" onChange={(event) => setPromptForm({ ...promptForm, languageName: event.target.value })} /></label>
+                <label>Language identifier<input value={promptForm.language} placeholder="rust" pattern="[a-z][a-z0-9-]*" onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} /></label>
+                <label>Runtime/toolchain version<input value={promptForm.runtimeVersion} placeholder="1.82" onChange={(event) => setPromptForm({ ...promptForm, runtimeVersion: event.target.value })} /></label>
+                <label>Source extension<input value={promptForm.fileExtension} placeholder="rs" onChange={(event) => setPromptForm({ ...promptForm, fileExtension: event.target.value.replace(/^\./, "") })} /></label>
+                <label className="wide">Container/runtime requirements<textarea placeholder="Compiler or interpreter, version, standard libraries, and system tools needed" value={promptForm.containerRequirements} onChange={(event) => setPromptForm({ ...promptForm, containerRequirements: event.target.value })} /></label>
                 <label>Experience<select value={promptForm.experience} onChange={(event) => setPromptForm({ ...promptForm, experience: event.target.value as CoursePromptRequest["experience"] })}><option value="new">Completely new</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
                 <label className="wide">Learning goal<textarea value={promptForm.goal} onChange={(event) => setPromptForm({ ...promptForm, goal: event.target.value })} /></label>
                 <label className="wide">Required topics<textarea placeholder="One topic per line, or a detailed comma-separated list" value={promptForm.topics} onChange={(event) => setPromptForm({ ...promptForm, topics: event.target.value })} /></label>

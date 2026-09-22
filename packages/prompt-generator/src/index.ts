@@ -1,16 +1,13 @@
 import type { CoursePromptRequest } from "@learnlocal/contracts";
 
-const LANGUAGE_DETAILS = {
-  java: { name: "Java", version: "21", adapter: "java", extension: "java" },
-  python: { name: "Python", version: "3.13", adapter: "python", extension: "py" }
-} as const;
-
 export function buildCoursePrompt(input: CoursePromptRequest): string {
-  const language = LANGUAGE_DETAILS[input.language];
   return `You are designing a complete, portable programming course for LearnLocal.
 
 LEARNER PROFILE
-- Language: ${language.name} ${language.version}
+- Language: ${input.languageName} ${input.runtimeVersion}
+- Safe language identifier: ${input.language}
+- Source file extension: .${input.fileExtension}
+- Requested runtime/toolchain: ${input.containerRequirements}
 - Current experience: ${input.experience}
 - Primary goal: ${input.goal}
 - Topics to emphasize: ${input.topics || "Choose an appropriate progression."}
@@ -46,18 +43,18 @@ DEPTH AND TOPIC COVERAGE
 MANIFEST REQUIREMENTS
 - format must be "learnpack" and schemaVersion must be "1.0.0".
 - Use a stable lowercase kebab-case course id and semantic version "1.0.0".
-- course.language must be "${input.language}" and course.languageVersion must be "${language.version}".
-- runtime.adapter must be "${language.adapter}", runtime.adapterRange must be ">=0.1.0 <2.0.0", and runtime.runtimeVersion must be "${language.version}".
+- course.language must be "${input.language}", course.languageVersion must be "${input.runtimeVersion}", and course.fileExtension must be "${input.fileExtension}".
+- runtime.adapter must be "${input.language}", runtime.adapterRange must be ">=0.1.0 <2.0.0", runtime.runtimeVersion must be "${input.runtimeVersion}", and runtime.containerRequirements must describe "${input.containerRequirements}" without naming a Docker image.
 - Reference module files under content/ and project files under projects/.
 - Each project file contains id, title, descriptionMarkdown, optional learningObjectives, and an ordered checkpointExerciseIds list. Every referenced checkpoint must be an exercise whose type is project.
 - Use exactly this top-level shape and do not place title or description at the root:
-  { "format": "learnpack", "schemaVersion": "1.0.0", "id": "course-id", "version": "1.0.0", "course": { "title": "...", "description": "...", "language": "${input.language}", "languageVersion": "${language.version}", "level": "beginner", "estimatedHours": 20, "authors": [{ "name": "AI-generated for local use" }] }, "runtime": { "adapter": "${language.adapter}", "adapterRange": ">=0.1.0 <2.0.0", "runtimeVersion": "${language.version}" }, "modules": ["content/module-01.json"], "projects": ["projects/final-project.json"] }
+  { "format": "learnpack", "schemaVersion": "1.0.0", "id": "course-id", "version": "1.0.0", "course": { "title": "...", "description": "...", "language": "${input.language}", "languageVersion": "${input.runtimeVersion}", "fileExtension": "${input.fileExtension}", "level": "beginner", "estimatedHours": 20, "authors": [{ "name": "AI-generated for local use" }] }, "runtime": { "adapter": "${input.language}", "adapterRange": ">=0.1.0 <2.0.0", "runtimeVersion": "${input.runtimeVersion}", "containerRequirements": "${input.containerRequirements}" }, "modules": ["content/module-01.json"], "projects": ["projects/final-project.json"] }
 
 MODULE AND EXERCISE REQUIREMENTS
 - Every module contains stable id, title, optional description, and lessons.
 - Every lesson contains stable id, title, theoryMarkdown, and exercises.
 - Allowed exercise types are output, function, debug, multipleChoice, and project.
-- Code exercises include starterFiles using safe relative paths ending in .${language.extension}.
+- Code exercises include starterFiles using safe relative paths ending in .${input.fileExtension}.
 - Do not repeat manifest references or starter-file paths within an exercise.
 - Function and output tests are declarative objects with stable id, visibility (public or hidden), arguments/input, expected value, and optional comparison mode.
 - Function entrypoints declare up to eight named parameters and a return type using int, double, boolean, string, or an array form such as int[] or string[]. Test arguments must match those types and remain JSON values.
@@ -70,7 +67,8 @@ SECURITY RULES — NEVER INCLUDE
 - Docker image names, flags, mounts, capabilities, devices, ports, host paths, or network destinations.
 - Executables, binary dependencies, symlinks, absolute paths, or ../ path traversal.
 - HTML or executable content inside Markdown.
-- Dependencies outside the ${language.name} standard library.
+- Dependencies outside the ${input.languageName} standard library or explicitly requested toolchain.
+- Docker image names or executable container commands. Runtime requirements are metadata for a future trusted LearnLocal adapter, never executable course configuration.
 
 QUALITY CHECK BEFORE RESPONDING
 1. Every referenced file exists and every id is unique.

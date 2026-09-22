@@ -6,7 +6,7 @@ This file is the project-wide guide for AI coding assistants and human contribut
 
 LearnLocal is an offline-first Electron application for importing portable programming courses, learning in a Monaco-based workspace, running learner code in disposable containers, and tracking progress locally. It is provider-independent and requires no account.
 
-The first release targets Java 21 and Python 3.x. Do not add language-specific behavior to the UI when it belongs in an adapter.
+Course content and learning-path navigation support arbitrary programming languages. Trusted execution currently targets Java 21 and Python 3.x; other languages must remain study-only until a reviewed adapter is shipped. Do not add language-specific behavior to the UI when it belongs in an adapter.
 
 ## Repository map
 
@@ -119,6 +119,6 @@ If a requested feature conflicts with these rules, stop and redesign the boundar
 
 ## Current implementation boundary
 
-The repository now implements the V1 product surface: secure Electron shell, onboarding, light/dark React and Monaco workspace, multi-file Java/Python adapters, typed function harnesses, restricted Docker execution, runtime install/verify/update/repair/removal and learning-data management, LearnPack 1.0 import/revalidation/repair, strict project milestones, function/debug/output/project/quiz flows, public versus hidden tests, progressive hints, safe Markdown, cancellation and execution phases, versioned SQLite settings/workspaces/attempts/progress, scoped settings, confidence dashboard, complete-course prompt generation with manifest scaffolding, local prompt templates/history, diagnostics, cross-platform packaging, and CI.
+The repository now implements the V1 product surface: secure Electron shell, onboarding, light/dark React and Monaco workspace, arbitrary-language study courses with Duolingo-style paths, multi-file Java/Python execution adapters, typed function harnesses, restricted Docker execution, runtime install/verify/update/repair/removal and learning-data management, LearnPack 1.0 import/revalidation/repair, strict project milestones, function/debug/output/project/quiz flows, public versus hidden tests, progressive hints, safe Markdown, cancellation and execution phases, versioned SQLite settings/workspaces/attempts/progress, scoped settings, confidence dashboard, complete-course prompt generation with manifest scaffolding and runtime requirements, local prompt templates/history, diagnostics, cross-platform packaging, and CI.
 
 Remaining release infrastructure is intentionally external: production update hosting plus Windows and Apple signing/notarization credentials. Continue platform E2E, accessibility, and adversarial archive coverage as the product evolves. Do not bypass security boundaries with renderer commands or course-provided scripts.

@@ -5,6 +5,10 @@ describe("course prompt generator", () => {
   it("locks language and LearnPack security constraints", () => {
     const prompt = buildCoursePrompt({
       language: "python",
+      languageName: "Python",
+      runtimeVersion: "3.13",
+      fileExtension: "py",
+      containerRequirements: "Python 3.13 standard library",
       experience: "beginner",
       goal: "Learn automation",
       topics: "files and functions",
@@ -17,6 +21,8 @@ describe("course prompt generator", () => {
     });
     expect(prompt).toContain("Python 3.13");
     expect(prompt).toContain("runtime.adapter must be \"python\"");
+    expect(prompt).toContain("Python 3.13 standard library");
+    expect(prompt).toContain("Runtime requirements are metadata");
     expect(prompt).toContain("Shell commands");
     expect(prompt).toContain("Use short lessons.");
     expect(prompt).toContain("every required file in this single response");

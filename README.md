@@ -1,11 +1,13 @@
 # LearnLocal
 
-LearnLocal is an offline-first desktop learning environment for portable programming courses. It imports validated LearnPack 1.0 archives, teaches in a Monaco-based workspace, runs Java and Python code in restricted disposable Docker containers, and stores learning data locally without an account.
+LearnLocal is an offline-first desktop learning environment for portable programming courses. It imports validated LearnPack 1.0 archives for any programming language, teaches through a visual learning path and Monaco workspace, runs supported Java and Python code in restricted disposable Docker containers, and stores learning data locally without an account.
 
 ## What works
 
 - Secure Electron boundary with typed IPC, CSP, navigation guards, and no renderer access to Node or Docker.
 - Persistent dark and light themes.
+- Duolingo-style module, topic, exercise, completion, and project navigation.
+- Any-language course authoring and import; languages without a trusted execution adapter remain fully usable in study mode.
 - Java 21 and Python 3.13 runtime installation, verification, approved-image updates, repair, inventory, scoped cleanup, and installation-specific Docker ownership.
 - Typed function, debugging, output, multi-file project-checkpoint, and multiple-choice exercise flows.
 - Public tests for Run, hidden tests for Submit, custom trusted entrypoints, cancellation, bounded resources, and normalized diagnostics.
@@ -53,4 +55,4 @@ Installer output is written to `release/`. The manual packaging workflow builds 
 
 The repository also includes a canonical importable course at `learnpack-spec/examples/java-foundations.learnpack`.
 
-To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). The AI produces all separately labeled JSON files in one response; save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block, and package the files into the `.learnpack` archive yourself.
+To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). Enter the language, version, file extension, requested toolchain/container requirements, and topics. The AI produces all separately labeled JSON files in one response; save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block, and package the files into the `.learnpack` archive yourself.

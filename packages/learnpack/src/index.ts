@@ -25,13 +25,14 @@ export interface LearnPackManifest {
   course: {
     title: string;
     description: string;
-    language: "java" | "python";
+    language: string;
     languageVersion: string;
+    fileExtension?: string;
     level: "beginner" | "intermediate" | "advanced";
     estimatedHours: number;
     authors: LearnPackAuthor[];
   };
-  runtime: { adapter: "java" | "python"; adapterRange: string; runtimeVersion: string };
+  runtime: { adapter: string; adapterRange: string; runtimeVersion: string; containerRequirements?: string };
   modules: string[];
   projects: string[];
 }
@@ -341,11 +342,12 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
           }
         }
         const starterPaths = new Set<string>();
-        const expectedExtension = manifest.course.language === "java" ? ".java" : ".py";
+        const declaredExtension = manifest.course.fileExtension ? `.${manifest.course.fileExtension.toLowerCase()}` : undefined;
+        const expectedExtension = manifest.course.language === "java" ? ".java" : manifest.course.language === "python" ? ".py" : declaredExtension;
         for (const file of exercise.starterFiles ?? []) {
           if (!isSafeArchivePath(file.path)) issues.push({ code: "PACK_STARTER_PATH_INVALID", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' contains unsafe starter path '${file.path}'.` });
           if (starterPaths.has(file.path)) issues.push({ code: "PACK_STARTER_PATH_DUPLICATE", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' repeats starter path '${file.path}'.` });
-          if (!file.path.toLowerCase().endsWith(expectedExtension)) issues.push({ code: "PACK_STARTER_LANGUAGE_MISMATCH", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' starter '${file.path}' must end in ${expectedExtension}.` });
+          if (expectedExtension && !file.path.toLowerCase().endsWith(expectedExtension)) issues.push({ code: "PACK_STARTER_LANGUAGE_MISMATCH", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' starter '${file.path}' must end in ${expectedExtension}.` });
           starterPaths.add(file.path);
         }
         if ((exercise.limits?.timeoutMs ?? 0) > 5_000 || (exercise.limits?.memoryMb ?? 0) > 256 || (exercise.limits?.maxOutputKb ?? 0) > 64) {

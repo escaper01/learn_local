@@ -16,8 +16,9 @@
       "properties": {
         "title": { "type": "string", "minLength": 1, "maxLength": 120 },
         "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
-        "language": { "enum": ["java", "python"] },
+        "language": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$" },
         "languageVersion": { "type": "string", "minLength": 1, "maxLength": 30 },
+        "fileExtension": { "type": "string", "pattern": "^[a-zA-Z0-9]{1,12}$" },
         "level": { "enum": ["beginner", "intermediate", "advanced"] },
         "estimatedHours": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000 },
         "authors": {
@@ -38,9 +39,10 @@
       "additionalProperties": false,
       "required": ["adapter", "adapterRange", "runtimeVersion"],
       "properties": {
-        "adapter": { "enum": ["java", "python"] },
+        "adapter": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$" },
         "adapterRange": { "type": "string", "minLength": 1, "maxLength": 100 },
-        "runtimeVersion": { "type": "string", "minLength": 1, "maxLength": 30 }
+        "runtimeVersion": { "type": "string", "minLength": 1, "maxLength": 30 },
+        "containerRequirements": { "type": "string", "minLength": 1, "maxLength": 1000 }
       }
     },
     "modules": {

@@ -1,6 +1,6 @@
 # LearnPack 1.0
 
-A LearnPack is a ZIP archive with the `.learnpack` extension. It contains declarative learning content only; commands, container configuration, image names, host paths, package-manager operations, and executable files are forbidden.
+A LearnPack is a ZIP archive with the `.learnpack` extension. It contains declarative learning content only. A manifest may describe runtime/toolchain requirements, but commands, executable container configuration, image names, host paths, package-manager operations, and executable files are forbidden.
 
 ## Required layout
 
@@ -21,6 +21,8 @@ course.learnpack
 LearnPack content is untrusted. The importer performs structural and semantic validation without extracting the archive. It rejects unsafe paths, duplicate paths, symbolic links, executable file extensions, oversized archives, excessive entry counts, duplicate stable IDs, missing references, invalid limits, and language/adapter mismatches.
 
 Exercises describe arguments, expected values, starter files, hints, and bounded resource requests. A trusted adapter shipped with LearnLocal converts those declarations into a workspace and allowlisted command arguments.
+
+Course language identifiers are extensible. A course whose language has no trusted installed adapter is imported in study mode and cannot execute learner code. Course-provided runtime metadata never selects an image or command.
 
 ## Compatibility
 
