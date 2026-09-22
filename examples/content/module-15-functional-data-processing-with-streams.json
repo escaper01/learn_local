@@ -1,0 +1,196 @@
+{
+  "id": "module-15-functional-data-processing-with-streams",
+  "title": "Chapter 15: Functional Data Processing with Streams",
+  "description": "Build lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution.",
+  "lessons": [
+    {
+      "id": "m15-l01-stream-pipelines-and-filtering",
+      "title": "Stream pipelines and filtering",
+      "theoryMarkdown": "# Stream pipelines and filtering\n\n## Why this lesson matters\n\nBuild lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Functional data processing with streams** and recognize when it applies.\n- Explain **Stream pipelines** and recognize when it applies.\n- Explain **Stream filtering** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Functional data processing with streams\n\nFunctional data processing with streams crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Stream pipelines\n\nStream pipelines crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Stream filtering\n\nStream filtering crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.util.function.Predicate<String> useful = text -> text != null && !text.isBlank();\njava.util.function.Function<String, String> normalize = String::trim;\nString result = normalize.apply(\"  Java  \");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Functional data processing with streams, Stream pipelines, Stream filtering, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m15-l02-map-and-flatmap",
+      "title": "Map and flatMap",
+      "theoryMarkdown": "# Map and flatMap\n\n## Why this lesson matters\n\nBuild lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Map and flatMap** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Map and flatMap\n\nMap and flatMap should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n## Worked Java example\n\n```java\njava.util.function.Predicate<String> useful = text -> text != null && !text.isBlank();\njava.util.function.Function<String, String> normalize = String::trim;\nString result = normalize.apply(\"  Java  \");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Map and flatMap, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m15-l03-reduction",
+      "title": "Reduction",
+      "theoryMarkdown": "# Reduction\n\n## Why this lesson matters\n\nBuild lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Reduction methods** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Reduction methods\n\nReduction methods is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\njava.util.function.Predicate<String> useful = text -> text != null && !text.isBlank();\njava.util.function.Function<String, String> normalize = String::trim;\nString result = normalize.apply(\"  Java  \");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Reduction methods, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m15-l04-collectors-and-grouping",
+      "title": "Collectors and grouping",
+      "theoryMarkdown": "# Collectors and grouping\n\n## Why this lesson matters\n\nBuild lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Collectors** and recognize when it applies.\n- Explain **Grouping collectors** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Collectors\n\nCollectors is a stage in a lazy data pipeline. Separate intermediate operations from terminal operations, avoid stateful interference, and check encounter order and associativity before parallelizing. Explain both the element type entering the stage and the type leaving it.\n\n### Grouping collectors\n\nGrouping collectors is a stage in a lazy data pipeline. Separate intermediate operations from terminal operations, avoid stateful interference, and check encounter order and associativity before parallelizing. Explain both the element type entering the stage and the type leaving it.\n\n## Worked Java example\n\n```java\njava.util.function.Predicate<String> useful = text -> text != null && !text.isBlank();\njava.util.function.Function<String, String> normalize = String::trim;\nString result = normalize.apply(\"  Java  \");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Collectors, Grouping collectors, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m15-l05-primitive-and-bounded-streams",
+      "title": "Primitive and bounded streams",
+      "theoryMarkdown": "# Primitive and bounded streams\n\n## Why this lesson matters\n\nBuild lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Streams of primitives** and recognize when it applies.\n- Explain **Taking elements** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Streams of primitives\n\nStreams of primitives crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Taking elements\n\nTaking elements is a required part of Functional Data Processing with Streams. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n## Worked Java example\n\n```java\njava.util.function.Predicate<String> useful = text -> text != null && !text.isBlank();\njava.util.function.Function<String, String> normalize = String::trim;\nString result = normalize.apply(\"  Java  \");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Streams of primitives, Taking elements, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m15-l06-infinite-and-parallel-streams",
+      "title": "Infinite and parallel streams",
+      "theoryMarkdown": "# Infinite and parallel streams\n\n## Why this lesson matters\n\nBuild lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Infinite streams** and recognize when it applies.\n- Explain **Parallel streams** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Infinite streams\n\nInfinite streams crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Parallel streams\n\nParallel streams crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.util.function.Predicate<String> useful = text -> text != null && !text.isBlank();\njava.util.function.Function<String, String> normalize = String::trim;\nString result = normalize.apply(\"  Java  \");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Infinite streams, Parallel streams, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m15-l07-stream-gatherers",
+      "title": "Stream gatherers",
+      "theoryMarkdown": "# Stream gatherers\n\n## Why this lesson matters\n\nBuild lazy data pipelines and understand collection, reduction, primitive specialization, infinity, and parallel execution. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Stream gatherers** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Stream gatherers\n\nStream gatherers crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.util.function.Predicate<String> useful = text -> text != null && !text.isBlank();\njava.util.function.Function<String, String> normalize = String::trim;\nString result = normalize.apply(\"  Java  \");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Stream gatherers, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m15-assessment",
+      "title": "Chapter 15 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 15 assessment\n\nYou have completed the reading sequence for **Functional Data Processing with Streams**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits. The portfolio checkpoint records cumulative progress at the end of this three-chapter block.",
+      "exercises": [
+        {
+          "id": "m15-concept-check",
+          "type": "multipleChoice",
+          "title": "Functional Data Processing with Streams: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **Functional data processing with streams**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m15-coding-practice",
+          "type": "function",
+          "title": "Implement a stream-style pipeline",
+          "instructionMarkdown": "Implement `sumEvenSquares`. Return the sum of the squares of the even values in `values`. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static int sumEvenSquares(int[] values) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "sumEvenSquares",
+            "parameters": [
+              {
+                "name": "values",
+                "type": "int[]"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m15-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              ],
+              "expected": 20
+            },
+            {
+              "id": "m15-code-2",
+              "visibility": "public",
+              "arguments": [
+                []
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m15-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  -2,
+                  3
+                ]
+              ],
+              "expected": 4
+            }
+          ],
+          "hints": [
+            "Filter for even values, map each survivor to its square, then reduce with sum.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m15-debug-practice",
+          "type": "debug",
+          "title": "Functional Data Processing with Streams: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-15-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-15-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m15-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-15-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m15-project-checkpoint",
+          "type": "project",
+          "title": "Functional Data Processing with Streams: portfolio checkpoint",
+          "instructionMarkdown": "Create the chapter checkpoint entry point. It must print `MILESTONE 5: Functional Data Processing with Streams`. Keep the program offline and use only the Java standard library.",
+          "starterFiles": [
+            {
+              "path": "Milestone.java",
+              "content": "public class Milestone {\n    public static void main(String[] args) {\n        System.out.println(\"TODO\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m15-project-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "MILESTONE 5: Functional Data Processing with Streams",
+              "comparison": "trimmed"
+            }
+          ],
+          "hints": [
+            "Match capitalization and punctuation exactly."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

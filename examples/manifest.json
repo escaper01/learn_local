@@ -1,19 +1,19 @@
 {
   "format": "learnpack",
   "schemaVersion": "1.0.0",
-  "id": "java-comprehensive-cli",
-  "version": "1.0.0",
+  "id": "complete-java-21-curriculum",
+  "version": "2.0.0",
   "course": {
-    "title": "Java 21 CLI Foundations & Beyond",
-    "description": "A comprehensive 6-week course taking you from absolute beginner to advanced Java 21 developer. You will build a strong foundation in fundamentals, OOP, collections, concurrency, and architecture while crafting robust command-line tools.",
+    "title": "Complete Java 21: From First Program to Architecture",
+    "description": "A theory-first Java curriculum with 20 detailed chapters and 135 focused lessons, progressing from first principles through concurrency, streams, reflection, testing, JDBC, architecture, networking, and JSON. Assessments follow teaching rather than replacing it.",
     "language": "java",
     "languageVersion": "21",
     "fileExtension": "java",
     "level": "beginner",
-    "estimatedHours": 21,
+    "estimatedHours": 140,
     "authors": [
       {
-        "name": "AI-generated for local use"
+        "name": "LearnLocal curriculum team"
       }
     ]
   },
@@ -24,14 +24,34 @@
     "containerRequirements": "Java 21 JDK with the standard library"
   },
   "modules": [
-    "content/module-01-basics.json",
-    "content/module-02-oop.json",
-    "content/module-03-collections-exceptions.json",
-    "content/module-04-functional-concurrent.json",
-    "content/module-05-io-testing-debugging.json",
-    "content/module-06-architecture-patterns.json"
+    "content/module-01-java-origins-tooling-and-first-programs.json",
+    "content/module-02-types-variables-input-and-operators.json",
+    "content/module-03-control-flow-and-program-decomposition.json",
+    "content/module-04-arrays-memory-strings-and-immutability.json",
+    "content/module-05-build-tools-and-ai-assisted-development.json",
+    "content/module-06-object-oriented-programming-foundations.json",
+    "content/module-07-inheritance-polymorphism-interfaces-and-enums.json",
+    "content/module-08-files-streams-exceptions-and-date-time.json",
+    "content/module-09-algorithms-data-structures-and-generics.json",
+    "content/module-10-collections-ordering-sorting-and-hashing.json",
+    "content/module-11-lambdas-functional-interfaces-and-composition.json",
+    "content/module-12-regular-expressions.json",
+    "content/module-13-threads-and-synchronization.json",
+    "content/module-14-executors-futures-and-concurrent-collections.json",
+    "content/module-15-functional-data-processing-with-streams.json",
+    "content/module-16-reflection-annotations-class-loading-and-bytecode.json",
+    "content/module-17-logging-testing-and-debugging.json",
+    "content/module-18-sql-and-jdbc.json",
+    "content/module-19-software-architecture-and-design-patterns.json",
+    "content/module-20-networking-serialization-and-json.json"
   ],
   "projects": [
-    "projects/final-project.json"
+    "projects/milestone-1.json",
+    "projects/milestone-2.json",
+    "projects/milestone-3.json",
+    "projects/milestone-4.json",
+    "projects/milestone-5.json",
+    "projects/milestone-6.json",
+    "projects/final-capstone.json"
   ]
 }

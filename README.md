@@ -53,6 +53,6 @@ npm run dist   # platform installer
 
 Installer output is written to `release/`. The manual packaging workflow builds Windows, macOS, and Linux artifacts. Public trusted releases still require repository-owner signing credentials and an update distribution endpoint.
 
-The repository also includes a canonical importable course at `learnpack-spec/examples/java-foundations.learnpack`.
+The repository includes a small canonical import fixture at `learnpack-spec/examples/java-foundations.learnpack` and a comprehensive, theory-first Java 21 source course under `examples/`. The latter contains 20 chapters, 135 focused lessons, chapter-aligned assessments, six cumulative milestones, and a final capstone. Regenerate it deterministically with `node scripts/generate-java-curriculum.mjs` before packaging it yourself as a `.learnpack` archive.
 
 To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). Choose the programming language and describe what you want to learn or build; the AI infers the remaining course and runtime metadata. It produces all separately labeled JSON files in one response. Save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block, and package the files into the `.learnpack` archive yourself.

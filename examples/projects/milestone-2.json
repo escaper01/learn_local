@@ -1,0 +1,13 @@
+{
+  "id": "milestone-2",
+  "title": "Milestone 2: Chapters 4-6",
+  "descriptionMarkdown": "Consolidate **Arrays, Memory, Strings, and Immutability**, **Build Tools and AI-Assisted Development**, **Object-Oriented Programming Foundations** in a small offline Java program. Review the reading lessons, complete each chapter assessment, and use the checkpoint as a clean, explainable portfolio snapshot.",
+  "learningObjectives": [
+    "Apply and explain the key contracts from Arrays, Memory, Strings, and Immutability",
+    "Apply and explain the key contracts from Build Tools and AI-Assisted Development",
+    "Apply and explain the key contracts from Object-Oriented Programming Foundations"
+  ],
+  "checkpointExerciseIds": [
+    "m06-project-checkpoint"
+  ]
+}

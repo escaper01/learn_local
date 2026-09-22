@@ -1,0 +1,160 @@
+{
+  "id": "module-08-files-streams-exceptions-and-date-time",
+  "title": "Chapter 8: Files, Streams, Exceptions, and Date-Time",
+  "description": "Handle external resources safely, model failures explicitly, and work with modern date and time values.",
+  "lessons": [
+    {
+      "id": "m08-l01-files-and-paths",
+      "title": "Files and paths",
+      "theoryMarkdown": "# Files and paths\n\n## Why this lesson matters\n\nHandle external resources safely, model failures explicitly, and work with modern date and time values. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **File class** and recognize when it applies.\n- Explain **Reading files** and recognize when it applies.\n- Explain **Writing files** and recognize when it applies.\n- Explain **Managing files** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### File class\n\nFile class is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n### Reading files\n\nReading files crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Writing files\n\nWriting files crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Managing files\n\nManaging files crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.nio.file.Path path = java.nio.file.Path.of(\"notes.txt\");\ntry (var reader = java.nio.file.Files.newBufferedReader(path)) {\n    System.out.println(reader.readLine());\n} catch (java.io.IOException error) {\n    System.err.println(\"Could not read notes: \" + error.getMessage());\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define File class, Reading files, Writing files, Managing files, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m08-l02-byte-and-character-streams",
+      "title": "Byte and character streams",
+      "theoryMarkdown": "# Byte and character streams\n\n## Why this lesson matters\n\nHandle external resources safely, model failures explicitly, and work with modern date and time values. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **What are streams** and recognize when it applies.\n- Explain **Input streams** and recognize when it applies.\n- Explain **Output streams** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### What are streams\n\nWhat are streams crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Input streams\n\nInput streams crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Output streams\n\nOutput streams crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.nio.file.Path path = java.nio.file.Path.of(\"notes.txt\");\ntry (var reader = java.nio.file.Files.newBufferedReader(path)) {\n    System.out.println(reader.readLine());\n} catch (java.io.IOException error) {\n    System.err.println(\"Could not read notes: \" + error.getMessage());\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define What are streams, Input streams, Output streams, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m08-l03-errors-and-exception-hierarchy",
+      "title": "Errors and exception hierarchy",
+      "theoryMarkdown": "# Errors and exception hierarchy\n\n## Why this lesson matters\n\nHandle external resources safely, model failures explicitly, and work with modern date and time values. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Errors in programs** and recognize when it applies.\n- Explain **First glance at exceptions** and recognize when it applies.\n- Explain **Hierarchy of exceptions** and recognize when it applies.\n- Explain **NullPointerException** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Errors in programs\n\nErrors in programs is a required part of Files, Streams, Exceptions, and Date-Time. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### First glance at exceptions\n\nFirst glance at exceptions crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Hierarchy of exceptions\n\nHierarchy of exceptions crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### NullPointerException\n\nNullPointerException crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.nio.file.Path path = java.nio.file.Path.of(\"notes.txt\");\ntry (var reader = java.nio.file.Files.newBufferedReader(path)) {\n    System.out.println(reader.readLine());\n} catch (java.io.IOException error) {\n    System.err.println(\"Could not read notes: \" + error.getMessage());\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Errors in programs, First glance at exceptions, Hierarchy of exceptions, NullPointerException, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m08-l04-handling-and-throwing-exceptions",
+      "title": "Handling and throwing exceptions",
+      "theoryMarkdown": "# Handling and throwing exceptions\n\n## Why this lesson matters\n\nHandle external resources safely, model failures explicitly, and work with modern date and time values. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Exception handling** and recognize when it applies.\n- Explain **Throwing exceptions** and recognize when it applies.\n- Explain **Stack trace** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Exception handling\n\nException handling crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Throwing exceptions\n\nThrowing exceptions crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### Stack trace\n\nStack trace connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n## Worked Java example\n\n```java\njava.nio.file.Path path = java.nio.file.Path.of(\"notes.txt\");\ntry (var reader = java.nio.file.Files.newBufferedReader(path)) {\n    System.out.println(reader.readLine());\n} catch (java.io.IOException error) {\n    System.err.println(\"Could not read notes: \" + error.getMessage());\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Exception handling, Throwing exceptions, Stack trace, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m08-l05-resource-safety",
+      "title": "Resource safety",
+      "theoryMarkdown": "# Resource safety\n\n## Why this lesson matters\n\nHandle external resources safely, model failures explicitly, and work with modern date and time values. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Try with resources** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Try with resources\n\nTry with resources crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.nio.file.Path path = java.nio.file.Path.of(\"notes.txt\");\ntry (var reader = java.nio.file.Files.newBufferedReader(path)) {\n    System.out.println(reader.readLine());\n} catch (java.io.IOException error) {\n    System.err.println(\"Could not read notes: \" + error.getMessage());\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Try with resources, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m08-l06-modern-date-and-time",
+      "title": "Modern date and time",
+      "theoryMarkdown": "# Modern date and time\n\n## Why this lesson matters\n\nHandle external resources safely, model failures explicitly, and work with modern date and time values. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **LocalDate** and recognize when it applies.\n- Explain **LocalTime** and recognize when it applies.\n- Explain **LocalDateTime** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### LocalDate\n\nLocalDate crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### LocalTime\n\nLocalTime crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n### LocalDateTime\n\nLocalDateTime crosses a resource or failure boundary. Define ownership, closing behavior, checked versus unchecked failure, and the information a caller needs to recover. Use deterministic cleanup and preserve the original cause instead of hiding errors.\n\n## Worked Java example\n\n```java\njava.nio.file.Path path = java.nio.file.Path.of(\"notes.txt\");\ntry (var reader = java.nio.file.Files.newBufferedReader(path)) {\n    System.out.println(reader.readLine());\n} catch (java.io.IOException error) {\n    System.err.println(\"Could not read notes: \" + error.getMessage());\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define LocalDate, LocalTime, LocalDateTime, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m08-assessment",
+      "title": "Chapter 8 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 8 assessment\n\nYou have completed the reading sequence for **Files, Streams, Exceptions, and Date-Time**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits.",
+      "exercises": [
+        {
+          "id": "m08-concept-check",
+          "type": "multipleChoice",
+          "title": "Files, Streams, Exceptions, and Date-Time: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **File class**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m08-coding-practice",
+          "type": "function",
+          "title": "Represent a recoverable failure",
+          "instructionMarkdown": "Implement `safeDivide`. Return `left / right`; when `right` is zero, return 0 instead of performing the invalid division. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static int safeDivide(int left, int right) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "safeDivide",
+            "parameters": [
+              {
+                "name": "left",
+                "type": "int"
+              },
+              {
+                "name": "right",
+                "type": "int"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m08-code-1",
+              "visibility": "public",
+              "arguments": [
+                12,
+                3
+              ],
+              "expected": 4
+            },
+            {
+              "id": "m08-code-2",
+              "visibility": "public",
+              "arguments": [
+                9,
+                0
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m08-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                -9,
+                3
+              ],
+              "expected": -3
+            }
+          ],
+          "hints": [
+            "Guard the failure case before evaluating the division.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m08-debug-practice",
+          "type": "debug",
+          "title": "Files, Streams, Exceptions, and Date-Time: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-8-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-8-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m08-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-8-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

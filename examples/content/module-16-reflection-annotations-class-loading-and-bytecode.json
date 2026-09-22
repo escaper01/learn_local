@@ -1,0 +1,147 @@
+{
+  "id": "module-16-reflection-annotations-class-loading-and-bytecode",
+  "title": "Chapter 16: Reflection, Annotations, Class Loading, and Bytecode",
+  "description": "Inspect types at runtime and understand the machinery that loads, represents, and instruments Java classes.",
+  "lessons": [
+    {
+      "id": "m16-l01-reflection-and-runtime-type-checking",
+      "title": "Reflection and runtime type checking",
+      "theoryMarkdown": "# Reflection and runtime type checking\n\n## Why this lesson matters\n\nInspect types at runtime and understand the machinery that loads, represents, and instruments Java classes. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Reflection basics** and recognize when it applies.\n- Explain **Runtime type checking** and recognize when it applies.\n- Explain **Retrieving Class instances** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Reflection basics\n\nReflection basics exposes or changes metadata normally handled by the compiler and JVM. Identify what is known at compile time versus runtime, account for access restrictions and type erasure, and confine reflective code behind a small validated boundary.\n\n### Runtime type checking\n\nRuntime type checking affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Retrieving Class instances\n\nRetrieving Class instances is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n## Worked Java example\n\n```java\nClass<?> type = java.util.ArrayList.class;\nfor (var method : type.getDeclaredMethods()) {\n    if (java.lang.reflect.Modifier.isPublic(method.getModifiers())) {\n        System.out.println(method.getName());\n    }\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Reflection basics, Runtime type checking, Retrieving Class instances, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m16-l02-modifiers-fields-and-methods",
+      "title": "Modifiers, fields, and methods",
+      "theoryMarkdown": "# Modifiers, fields, and methods\n\n## Why this lesson matters\n\nInspect types at runtime and understand the machinery that loads, represents, and instruments Java classes. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Dealing with modifiers** and recognize when it applies.\n- Explain **Manipulating fields and methods** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Dealing with modifiers\n\nDealing with modifiers exposes or changes metadata normally handled by the compiler and JVM. Identify what is known at compile time versus runtime, account for access restrictions and type erasure, and confine reflective code behind a small validated boundary.\n\n### Manipulating fields and methods\n\nManipulating fields and methods is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\nClass<?> type = java.util.ArrayList.class;\nfor (var method : type.getDeclaredMethods()) {\n    if (java.lang.reflect.Modifier.isPublic(method.getModifiers())) {\n        System.out.println(method.getName());\n    }\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Dealing with modifiers, Manipulating fields and methods, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m16-l03-annotations",
+      "title": "Annotations",
+      "theoryMarkdown": "# Annotations\n\n## Why this lesson matters\n\nInspect types at runtime and understand the machinery that loads, represents, and instruments Java classes. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Detecting annotations** and recognize when it applies.\n- Explain **Custom annotations and types of annotations** and recognize when it applies.\n- Explain **Adding annotations** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Detecting annotations\n\nDetecting annotations exposes or changes metadata normally handled by the compiler and JVM. Identify what is known at compile time versus runtime, account for access restrictions and type erasure, and confine reflective code behind a small validated boundary.\n\n### Custom annotations and types of annotations\n\nCustom annotations and types of annotations affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Adding annotations\n\nAdding annotations exposes or changes metadata normally handled by the compiler and JVM. Identify what is known at compile time versus runtime, account for access restrictions and type erasure, and confine reflective code behind a small validated boundary.\n\n## Worked Java example\n\n```java\nClass<?> type = java.util.ArrayList.class;\nfor (var method : type.getDeclaredMethods()) {\n    if (java.lang.reflect.Modifier.isPublic(method.getModifiers())) {\n        System.out.println(method.getName());\n    }\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Detecting annotations, Custom annotations and types of annotations, Adding annotations, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m16-l04-class-loading-and-bytecode",
+      "title": "Class loading and bytecode",
+      "theoryMarkdown": "# Class loading and bytecode\n\n## Why this lesson matters\n\nInspect types at runtime and understand the machinery that loads, represents, and instruments Java classes. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Class files and Bytecode** and recognize when it applies.\n- Explain **Class Loader** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Class files and Bytecode\n\nClass files and Bytecode belongs to Java's execution pipeline. Distinguish compile-time responsibilities from runtime responsibilities, trace what is stored in a .class file, and identify which component loads, verifies, and executes code. This distinction explains portability as well as many startup and compatibility errors.\n\n### Class Loader\n\nClass Loader belongs to Java's execution pipeline. Distinguish compile-time responsibilities from runtime responsibilities, trace what is stored in a .class file, and identify which component loads, verifies, and executes code. This distinction explains portability as well as many startup and compatibility errors.\n\n## Worked Java example\n\n```java\nClass<?> type = java.util.ArrayList.class;\nfor (var method : type.getDeclaredMethods()) {\n    if (java.lang.reflect.Modifier.isPublic(method.getModifiers())) {\n        System.out.println(method.getName());\n    }\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Class files and Bytecode, Class Loader, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m16-l05-bytebuddy-and-instrumentation-concepts",
+      "title": "ByteBuddy and instrumentation concepts",
+      "theoryMarkdown": "# ByteBuddy and instrumentation concepts\n\n## Why this lesson matters\n\nInspect types at runtime and understand the machinery that loads, represents, and instruments Java classes. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **ByteBuddy** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### ByteBuddy\n\nByteBuddy exposes or changes metadata normally handled by the compiler and JVM. Identify what is known at compile time versus runtime, account for access restrictions and type erasure, and confine reflective code behind a small validated boundary.\n\n## Worked Java example\n\n```java\nClass<?> type = java.util.ArrayList.class;\nfor (var method : type.getDeclaredMethods()) {\n    if (java.lang.reflect.Modifier.isPublic(method.getModifiers())) {\n        System.out.println(method.getName());\n    }\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define ByteBuddy, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m16-assessment",
+      "title": "Chapter 16 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 16 assessment\n\nYou have completed the reading sequence for **Reflection, Annotations, Class Loading, and Bytecode**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits.",
+      "exercises": [
+        {
+          "id": "m16-concept-check",
+          "type": "multipleChoice",
+          "title": "Reflection, Annotations, Class Loading, and Bytecode: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **Reflection basics**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m16-coding-practice",
+          "type": "function",
+          "title": "Extract runtime type-style metadata",
+          "instructionMarkdown": "Implement `simpleClassName`. Given a fully qualified class name, return the text after its final dot. If no dot exists, return the input. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static String simpleClassName(String qualifiedName) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "simpleClassName",
+            "parameters": [
+              {
+                "name": "qualifiedName",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m16-code-1",
+              "visibility": "public",
+              "arguments": [
+                "java.util.ArrayList"
+              ],
+              "expected": "ArrayList"
+            },
+            {
+              "id": "m16-code-2",
+              "visibility": "public",
+              "arguments": [
+                "Main"
+              ],
+              "expected": "Main"
+            },
+            {
+              "id": "m16-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "a.b.C"
+              ],
+              "expected": "C"
+            }
+          ],
+          "hints": [
+            "Find the last separator, not the first one.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m16-debug-practice",
+          "type": "debug",
+          "title": "Reflection, Annotations, Class Loading, and Bytecode: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-16-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-16-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m16-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-16-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

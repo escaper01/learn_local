@@ -27,8 +27,11 @@ COMPLETE RESPONSE PROTOCOL
 - Never output partial or truncated JSON. If response capacity is tight, use fewer modules while preserving complete lessons and valid exercises.
 
 COURSE DEPTH
-- Teach every requested topic substantially. Each lesson theoryMarkdown includes an explanation, worked code example, common mistakes, and recap.
-- Each lesson contains at least three meaningful exercises: one concept check, one hands-on code exercise, and one debugging task or harder challenge.
+- Build a real curriculum, not a list of assessment questions. Organize related material into chapters (modules), then create multiple narrowly focused reading lessons inside each chapter.
+- Teach every requested topic substantially. Do not collapse a long topic list into one umbrella lesson. A focused lesson should normally cover one major idea or at most three to five tightly related ideas.
+- Each reading lesson's theoryMarkdown includes motivation, learning objectives, detailed explanations, at least one worked code example, common mistakes, guided practice steps, and a recap. Theory must be sufficient for a beginner to learn the material without an external textbook.
+- Reading lessons may and often should have an empty exercises array. After two to five reading lessons, add a separate assessment or practice lesson containing meaningful tasks. Questions and code tasks follow teaching; they do not replace it.
+- An assessment normally combines a concept check, a hands-on code exercise, and a debugging task or progressively harder challenge. Do not attach the same repetitive three-task pattern to every individual topic.
 - Across the course use output, function, debug, multipleChoice, and project exercises.
 - Code exercises normally contain at least two public tests, two hidden edge-case tests, and two to four progressive hints.
 - Add cumulative challenges, project checkpoints, and at least one final project integrating the major topics.
@@ -46,6 +49,7 @@ MANIFEST CONTRACT
 MODULE CONTRACT
 - A module contains only id, title, optional description, and lessons.
 - A lesson contains only id, title, theoryMarkdown, and exercises. A lesson does not have description or descriptionMarkdown.
+- exercises is always an array, but it may be empty for a theory/reading lesson. Never add a placeholder quiz merely to make the array non-empty.
 - Every exercise contains id, type, title, and instructionMarkdown. Never substitute questionMarkdown or descriptionMarkdown for instructionMarkdown.
 - Exercise type is exactly one of: output, function, debug, multipleChoice, project.
 - IDs are unique lowercase kebab-case strings. Do not add unlisted properties.
@@ -116,6 +120,7 @@ MANDATORY VALIDATION BEFORE RESPONDING
 6. Every referenced file is included, every ID is unique, all paths use forward slashes, and all source filenames use the inferred extension.
 7. All JSON parses without comments or trailing commas and contains only the properties permitted above.
 8. Never shorten or omit required course content merely to meet an arbitrary line count.
+9. Confirm that chapters contain multiple focused theory lessons and that assessments come after the material they test. Reject your own result if it is mostly quizzes/code templates with only one broad lesson per chapter.
 
 Begin now. Infer the metadata, then generate manifest.json followed by every referenced JSON file in this single response.`;
 }

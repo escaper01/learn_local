@@ -46,7 +46,7 @@ function validEntries(): Map<string, unknown> {
 }
 
 describe("LearnPack semantic validation", () => {
-  it("validates the repaired AI-generated example course", async () => {
+  it("validates the comprehensive theory-first Java curriculum", async () => {
     const root = resolve(import.meta.dirname, "../../../examples");
     const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8")) as { modules: string[]; projects: string[] };
     const entries = new Map<string, unknown>([["manifest.json", manifest]]);
@@ -54,9 +54,10 @@ describe("LearnPack semantic validation", () => {
       entries.set(path, JSON.parse(await readFile(join(root, ...path.split("/")), "utf8")));
     }
     expect(validateLearnPackContent(entries).summary).toMatchObject({
-      id: "java-comprehensive-cli",
-      moduleCount: 6,
-      exerciseCount: 18
+      id: "complete-java-21-curriculum",
+      moduleCount: 20,
+      lessonCount: 135,
+      exerciseCount: 67
     });
   });
 

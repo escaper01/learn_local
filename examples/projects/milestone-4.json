@@ -1,0 +1,13 @@
+{
+  "id": "milestone-4",
+  "title": "Milestone 4: Chapters 10-12",
+  "descriptionMarkdown": "Consolidate **Collections, Ordering, Sorting, and Hashing**, **Lambdas, Functional Interfaces, and Composition**, **Regular Expressions** in a small offline Java program. Review the reading lessons, complete each chapter assessment, and use the checkpoint as a clean, explainable portfolio snapshot.",
+  "learningObjectives": [
+    "Apply and explain the key contracts from Collections, Ordering, Sorting, and Hashing",
+    "Apply and explain the key contracts from Lambdas, Functional Interfaces, and Composition",
+    "Apply and explain the key contracts from Regular Expressions"
+  ],
+  "checkpointExerciseIds": [
+    "m12-project-checkpoint"
+  ]
+}

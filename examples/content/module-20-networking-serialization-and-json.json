@@ -1,0 +1,175 @@
+{
+  "id": "module-20-networking-serialization-and-json",
+  "title": "Chapter 20: Networking, Serialization, and JSON",
+  "description": "Exchange data through sockets and stable serialized representations while understanding boundaries and security tradeoffs.",
+  "lessons": [
+    {
+      "id": "m20-l01-sockets",
+      "title": "Sockets",
+      "theoryMarkdown": "# Sockets\n\n## Why this lesson matters\n\nExchange data through sockets and stable serialized representations while understanding boundaries and security tradeoffs. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Sockets** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Sockets\n\nSockets defines a boundary between processes or representations. Specify framing, encoding, schema, failure handling, and compatibility. Treat incoming data as untrusted and avoid serializing implementation details that should remain private.\n\n## Worked Java example\n\n```java\nrecord Message(String type, String body) {}\n// Define a stable wire schema; validate size and fields before constructing Message.\nMessage message = new Message(\"notice\", \"Hello\");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Sockets, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m20-l02-serialization-fundamentals",
+      "title": "Serialization fundamentals",
+      "theoryMarkdown": "# Serialization fundamentals\n\n## Why this lesson matters\n\nExchange data through sockets and stable serialized representations while understanding boundaries and security tradeoffs. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Serialization basics** and recognize when it applies.\n- Explain **Custom serialization** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Serialization basics\n\nSerialization basics defines a boundary between processes or representations. Specify framing, encoding, schema, failure handling, and compatibility. Treat incoming data as untrusted and avoid serializing implementation details that should remain private.\n\n### Custom serialization\n\nCustom serialization defines a boundary between processes or representations. Specify framing, encoding, schema, failure handling, and compatibility. Treat incoming data as untrusted and avoid serializing implementation details that should remain private.\n\n## Worked Java example\n\n```java\nrecord Message(String type, String body) {}\n// Define a stable wire schema; validate size and fields before constructing Message.\nMessage message = new Message(\"notice\", \"Hello\");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Serialization basics, Custom serialization, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m20-l03-json-concepts",
+      "title": "JSON concepts",
+      "theoryMarkdown": "# JSON concepts\n\n## Why this lesson matters\n\nExchange data through sockets and stable serialized representations while understanding boundaries and security tradeoffs. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **JSON** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### JSON\n\nJSON defines a boundary between processes or representations. Specify framing, encoding, schema, failure handling, and compatibility. Treat incoming data as untrusted and avoid serializing implementation details that should remain private.\n\n## Worked Java example\n\n```java\nrecord Message(String type, String body) {}\n// Define a stable wire schema; validate size and fields before constructing Message.\nMessage message = new Message(\"notice\", \"Hello\");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define JSON, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m20-l04-gson-and-json-customization",
+      "title": "Gson and JSON customization",
+      "theoryMarkdown": "# Gson and JSON customization\n\n## Why this lesson matters\n\nExchange data through sockets and stable serialized representations while understanding boundaries and security tradeoffs. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Introduction to Gson** and recognize when it applies.\n- Explain **Customizing JSON with Gson** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Introduction to Gson\n\nIntroduction to Gson defines a boundary between processes or representations. Specify framing, encoding, schema, failure handling, and compatibility. Treat incoming data as untrusted and avoid serializing implementation details that should remain private.\n\n### Customizing JSON with Gson\n\nCustomizing JSON with Gson defines a boundary between processes or representations. Specify framing, encoding, schema, failure handling, and compatibility. Treat incoming data as untrusted and avoid serializing implementation details that should remain private.\n\n## Worked Java example\n\n```java\nrecord Message(String type, String body) {}\n// Define a stable wire schema; validate size and fields before constructing Message.\nMessage message = new Message(\"notice\", \"Hello\");\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Introduction to Gson, Customizing JSON with Gson, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m20-assessment",
+      "title": "Chapter 20 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 20 assessment\n\nYou have completed the reading sequence for **Networking, Serialization, and JSON**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits. The final capstone gives you a multi-file base for integrating the complete curriculum.",
+      "exercises": [
+        {
+          "id": "m20-concept-check",
+          "type": "multipleChoice",
+          "title": "Networking, Serialization, and JSON: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **Sockets**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m20-coding-practice",
+          "type": "function",
+          "title": "Encode a minimal JSON string",
+          "instructionMarkdown": "Implement `jsonString`. Return `text` surrounded by double quotes, escaping backslashes and double quotes inside it. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static String jsonString(String text) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "jsonString",
+            "parameters": [
+              {
+                "name": "text",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m20-code-1",
+              "visibility": "public",
+              "arguments": [
+                "hello"
+              ],
+              "expected": "\"hello\""
+            },
+            {
+              "id": "m20-code-2",
+              "visibility": "public",
+              "arguments": [
+                "a\\b"
+              ],
+              "expected": "\"a\\\\b\""
+            },
+            {
+              "id": "m20-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "say \"hi\""
+              ],
+              "expected": "\"say \\\"hi\\\"\""
+            }
+          ],
+          "hints": [
+            "Escape backslashes before escaping quotes, then add the surrounding quotes.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m20-debug-practice",
+          "type": "debug",
+          "title": "Networking, Serialization, and JSON: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-20-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-20-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m20-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-20-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "java-complete-capstone",
+          "type": "project",
+          "title": "Complete Java portfolio capstone",
+          "instructionMarkdown": "Complete the multi-file study tracker so it records all 20 chapters and 277 requested topics, then prints `COMPLETE:20 chapters, 277 topics`. Keep the domain state inside `StudyTracker`; `Main` should only construct the object and display its summary. Extend this starter into a local portfolio application by applying collections, validation, file persistence, tests, logging, JDBC, architecture patterns, concurrency, and JSON concepts from the curriculum.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        StudyTracker tracker = new StudyTracker(0, 0);\n        System.out.println(tracker.summary());\n    }\n}\n"
+            },
+            {
+              "path": "StudyTracker.java",
+              "content": "public final class StudyTracker {\n    private final int chapters;\n    private final int topics;\n\n    public StudyTracker(int chapters, int topics) {\n        this.chapters = chapters;\n        this.topics = topics;\n    }\n\n    public String summary() {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "java-capstone-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "COMPLETE:20 chapters, 277 topics",
+              "comparison": "trimmed"
+            }
+          ],
+          "hints": [
+            "Pass the completed curriculum counts into the domain object.",
+            "Keep the exact output format in StudyTracker.summary()."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

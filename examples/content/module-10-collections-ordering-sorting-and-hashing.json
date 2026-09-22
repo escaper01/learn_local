@@ -1,0 +1,173 @@
+{
+  "id": "module-10-collections-ordering-sorting-and-hashing",
+  "title": "Chapter 10: Collections, Ordering, Sorting, and Hashing",
+  "description": "Select the right collection, define ordering, understand standard sorting techniques, and reason about hash tables.",
+  "lessons": [
+    {
+      "id": "m10-l01-the-collections-framework",
+      "title": "The collections framework",
+      "theoryMarkdown": "# The collections framework\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **What are collections** and recognize when it applies.\n- Explain **The Collections framework overview** and recognize when it applies.\n- Explain **The utility class Collections** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### What are collections\n\nWhat are collections should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### The Collections framework overview\n\nThe Collections framework overview should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### The utility class Collections\n\nThe utility class Collections is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define What are collections, The Collections framework overview, The utility class Collections, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-l02-lists-and-linked-structures",
+      "title": "Lists and linked structures",
+      "theoryMarkdown": "# Lists and linked structures\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **ArrayList** and recognize when it applies.\n- Explain **The List interface** and recognize when it applies.\n- Explain **LinkedList** and recognize when it applies.\n- Explain **Stack** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### ArrayList\n\nArrayList connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n### The List interface\n\nThe List interface is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n### LinkedList\n\nLinkedList should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Stack\n\nStack connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define ArrayList, The List interface, LinkedList, Stack, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-l03-sets-maps-and-enum-sets",
+      "title": "Sets, maps, and enum sets",
+      "theoryMarkdown": "# Sets, maps, and enum sets\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **The Set interface** and recognize when it applies.\n- Explain **The Map interface** and recognize when it applies.\n- Explain **Enumset** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### The Set interface\n\nThe Set interface is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n### The Map interface\n\nThe Map interface is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n### Enumset\n\nEnumset is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define The Set interface, The Map interface, Enumset, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-l04-natural-and-custom-ordering",
+      "title": "Natural and custom ordering",
+      "theoryMarkdown": "# Natural and custom ordering\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Comparable** and recognize when it applies.\n- Explain **Ordering and total order** and recognize when it applies.\n- Explain **Comparator** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Comparable\n\nComparable should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Ordering and total order\n\nOrdering and total order is a required part of Collections, Ordering, Sorting, and Hashing. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### Comparator\n\nComparator should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Comparable, Ordering and total order, Comparator, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-l05-elementary-sorting",
+      "title": "Elementary sorting",
+      "theoryMarkdown": "# Elementary sorting\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Sorting problem** and recognize when it applies.\n- Explain **Insertion sort** and recognize when it applies.\n- Explain **Bubble sort** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Sorting problem\n\nSorting problem should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Insertion sort\n\nInsertion sort should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Bubble sort\n\nBubble sort should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Sorting problem, Insertion sort, Bubble sort, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-l06-merge-sort",
+      "title": "Merge sort",
+      "theoryMarkdown": "# Merge sort\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Divide and conquer** and recognize when it applies.\n- Explain **Merge sort** and recognize when it applies.\n- Explain **Recursion basics** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Divide and conquer\n\nDivide and conquer is a required part of Collections, Ordering, Sorting, and Hashing. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### Merge sort\n\nMerge sort should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Recursion basics\n\nRecursion basics should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Divide and conquer, Merge sort, Recursion basics, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-l07-hash-functions-and-tables",
+      "title": "Hash functions and tables",
+      "theoryMarkdown": "# Hash functions and tables\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Hashing: overview** and recognize when it applies.\n- Explain **Simplistic hash functions** and recognize when it applies.\n- Explain **Hash function** and recognize when it applies.\n- Explain **Hash table** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Hashing: overview\n\nHashing: overview should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Simplistic hash functions\n\nSimplistic hash functions should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Hash function\n\nHash function should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Hash table\n\nHash table should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Hashing: overview, Simplistic hash functions, Hash function, Hash table, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-l08-hashmap-internals-and-use",
+      "title": "HashMap internals and use",
+      "theoryMarkdown": "# HashMap internals and use\n\n## Why this lesson matters\n\nSelect the right collection, define ordering, understand standard sorting techniques, and reason about hash tables. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Introduction to HashMap** and recognize when it applies.\n- Explain **HashMap** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Introduction to HashMap\n\nIntroduction to HashMap should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### HashMap\n\nHashMap should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Introduction to HashMap, HashMap, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m10-assessment",
+      "title": "Chapter 10 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 10 assessment\n\nYou have completed the reading sequence for **Collections, Ordering, Sorting, and Hashing**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits.",
+      "exercises": [
+        {
+          "id": "m10-concept-check",
+          "type": "multipleChoice",
+          "title": "Collections, Ordering, Sorting, and Hashing: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **What are collections**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m10-coding-practice",
+          "type": "function",
+          "title": "Count distinct collection values",
+          "instructionMarkdown": "Implement `countDistinct`. Return the number of distinct strings in `values`. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static int countDistinct(String[] values) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "countDistinct",
+            "parameters": [
+              {
+                "name": "values",
+                "type": "string[]"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m10-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  "red",
+                  "blue",
+                  "red"
+                ]
+              ],
+              "expected": 2
+            },
+            {
+              "id": "m10-code-2",
+              "visibility": "public",
+              "arguments": [
+                []
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m10-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  "x",
+                  "x",
+                  "x"
+                ]
+              ],
+              "expected": 1
+            }
+          ],
+          "hints": [
+            "A Set already models uniqueness.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m10-debug-practice",
+          "type": "debug",
+          "title": "Collections, Ordering, Sorting, and Hashing: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-10-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-10-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m10-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-10-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "id": "module-03-control-flow-and-program-decomposition",
+  "title": "Chapter 3: Control Flow and Program Decomposition",
+  "description": "Express decisions and repetition clearly, then break solutions into reusable methods.",
+  "lessons": [
+    {
+      "id": "m03-l01-conditions-and-ternary-expressions",
+      "title": "Conditions and ternary expressions",
+      "theoryMarkdown": "# Conditions and ternary expressions\n\n## Why this lesson matters\n\nExpress decisions and repetition clearly, then break solutions into reusable methods. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Conditional statement** and recognize when it applies.\n- Explain **One-line condition with ternary operator** and recognize when it applies.\n- Explain **Multiple conditions: switch** and recognize when it applies.\n- Explain **Switch expression** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Conditional statement\n\nConditional statement is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### One-line condition with ternary operator\n\nOne-line condition with ternary operator is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### Multiple conditions: switch\n\nMultiple conditions: switch is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### Switch expression\n\nSwitch expression is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\nstatic String classify(int value) {\n    if (value < 0) return \"negative\";\n    if (value == 0) return \"zero\";\n    return value % 2 == 0 ? \"positive even\" : \"positive odd\";\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Conditional statement, One-line condition with ternary operator, Multiple conditions: switch, Switch expression, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m03-l02-for-loops",
+      "title": "For loops",
+      "theoryMarkdown": "# For loops\n\n## Why this lesson matters\n\nExpress decisions and repetition clearly, then break solutions into reusable methods. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **For loop** and recognize when it applies.\n- Explain **Break and continue. Branching** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### For loop\n\nFor loop is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### Break and continue. Branching\n\nBreak and continue. Branching is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\nstatic String classify(int value) {\n    if (value < 0) return \"negative\";\n    if (value == 0) return \"zero\";\n    return value % 2 == 0 ? \"positive even\" : \"positive odd\";\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define For loop, Break and continue. Branching, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m03-l03-while-and-do-while-loops",
+      "title": "While and do-while loops",
+      "theoryMarkdown": "# While and do-while loops\n\n## Why this lesson matters\n\nExpress decisions and repetition clearly, then break solutions into reusable methods. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **While and do-while loops** and recognize when it applies.\n- Explain **Break and continue. Branching** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### While and do-while loops\n\nWhile and do-while loops is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### Break and continue. Branching\n\nBreak and continue. Branching is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\nstatic String classify(int value) {\n    if (value < 0) return \"negative\";\n    if (value == 0) return \"zero\";\n    return value % 2 == 0 ? \"positive even\" : \"positive odd\";\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define While and do-while loops, Break and continue. Branching, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m03-l04-declaring-and-calling-methods",
+      "title": "Declaring and calling methods",
+      "theoryMarkdown": "# Declaring and calling methods\n\n## Why this lesson matters\n\nExpress decisions and repetition clearly, then break solutions into reusable methods. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Declaring methods** and recognize when it applies.\n- Explain **Calling methods** and recognize when it applies.\n- Explain **Method \"main\"** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Declaring methods\n\nDeclaring methods is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### Calling methods\n\nCalling methods is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### Method \"main\"\n\nMethod \"main\" is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\nstatic String classify(int value) {\n    if (value < 0) return \"negative\";\n    if (value == 0) return \"zero\";\n    return value % 2 == 0 ? \"positive even\" : \"positive odd\";\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Declaring methods, Calling methods, Method \"main\", apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m03-l05-decomposition-and-overloads",
+      "title": "Decomposition and overloads",
+      "theoryMarkdown": "# Decomposition and overloads\n\n## Why this lesson matters\n\nExpress decisions and repetition clearly, then break solutions into reusable methods. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Functional decomposition** and recognize when it applies.\n- Explain **Overloading** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Functional decomposition\n\nFunctional decomposition is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n### Overloading\n\nOverloading is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\nstatic String classify(int value) {\n    if (value < 0) return \"negative\";\n    if (value == 0) return \"zero\";\n    return value % 2 == 0 ? \"positive even\" : \"positive odd\";\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Functional decomposition, Overloading, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m03-assessment",
+      "title": "Chapter 3 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 3 assessment\n\nYou have completed the reading sequence for **Control Flow and Program Decomposition**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits. The portfolio checkpoint records cumulative progress at the end of this three-chapter block.",
+      "exercises": [
+        {
+          "id": "m03-concept-check",
+          "type": "multipleChoice",
+          "title": "Control Flow and Program Decomposition: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **Conditional statement**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m03-coding-practice",
+          "type": "function",
+          "title": "Combine conditions and decomposition",
+          "instructionMarkdown": "Implement `classify`. Return `negative`, `zero`, `positive even`, or `positive odd` for the supplied integer. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static String classify(int value) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "classify",
+            "parameters": [
+              {
+                "name": "value",
+                "type": "int"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m03-code-1",
+              "visibility": "public",
+              "arguments": [
+                -4
+              ],
+              "expected": "negative"
+            },
+            {
+              "id": "m03-code-2",
+              "visibility": "public",
+              "arguments": [
+                0
+              ],
+              "expected": "zero"
+            },
+            {
+              "id": "m03-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                7
+              ],
+              "expected": "positive odd"
+            }
+          ],
+          "hints": [
+            "Handle mutually exclusive cases from most general to most specific.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m03-debug-practice",
+          "type": "debug",
+          "title": "Control Flow and Program Decomposition: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-3-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-3-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m03-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-3-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m03-project-checkpoint",
+          "type": "project",
+          "title": "Control Flow and Program Decomposition: portfolio checkpoint",
+          "instructionMarkdown": "Create the chapter checkpoint entry point. It must print `MILESTONE 1: Control Flow and Program Decomposition`. Keep the program offline and use only the Java standard library.",
+          "starterFiles": [
+            {
+              "path": "Milestone.java",
+              "content": "public class Milestone {\n    public static void main(String[] args) {\n        System.out.println(\"TODO\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m03-project-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "MILESTONE 1: Control Flow and Program Decomposition",
+              "comparison": "trimmed"
+            }
+          ],
+          "hints": [
+            "Match capitalization and punctuation exactly."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

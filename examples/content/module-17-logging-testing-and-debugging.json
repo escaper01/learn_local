@@ -1,0 +1,166 @@
+{
+  "id": "module-17-logging-testing-and-debugging",
+  "title": "Chapter 17: Logging, Testing, and Debugging",
+  "description": "Create feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions.",
+  "lessons": [
+    {
+      "id": "m17-l01-bugs-and-diagnostic-thinking",
+      "title": "Bugs and diagnostic thinking",
+      "theoryMarkdown": "# Bugs and diagnostic thinking\n\n## Why this lesson matters\n\nCreate feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **What are bugs** and recognize when it applies.\n- Explain **Debugging overview** and recognize when it applies.\n- Explain **Debugging techniques** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### What are bugs\n\nWhat are bugs improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Debugging overview\n\nDebugging overview improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Debugging techniques\n\nDebugging techniques improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n## Worked Java example\n\n```java\njava.util.logging.Logger log = java.util.logging.Logger.getLogger(\"course\");\nstatic int divide(int left, int right) {\n    if (right == 0) throw new IllegalArgumentException(\"right must not be zero\");\n    return left / right;\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define What are bugs, Debugging overview, Debugging techniques, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m17-l02-logging-fundamentals",
+      "title": "Logging fundamentals",
+      "theoryMarkdown": "# Logging fundamentals\n\n## Why this lesson matters\n\nCreate feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Introduction to logging** and recognize when it applies.\n- Explain **Introduction to logging in Java** and recognize when it applies.\n- Explain **Standard logger** and recognize when it applies.\n- Explain **Logback** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Introduction to logging\n\nIntroduction to logging improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Introduction to logging in Java\n\nIntroduction to logging in Java improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Standard logger\n\nStandard logger improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Logback\n\nLogback improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n## Worked Java example\n\n```java\njava.util.logging.Logger log = java.util.logging.Logger.getLogger(\"course\");\nstatic int divide(int left, int right) {\n    if (right == 0) throw new IllegalArgumentException(\"right must not be zero\");\n    return left / right;\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Introduction to logging, Introduction to logging in Java, Standard logger, Logback, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m17-l03-functional-and-unit-testing",
+      "title": "Functional and unit testing",
+      "theoryMarkdown": "# Functional and unit testing\n\n## Why this lesson matters\n\nCreate feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Functional testing** and recognize when it applies.\n- Explain **Unit testing** and recognize when it applies.\n- Explain **Unit testing with JUnit** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Functional testing\n\nFunctional testing expresses behavior as a value. Identify the target functional interface, inputs, output, captured state, and null-handling policy. Favor small pure transformations so composition remains testable and side effects remain visible.\n\n### Unit testing\n\nUnit testing improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Unit testing with JUnit\n\nUnit testing with JUnit improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n## Worked Java example\n\n```java\njava.util.logging.Logger log = java.util.logging.Logger.getLogger(\"course\");\nstatic int divide(int left, int right) {\n    if (right == 0) throw new IllegalArgumentException(\"right must not be zero\");\n    return left / right;\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Functional testing, Unit testing, Unit testing with JUnit, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m17-l04-junit-structure-and-parameterization",
+      "title": "JUnit structure and parameterization",
+      "theoryMarkdown": "# JUnit structure and parameterization\n\n## Why this lesson matters\n\nCreate feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Test lifecycle annotations** and recognize when it applies.\n- Explain **Parameterized test** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Test lifecycle annotations\n\nTest lifecycle annotations exposes or changes metadata normally handled by the compiler and JVM. Identify what is known at compile time versus runtime, account for access restrictions and type erasure, and confine reflective code behind a small validated boundary.\n\n### Parameterized test\n\nParameterized test improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n## Worked Java example\n\n```java\njava.util.logging.Logger log = java.util.logging.Logger.getLogger(\"course\");\nstatic int divide(int left, int right) {\n    if (right == 0) throw new IllegalArgumentException(\"right must not be zero\");\n    return left / right;\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Test lifecycle annotations, Parameterized test, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m17-l05-assertions-and-mocks",
+      "title": "Assertions and mocks",
+      "theoryMarkdown": "# Assertions and mocks\n\n## Why this lesson matters\n\nCreate feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Assertion libs - AssertJ** and recognize when it applies.\n- Explain **Mockito** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Assertion libs - AssertJ\n\nAssertion libs - AssertJ improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Mockito\n\nMockito improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n## Worked Java example\n\n```java\njava.util.logging.Logger log = java.util.logging.Logger.getLogger(\"course\");\nstatic int divide(int left, int right) {\n    if (right == 0) throw new IllegalArgumentException(\"right must not be zero\");\n    return left / right;\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Assertion libs - AssertJ, Mockito, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m17-l06-debugger-fundamentals",
+      "title": "Debugger fundamentals",
+      "theoryMarkdown": "# Debugger fundamentals\n\n## Why this lesson matters\n\nCreate feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Run and debug with IntelliJ IDEA** and recognize when it applies.\n- Explain **Debugging simple constructs** and recognize when it applies.\n- Explain **Debugging methods** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Run and debug with IntelliJ IDEA\n\nRun and debug with IntelliJ IDEA improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Debugging simple constructs\n\nDebugging simple constructs improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### Debugging methods\n\nDebugging methods is a control or decomposition tool. Follow execution one decision at a time, state the invariant that remains true, and prefer the smallest construct that expresses the intent. Be able to predict termination, scope, return values, and which overload the compiler selects.\n\n## Worked Java example\n\n```java\njava.util.logging.Logger log = java.util.logging.Logger.getLogger(\"course\");\nstatic int divide(int left, int right) {\n    if (right == 0) throw new IllegalArgumentException(\"right must not be zero\");\n    return left / right;\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Run and debug with IntelliJ IDEA, Debugging simple constructs, Debugging methods, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m17-l07-advanced-ide-debugging",
+      "title": "Advanced IDE debugging",
+      "theoryMarkdown": "# Advanced IDE debugging\n\n## Why this lesson matters\n\nCreate feedback loops that expose defects early through logging, tests, stack traces, IDE tools, mocks, and assertions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Advanced debugger features** and recognize when it applies.\n- Explain **IntelliJ IDEA run configurations** and recognize when it applies.\n- Explain **Call stack** and recognize when it applies.\n- Explain **Stack trace** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Advanced debugger features\n\nAdvanced debugger features improves feedback about correctness. Define the observable behavior, arrange a minimal reproducible case, capture useful context without secrets, and make failures explain what contract was broken. Keep tests deterministic and prefer behavior-focused assertions.\n\n### IntelliJ IDEA run configurations\n\nIntelliJ IDEA run configurations is a required part of Logging, Testing, and Debugging. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### Call stack\n\nCall stack connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n### Stack trace\n\nStack trace connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n## Worked Java example\n\n```java\njava.util.logging.Logger log = java.util.logging.Logger.getLogger(\"course\");\nstatic int divide(int left, int right) {\n    if (right == 0) throw new IllegalArgumentException(\"right must not be zero\");\n    return left / right;\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Advanced debugger features, IntelliJ IDEA run configurations, Call stack, Stack trace, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m17-assessment",
+      "title": "Chapter 17 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 17 assessment\n\nYou have completed the reading sequence for **Logging, Testing, and Debugging**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits.",
+      "exercises": [
+        {
+          "id": "m17-concept-check",
+          "type": "multipleChoice",
+          "title": "Logging, Testing, and Debugging: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **What are bugs**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m17-coding-practice",
+          "type": "function",
+          "title": "Create a useful diagnostic message",
+          "instructionMarkdown": "Implement `failureMessage`. Return `expected=<expected>, actual=<actual>` so a failing test reports both values. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static String failureMessage(int expected, int actual) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "failureMessage",
+            "parameters": [
+              {
+                "name": "expected",
+                "type": "int"
+              },
+              {
+                "name": "actual",
+                "type": "int"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m17-code-1",
+              "visibility": "public",
+              "arguments": [
+                5,
+                3
+              ],
+              "expected": "expected=5, actual=3"
+            },
+            {
+              "id": "m17-code-2",
+              "visibility": "public",
+              "arguments": [
+                0,
+                0
+              ],
+              "expected": "expected=0, actual=0"
+            },
+            {
+              "id": "m17-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                -1,
+                2
+              ],
+              "expected": "expected=-1, actual=2"
+            }
+          ],
+          "hints": [
+            "Keep the labels and punctuation exact.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m17-debug-practice",
+          "type": "debug",
+          "title": "Logging, Testing, and Debugging: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-17-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-17-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m17-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-17-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

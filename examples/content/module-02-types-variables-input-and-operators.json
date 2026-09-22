@@ -1,0 +1,153 @@
+{
+  "id": "module-02-types-variables-input-and-operators",
+  "title": "Chapter 2: Types, Variables, Input, and Operators",
+  "description": "Build a precise mental model for Java values, conversions, console input, and expressions.",
+  "lessons": [
+    {
+      "id": "m02-l01-types-variables-and-naming",
+      "title": "Types, variables, and naming",
+      "theoryMarkdown": "# Types, variables, and naming\n\n## Why this lesson matters\n\nBuild a precise mental model for Java values, conversions, console input, and expressions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Types and variables** and recognize when it applies.\n- Explain **Primitive and reference types** and recognize when it applies.\n- Explain **Naming variables** and recognize when it applies.\n- Explain **Coding style conventions** and recognize when it applies.\n- Explain **Constants. Final variables** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Types and variables\n\nTypes and variables affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Primitive and reference types\n\nPrimitive and reference types affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Naming variables\n\nNaming variables affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Coding style conventions\n\nCoding style conventions is a required part of Types, Variables, Input, and Operators. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### Constants. Final variables\n\nConstants. Final variables affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n## Worked Java example\n\n```java\nint value = 7;\ndouble scaled = value / 2.0;\nboolean inRange = scaled >= 3.0 && scaled < 4.0;\nSystem.out.printf(\"value=%d scaled=%.1f valid=%s%n\", value, scaled, inRange);\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Types and variables, Primitive and reference types, Naming variables, Coding style conventions, Constants. Final variables, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m02-l02-primitive-types-and-numeric-ranges",
+      "title": "Primitive types and numeric ranges",
+      "theoryMarkdown": "# Primitive types and numeric ranges\n\n## Why this lesson matters\n\nBuild a precise mental model for Java values, conversions, console input, and expressions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Primitive data types and their sizes** and recognize when it applies.\n- Explain **Integer types and operations** and recognize when it applies.\n- Explain **Floating-point types and operations** and recognize when it applies.\n- Explain **Characters** and recognize when it applies.\n- Explain **Boolean type and operations. True and false** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Primitive data types and their sizes\n\nPrimitive data types and their sizes affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Integer types and operations\n\nInteger types and operations affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Floating-point types and operations\n\nFloating-point types and operations affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Characters\n\nCharacters affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Boolean type and operations. True and false\n\nBoolean type and operations. True and false affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n## Worked Java example\n\n```java\nint value = 7;\ndouble scaled = value / 2.0;\nboolean inRange = scaled >= 3.0 && scaled < 4.0;\nSystem.out.printf(\"value=%d scaled=%.1f valid=%s%n\", value, scaled, inRange);\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Primitive data types and their sizes, Integer types and operations, Floating-point types and operations, Characters, Boolean type and operations. True and false, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m02-l03-input-and-formatted-output",
+      "title": "Input and formatted output",
+      "theoryMarkdown": "# Input and formatted output\n\n## Why this lesson matters\n\nBuild a precise mental model for Java values, conversions, console input, and expressions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Reading user input with Scanner** and recognize when it applies.\n- Explain **Formatted output** and recognize when it applies.\n- Explain **Printing data** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Reading user input with Scanner\n\nReading user input with Scanner is a required part of Types, Variables, Input, and Operators. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### Formatted output\n\nFormatted output is a required part of Types, Variables, Input, and Operators. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### Printing data\n\nPrinting data is a required part of Types, Variables, Input, and Operators. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n## Worked Java example\n\n```java\nint value = 7;\ndouble scaled = value / 2.0;\nboolean inRange = scaled >= 3.0 && scaled < 4.0;\nSystem.out.printf(\"value=%d scaled=%.1f valid=%s%n\", value, scaled, inRange);\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Reading user input with Scanner, Formatted output, Printing data, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m02-l04-arithmetic-and-remainder",
+      "title": "Arithmetic and remainder",
+      "theoryMarkdown": "# Arithmetic and remainder\n\n## Why this lesson matters\n\nBuild a precise mental model for Java values, conversions, console input, and expressions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Arithmetic operations** and recognize when it applies.\n- Explain **Increment and decrement** and recognize when it applies.\n- Explain **Modulo division** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Arithmetic operations\n\nArithmetic operations affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Increment and decrement\n\nIncrement and decrement affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Modulo division\n\nModulo division affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n## Worked Java example\n\n```java\nint value = 7;\ndouble scaled = value / 2.0;\nboolean inRange = scaled >= 3.0 && scaled < 4.0;\nSystem.out.printf(\"value=%d scaled=%.1f valid=%s%n\", value, scaled, inRange);\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Arithmetic operations, Increment and decrement, Modulo division, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m02-l05-binary-representation-and-casting",
+      "title": "Binary representation and casting",
+      "theoryMarkdown": "# Binary representation and casting\n\n## Why this lesson matters\n\nBuild a precise mental model for Java values, conversions, console input, and expressions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Binary numbers** and recognize when it applies.\n- Explain **Binary arithmetic** and recognize when it applies.\n- Explain **Type casting** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Binary numbers\n\nBinary numbers affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Binary arithmetic\n\nBinary arithmetic affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n### Type casting\n\nType casting affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n## Worked Java example\n\n```java\nint value = 7;\ndouble scaled = value / 2.0;\nboolean inRange = scaled >= 3.0 && scaled < 4.0;\nSystem.out.printf(\"value=%d scaled=%.1f valid=%s%n\", value, scaled, inRange);\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Binary numbers, Binary arithmetic, Type casting, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m02-l06-comparisons-and-boolean-expressions",
+      "title": "Comparisons and boolean expressions",
+      "theoryMarkdown": "# Comparisons and boolean expressions\n\n## Why this lesson matters\n\nBuild a precise mental model for Java values, conversions, console input, and expressions. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Comparing values. Relational operators** and recognize when it applies.\n- Explain **Boolean type and operations. True and false** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Comparing values. Relational operators\n\nComparing values. Relational operators is a required part of Types, Variables, Input, and Operators. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n### Boolean type and operations. True and false\n\nBoolean type and operations. True and false affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n## Worked Java example\n\n```java\nint value = 7;\ndouble scaled = value / 2.0;\nboolean inRange = scaled >= 3.0 && scaled < 4.0;\nSystem.out.printf(\"value=%d scaled=%.1f valid=%s%n\", value, scaled, inRange);\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Comparing values. Relational operators, Boolean type and operations. True and false, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m02-assessment",
+      "title": "Chapter 2 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 2 assessment\n\nYou have completed the reading sequence for **Types, Variables, Input, and Operators**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits.",
+      "exercises": [
+        {
+          "id": "m02-concept-check",
+          "type": "multipleChoice",
+          "title": "Types, Variables, Input, and Operators: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **Types and variables**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m02-coding-practice",
+          "type": "function",
+          "title": "Check a primitive range",
+          "instructionMarkdown": "Implement `fitsInByte`. Return true when `value` is inside Java's signed `byte` range, from -128 through 127. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static boolean fitsInByte(int value) {\n        return false;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "fitsInByte",
+            "parameters": [
+              {
+                "name": "value",
+                "type": "int"
+              }
+            ],
+            "returns": "boolean"
+          },
+          "tests": [
+            {
+              "id": "m02-code-1",
+              "visibility": "public",
+              "arguments": [
+                127
+              ],
+              "expected": true
+            },
+            {
+              "id": "m02-code-2",
+              "visibility": "public",
+              "arguments": [
+                128
+              ],
+              "expected": false
+            },
+            {
+              "id": "m02-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                -128
+              ],
+              "expected": true
+            }
+          ],
+          "hints": [
+            "Both range boundaries are inclusive.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m02-debug-practice",
+          "type": "debug",
+          "title": "Types, Variables, Input, and Operators: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-2-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-2-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m02-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-2-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

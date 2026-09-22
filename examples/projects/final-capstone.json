@@ -1,0 +1,13 @@
+{
+  "id": "complete-java-capstone",
+  "title": "Complete Java 21 portfolio capstone",
+  "descriptionMarkdown": "Integrate the complete theory-first curriculum in a local Java application. Begin with the validated multi-file checkpoint, then evolve it with clear domain modeling, collections and algorithms, durable file and JDBC storage, structured logging, automated tests, concurrency where justified, an architectural pattern you can defend, and a documented JSON boundary.",
+  "learningObjectives": [
+    "Combine language fundamentals, object-oriented design, collections, streams, and error handling",
+    "Use tests, diagnostics, persistence, concurrency, architecture, and serialization deliberately",
+    "Explain the contracts, tradeoffs, security boundaries, and failure behavior of the finished application"
+  ],
+  "checkpointExerciseIds": [
+    "java-complete-capstone"
+  ]
+}

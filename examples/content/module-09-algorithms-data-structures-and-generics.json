@@ -1,0 +1,188 @@
+{
+  "id": "module-09-algorithms-data-structures-and-generics",
+  "title": "Chapter 9: Algorithms, Data Structures, and Generics",
+  "description": "Reason about algorithms independently of syntax and express reusable, type-safe data structures.",
+  "lessons": [
+    {
+      "id": "m09-l01-algorithms-and-pseudocode",
+      "title": "Algorithms and pseudocode",
+      "theoryMarkdown": "# Algorithms and pseudocode\n\n## Why this lesson matters\n\nReason about algorithms independently of syntax and express reusable, type-safe data structures. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Computer algorithms** and recognize when it applies.\n- Explain **Pseudocode** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Computer algorithms\n\nComputer algorithms should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Pseudocode\n\nPseudocode is a required part of Algorithms, Data Structures, and Generics. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Computer algorithms, Pseudocode, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m09-l02-abstract-and-concrete-structures",
+      "title": "Abstract and concrete structures",
+      "theoryMarkdown": "# Abstract and concrete structures\n\n## Why this lesson matters\n\nReason about algorithms independently of syntax and express reusable, type-safe data structures. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Data structures** and recognize when it applies.\n- Explain **Abstract and concrete data structures** and recognize when it applies.\n- Explain **Fixed-size array** and recognize when it applies.\n- Explain **Dynamic array** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Data structures\n\nData structures should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Abstract and concrete data structures\n\nAbstract and concrete data structures is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n### Fixed-size array\n\nFixed-size array connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n### Dynamic array\n\nDynamic array connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Data structures, Abstract and concrete data structures, Fixed-size array, Dynamic array, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m09-l03-stacks-queues-and-deques",
+      "title": "Stacks, queues, and deques",
+      "theoryMarkdown": "# Stacks, queues, and deques\n\n## Why this lesson matters\n\nReason about algorithms independently of syntax and express reusable, type-safe data structures. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Stack** and recognize when it applies.\n- Explain **Queue** and recognize when it applies.\n- Explain **Deque** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Stack\n\nStack connects Java syntax to its memory model. Track references separately from objects, note which operations create new values, and reason about bounds, aliasing, lifetime, and mutation. Draw a small stack-and-heap diagram when behavior is surprising.\n\n### Queue\n\nQueue should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Deque\n\nDeque should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Stack, Queue, Deque, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m09-l04-boxing-and-wrapper-classes",
+      "title": "Boxing and wrapper classes",
+      "theoryMarkdown": "# Boxing and wrapper classes\n\n## Why this lesson matters\n\nReason about algorithms independently of syntax and express reusable, type-safe data structures. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Wrapping classes. Boxing** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Wrapping classes. Boxing\n\nWrapping classes. Boxing affects how Java represents values and checks operations. Work through its valid range or representation, the conversions Java performs automatically, the conversions that require an explicit cast, and the failure modes caused by overflow, truncation, or mistaken reference assumptions.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Wrapping classes. Boxing, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m09-l05-generic-programming",
+      "title": "Generic programming",
+      "theoryMarkdown": "# Generic programming\n\n## Why this lesson matters\n\nReason about algorithms independently of syntax and express reusable, type-safe data structures. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Introduction to generic programming** and recognize when it applies.\n- Explain **Generics and Object** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Introduction to generic programming\n\nIntroduction to generic programming should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Generics and Object\n\nGenerics and Object is part of Java's object model. Identify the public contract, hidden state, construction rules, and substitution relationships. Evaluate the design by asking whether callers depend on behavior rather than representation and whether a change stays localized.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Introduction to generic programming, Generics and Object, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m09-l06-recursion-and-divide-and-conquer",
+      "title": "Recursion and divide-and-conquer",
+      "theoryMarkdown": "# Recursion and divide-and-conquer\n\n## Why this lesson matters\n\nReason about algorithms independently of syntax and express reusable, type-safe data structures. This lesson narrows the chapter into a set of related ideas so you can build a durable mental model before attempting an assessment. Read the examples actively: predict each result before running it, then change one assumption at a time.\n\n## Learning objectives\n\n- Explain **Recursion basics** and recognize when it applies.\n- Explain **Divide and conquer** and recognize when it applies.\n- Connect these ideas to Java's compiler, runtime, type system, and standard library.\n- Diagnose a common misuse and justify a safer alternative.\n\n## Concepts in detail\n\n### Recursion basics\n\nRecursion basics should be understood through its operations and costs. Describe the representation, invariants, typical time complexity, ordering guarantees, duplicate rules, and the workload for which it is appropriate. Test boundary cases such as empty input, duplicates, and already ordered data.\n\n### Divide and conquer\n\nDivide and conquer is a required part of Algorithms, Data Structures, and Generics. Define it in your own words, trace a concrete example, contrast it with the nearest alternative, and identify one misuse that would make a Java program incorrect or harder to maintain.\n\n## Worked Java example\n\n```java\njava.util.Map<String, Integer> counts = new java.util.HashMap<>();\nfor (String word : java.util.List.of(\"red\", \"blue\", \"red\")) {\n    counts.merge(word, 1, Integer::sum);\n}\n```\n\nTrace the example from inputs to outputs. Identify what is checked by the compiler, what happens at runtime, which values can change, and which assumptions form the code's contract. Then rewrite one part without changing observable behavior.\n\n## A reliable way to practice\n\n1. Restate the problem with concrete inputs and expected outputs.\n2. Choose the smallest Java construct that represents the rule.\n3. Trace normal, boundary, empty, and invalid cases by hand.\n4. Compile with warnings visible, run focused examples, and read the first meaningful error rather than guessing.\n5. Refactor only after behavior is covered by a repeatable check.\n\n## Common mistakes\n\n- Memorizing syntax without tracing values, references, control flow, and ownership.\n- Combining several new ideas in one change, making the source of an error unclear.\n- Ignoring empty inputs, numeric limits, nullability, resource cleanup, or failure paths.\n- Choosing a fashionable API or pattern without explaining the problem it solves.\n- Treating generated code, library calls, or runtime behavior as correct without verification.\n\n## Recap\n\nYou should now be able to define Recursion basics, Divide and conquer, apply them in a small program, and explain the tradeoffs involved. Return to the curriculum for the next reading lesson; the chapter assessment appears after the theory sequence.",
+      "exercises": []
+    },
+    {
+      "id": "m09-assessment",
+      "title": "Chapter 9 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 9 assessment\n\nYou have completed the reading sequence for **Algorithms, Data Structures, and Generics**. Before attempting the tasks, explain the chapter's main contracts aloud, reproduce one worked example without copying, and list two boundary cases.\n\nThe concept check tests understanding, the coding task tests a precise executable contract, and the debugging task asks you to use evidence rather than random edits. The portfolio checkpoint records cumulative progress at the end of this three-chapter block.",
+      "exercises": [
+        {
+          "id": "m09-concept-check",
+          "type": "multipleChoice",
+          "title": "Algorithms, Data Structures, and Generics: concept check",
+          "instructionMarkdown": "Which study approach best demonstrates real understanding of **Computer algorithms**?",
+          "choices": [
+            "Memorize its spelling only",
+            "Explain its contract, trace an example, and test a boundary case",
+            "Use it everywhere without comparing alternatives"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Understanding includes behavior and tradeoffs, not only vocabulary."
+          ]
+        },
+        {
+          "id": "m09-coding-practice",
+          "type": "function",
+          "title": "Read the logical top of a stack",
+          "instructionMarkdown": "Implement `stackTop`. Treat the end of `values` as the top of a stack. Return its top value, or -1 when the stack is empty. Explain which chapter concept the contract exercises before writing code, then check the public and boundary cases.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static int stackTop(int[] values) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "stackTop",
+            "parameters": [
+              {
+                "name": "values",
+                "type": "int[]"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m09-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  3,
+                  5,
+                  8
+                ]
+              ],
+              "expected": 8
+            },
+            {
+              "id": "m09-code-2",
+              "visibility": "public",
+              "arguments": [
+                []
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m09-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  4
+                ]
+              ],
+              "expected": 4
+            }
+          ],
+          "hints": [
+            "Check the length before reading the last index.",
+            "Trace an empty, boundary, or invalid input before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m09-debug-practice",
+          "type": "debug",
+          "title": "Algorithms, Data Structures, and Generics: debugging practice",
+          "instructionMarkdown": "Fix the program so it prints `chapter-9-ready`. Use the compiler message and the expected output as evidence; change only what is necessary.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        String status = \"chapter-9-ready\";\n        System.out.print(\"wrong-\" + status);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m09-debug-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "chapter-9-ready",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Inspect the exact prefix added to status."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m09-project-checkpoint",
+          "type": "project",
+          "title": "Algorithms, Data Structures, and Generics: portfolio checkpoint",
+          "instructionMarkdown": "Create the chapter checkpoint entry point. It must print `MILESTONE 3: Algorithms, Data Structures, and Generics`. Keep the program offline and use only the Java standard library.",
+          "starterFiles": [
+            {
+              "path": "Milestone.java",
+              "content": "public class Milestone {\n    public static void main(String[] args) {\n        System.out.println(\"TODO\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m09-project-public",
+              "visibility": "public",
+              "input": "",
+              "expected": "MILESTONE 3: Algorithms, Data Structures, and Generics",
+              "comparison": "trimmed"
+            }
+          ],
+          "hints": [
+            "Match capitalization and punctuation exactly."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

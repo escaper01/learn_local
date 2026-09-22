@@ -1,0 +1,13 @@
+{
+  "id": "milestone-3",
+  "title": "Milestone 3: Chapters 7-9",
+  "descriptionMarkdown": "Consolidate **Inheritance, Polymorphism, Interfaces, and Enums**, **Files, Streams, Exceptions, and Date-Time**, **Algorithms, Data Structures, and Generics** in a small offline Java program. Review the reading lessons, complete each chapter assessment, and use the checkpoint as a clean, explainable portfolio snapshot.",
+  "learningObjectives": [
+    "Apply and explain the key contracts from Inheritance, Polymorphism, Interfaces, and Enums",
+    "Apply and explain the key contracts from Files, Streams, Exceptions, and Date-Time",
+    "Apply and explain the key contracts from Algorithms, Data Structures, and Generics"
+  ],
+  "checkpointExerciseIds": [
+    "m09-project-checkpoint"
+  ]
+}
