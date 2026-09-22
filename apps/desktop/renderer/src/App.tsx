@@ -225,7 +225,7 @@ function ResultPanel({ result, error }: { result: ExecutionResult | null; error:
 
 export default function App() {
   const [onboardingStep, setOnboardingStep] = useState(() => localStorage.getItem("learnlocal.onboarding.complete") === "1" ? -1 : 0);
-  const [view, setView] = useState<"lesson" | "dashboard" | "courses">("courses");
+  const [view, setView] = useState<"lesson" | "curriculum" | "dashboard" | "courses">("courses");
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [language, setLanguage] = useState<"java" | "python">("java");
   const [source, setSource] = useState(STARTER_CODE);
@@ -480,7 +480,7 @@ export default function App() {
       setResult(null);
       setSelectedChoice(null);
       setQuizCorrect(null);
-      setView("lesson");
+      setView("curriculum");
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
@@ -500,6 +500,19 @@ export default function App() {
     setSelectedChoice(null);
     setQuizCorrect(null);
     setResult(null);
+    setView("lesson");
+  };
+
+  const selectCourseLesson = (lesson: CourseView["modules"][number]["lessons"][number]) => {
+    setActiveLesson(lesson);
+    setActiveImportedExercise(null);
+    setSourceFiles([]);
+    setActiveFilePath(null);
+    setSource("");
+    setSelectedChoice(null);
+    setQuizCorrect(null);
+    setResult(null);
+    setView("lesson");
   };
 
   const selectProject = async (project: CourseView["projects"][number]) => {
@@ -656,6 +669,8 @@ export default function App() {
         <nav>
           <button className={`nav-item ${view === "dashboard" ? "active" : ""}`} onClick={() => setView("dashboard")}><span>⌂</span>Dashboard</button>
           <button className={`nav-item ${view === "courses" ? "active" : ""}`} onClick={() => setView("courses")}><span>◫</span>My courses{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
+          {activeCourse && <button className={`nav-item ${view === "curriculum" ? "active" : ""}`} onClick={() => setView("curriculum")}><span>▦</span>Curriculum</button>}
+          {activeCourse && <button className={`nav-item ${view === "lesson" ? "active" : ""}`} onClick={() => setView("lesson")}><span>⌁</span>Workspace</button>}
           <button className="nav-item" onClick={() => void openRuntimes()}><span>⌘</span>Languages</button>
           <button className="nav-item" onClick={() => void openPromptGenerator()}><span>✦</span>Generate prompt</button>
           <button className="nav-item" onClick={() => void importCourse()} disabled={importing}><span>↗</span>{importing ? "Validating…" : "Import course"}</button>
@@ -688,21 +703,9 @@ export default function App() {
 
         <div className="lesson-grid">
           <article className="lesson-pane">
-            {activeCourse && <div className="learning-path">
-              <div className="path-heading"><span>YOUR LEARNING PATH</span><strong>{completedCourseExercises} of {courseExercises.length} tasks done</strong></div>
-              {activeCourse.modules.map((module, moduleIndex) => {
-                const moduleExercises = module.lessons.flatMap((lesson) => lesson.exercises);
-                const done = moduleExercises.filter((exercise) => exercise.completed).length;
-                return <section className="path-module" key={module.id}>
-                  <header><span>Unit {moduleIndex + 1}</span><strong>{module.title}</strong><small>{done}/{moduleExercises.length}</small></header>
-                  {module.lessons.map((lesson) => <div className="path-topic" key={lesson.id}><h3>{lesson.title}</h3><div>{lesson.exercises.map((exercise, index) => <button type="button" className={`path-node shift-${index % 3} ${exercise.id === activeImportedExercise?.id ? "active" : ""} ${exercise.completed ? "completed" : ""}`} key={exercise.id} onClick={() => void selectCourseExercise(lesson, exercise)}><i>{exerciseIcon(exercise.type, exercise.completed)}</i><span><strong>{exercise.title}</strong><small>{exercise.completed ? "Completed" : exercise.type.replace(/([A-Z])/g, " $1")}</small></span></button>)}</div></div>)}
-                </section>;
-              })}
-              {activeCourse.projects.length > 0 && <section className="path-projects"><header><span>PROJECTS</span><strong>Put your skills together</strong></header>{activeCourse.projects.map((project) => <button type="button" key={project.id} onClick={() => void selectProject(project)}><i>★</i><span><strong>{project.title}</strong><small>{project.checkpointExerciseIds.filter((id) => courseExercises.find((exercise) => exercise.id === id)?.completed).length} of {project.checkpointExerciseIds.length} checkpoints done</small></span></button>)}</section>}
-            </div>}
-            <div className="eyebrow">{(activeImportedExercise?.type ?? "course").toUpperCase()} · {(activeCourse?.summary.language ?? language).toUpperCase()} {activeCourse?.summary.languageVersion ?? ""}</div>
-            <h1>{activeImportedExercise?.title ?? "Choose your next task"}</h1>
-            <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? "Open a course and choose a task from its learning path."}/>
+            <div className="eyebrow">{(activeImportedExercise?.type ?? "lesson").toUpperCase()} · {(activeCourse?.summary.language ?? language).toUpperCase()} {activeCourse?.summary.languageVersion ?? ""}</div>
+            <h1>{activeImportedExercise?.title ?? activeLesson?.title ?? "Choose a lesson"}</h1>
+            <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? "Read the lesson carefully, then open an assessment from the Curriculum tab when you are ready."}/>
             <div className="concept-card">
               <span className="concept-icon">∑</span>
               <div><strong>{activeLesson?.title ?? "Course lesson"}</strong><SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
@@ -711,7 +714,9 @@ export default function App() {
             {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && <button className="ghost-button reveal-hint" type="button" onClick={() => void revealNextHint()}>Reveal hint {activeImportedExercise.hints.length + 1}</button>}
           </article>
 
-          {activeImportedExercise?.type === "multipleChoice" ? (
+          {!activeImportedExercise ? (
+            <section className="reading-pane"><span>READING MODE</span><strong>{activeLesson?.title ?? "Choose a chapter"}</strong><p>The lesson is on the left. Use the Curriculum tab to move to another lesson or begin a quiz, coding task, debugging exercise, or project.</p><button className="submit-button" type="button" onClick={() => setView("curriculum")}>Back to curriculum</button></section>
+          ) : activeImportedExercise.type === "multipleChoice" ? (
             <section className="quiz-pane">
               <div className="quiz-heading"><span>CONCEPT CHECK</span><strong>{activeImportedExercise.title}</strong><SafeMarkdown value={activeImportedExercise.instructionMarkdown}/></div>
               <div className="quiz-choices">{activeImportedExercise.choices?.map((choice, index) => <button key={choice} className={`${selectedChoice === index ? "selected" : ""} ${quizCorrect !== null && selectedChoice === index ? quizCorrect ? "correct" : "incorrect" : ""}`} disabled={quizCorrect === true} onClick={() => { setSelectedChoice(index); setQuizCorrect(null); }}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
@@ -773,6 +778,24 @@ export default function App() {
         </div>
       </section>
 
+      {view === "curriculum" && activeCourse && (
+        <section className="content-view curriculum-view">
+          <header><div><div className="eyebrow">COURSE CURRICULUM</div><h1>{activeCourse.summary.title}</h1><p>{activeCourse.summary.description}</p></div><div className="curriculum-progress"><strong>{completedCourseExercises}/{courseExercises.length}</strong><span>tasks completed</span></div></header>
+          <div className="curriculum-modules">{activeCourse.modules.map((module, moduleIndex) => {
+            const moduleExercises = module.lessons.flatMap((lesson) => lesson.exercises);
+            const completed = moduleExercises.filter((exercise) => exercise.completed).length;
+            return <section className="curriculum-module" key={module.id}>
+              <header><span>{String(moduleIndex + 1).padStart(2, "0")}</span><div><small>CHAPTER {moduleIndex + 1}</small><h2>{module.title}</h2>{module.description && <p>{module.description}</p>}</div><b>{completed}/{moduleExercises.length}</b></header>
+              <div className="curriculum-lessons">{module.lessons.map((lesson, lessonIndex) => <article className="curriculum-lesson" key={lesson.id}>
+                <button className="lesson-open" type="button" onClick={() => selectCourseLesson(lesson)}><span>{lessonIndex + 1}</span><div><strong>{lesson.title}</strong><small>{lesson.theoryMarkdown.replace(/[#*`_]/g, "").replace(/\s+/g, " ").slice(0, 180)}…</small></div><b>Read lesson →</b></button>
+                {lesson.exercises.length > 0 && <div className="lesson-tasks">{lesson.exercises.map((exercise) => <button type="button" className={exercise.completed ? "completed" : ""} key={exercise.id} onClick={() => void selectCourseExercise(lesson, exercise)} title={`${exercise.title} · ${exercise.completed ? "Completed" : "Not completed"}`}><i>{exerciseIcon(exercise.type, exercise.completed)}</i><span><strong>{exercise.title}</strong><small>{exercise.type.replace(/([A-Z])/g, " $1")}</small></span></button>)}</div>}
+              </article>)}</div>
+            </section>;
+          })}</div>
+          {activeCourse.projects.length > 0 && <section className="curriculum-projects"><div className="eyebrow">MILESTONE PROJECTS</div>{activeCourse.projects.map((project) => <article key={project.id}><div><h2>{project.title}</h2><SafeMarkdown value={project.descriptionMarkdown}/></div><button className="submit-button" type="button" onClick={() => void selectProject(project)}>Open next checkpoint</button></article>)}</section>}
+        </section>
+      )}
+
       {view === "dashboard" && (
         <section className="content-view dashboard-view">
           <header><div><div className="eyebrow">LOCAL LEARNING OVERVIEW</div><h1>Welcome back</h1><p>Your practice data stays on this device.</p></div><button className="submit-button" onClick={() => setView(activeCourse ? "lesson" : "courses")}>{activeCourse ? "Continue learning" : "Choose a course"}</button></header>
@@ -783,6 +806,7 @@ export default function App() {
             <article><span>Current streak</span><strong>{learningSummary.currentStreakDays}<i> days</i></strong><small>Consecutive practice days</small></article>
           </div>
           <div className="dashboard-grid">
+            {activeCourse && <article className="task-heatmap"><div><strong>Course task activity</strong><span>{activeCourse.summary.title}</span></div><div>{courseExercises.map((exercise) => <button type="button" key={exercise.id} className={`${exercise.completed ? "completed" : "pending"} ${exercise.type}`} title={`${exercise.title}\n${exercise.type.replace(/([A-Z])/g, " $1")} · ${exercise.completed ? "Completed" : "Not completed"}`} onClick={() => { for (const module of activeCourse.modules) { const lesson = module.lessons.find((candidate) => candidate.exercises.some((item) => item.id === exercise.id)); if (lesson) { void selectCourseExercise(lesson, exercise); return; } } }} aria-label={`${exercise.title}: ${exercise.completed ? "completed" : "not completed"}`}/>)}</div><small>Hover a square for task details. Select one to open it.</small></article>}
             <article className="activity-card"><div><strong>Practice activity</strong><span>Last 28 days</span></div><div className="activity-bars">{Array.from({ length: 28 }, (_, index) => {
               const date = new Date(); date.setUTCDate(date.getUTCDate() - (27 - index)); const key = date.toISOString().slice(0, 10);
               const attempts = learningSummary.activity.find((day) => day.date === key)?.attempts ?? 0;
@@ -798,7 +822,7 @@ export default function App() {
           <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import LearnPack</button></header>
           <div className="course-grid">
             {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Build your first learning path</h2><p>Generate a course prompt for any language, package the JSON files, then import the LearnPack.</p><button className="submit-button" onClick={() => void openPromptGenerator()}>Generate course prompt</button></article>}
-            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} modules</span><span>{course.exerciseCount} exercises</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><button className="run-button" onClick={() => void openImportedCourse(course)}>Open path</button></article>)}
+            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><button className="run-button" onClick={() => void openImportedCourse(course)}>Open curriculum</button></article>)}
           </div>
         </section>
       )}
@@ -819,7 +843,7 @@ export default function App() {
             </div>
             <div className="import-meta"><span>{importedCourse.language} {importedCourse.languageVersion}</span><span>{importedCourse.level}</span><span>v{importedCourse.version}</span></div>
             {importWarnings.length > 0 && <div className="import-warnings"><strong>Imported with {importWarnings.length} warning{importWarnings.length === 1 ? "" : "s"}</strong>{importWarnings.map((warning, index) => <p key={`${warning.code}-${index}`}><span>{warning.code}</span>{warning.message}</p>)}</div>}
-            <button className="submit-button modal-action" onClick={() => { const course = importedCourse; setImportedCourse(null); void openImportedCourse(course); }}>View learning path</button>
+            <button className="submit-button modal-action" onClick={() => { const course = importedCourse; setImportedCourse(null); void openImportedCourse(course); }}>View curriculum</button>
           </section>
         </div>
       )}

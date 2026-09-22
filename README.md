@@ -6,7 +6,7 @@ LearnLocal is an offline-first desktop learning environment for portable program
 
 - Secure Electron boundary with typed IPC, CSP, navigation guards, and no renderer access to Node or Docker.
 - Persistent dark and light themes.
-- Duolingo-style module, topic, exercise, completion, and project navigation.
+- Dedicated chapter-and-lesson curriculum navigation, a focused lesson/editor workspace, and a hoverable task-completion grid.
 - Any-language course authoring and import; languages without a trusted execution adapter remain fully usable in study mode.
 - Java 21 and Python 3.13 runtime installation, verification, approved-image updates, repair, inventory, scoped cleanup, and installation-specific Docker ownership.
 - Typed function, debugging, output, multi-file project-checkpoint, and multiple-choice exercise flows.

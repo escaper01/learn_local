@@ -209,6 +209,7 @@ export interface CourseView {
   modules: Array<{
     id: string;
     title: string;
+    description?: string;
     lessons: Array<{
       id: string;
       title: string;

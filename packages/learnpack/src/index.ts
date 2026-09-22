@@ -467,6 +467,7 @@ export function toCourseView(
     modules: pack.modules.map((module) => ({
       id: module.id,
       title: module.title,
+      ...(module.description ? { description: module.description } : {}),
       lessons: module.lessons.map((lesson) => ({
         id: lesson.id,
         title: lesson.title,
