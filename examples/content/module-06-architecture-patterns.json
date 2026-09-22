@@ -1,0 +1,106 @@
+{
+  "id": "module-06",
+  "title": "Module 6: Architecture, Patterns & JDBC",
+  "description": "Design robust software using SOLID, Design Patterns, and connect to Databases.",
+  "lessons": [
+    {
+      "id": "lesson-06-arch-patterns",
+      "title": "Architecture, Design Patterns, JDBC, and JSON",
+      "theoryMarkdown": "# Software Architecture\n\nWriting code is easy; organizing it is hard.\n\n## SOLID & Design Patterns\nThe **Single Responsibility Principle** states a class should have one reason to change. \n**Design Patterns** solve common architecture problems:\n- *Creational:* Factory, Builder (encapsulate object creation).\n- *Structural:* Proxy, Adapter.\n- *Behavioral:* Strategy, Command, Template Method.\n\n## Databases & Serialization\n**JDBC** connects Java to SQL databases. You execute Statements, Queries, and manage Transactions.\nData sent over networks (like Sockets) is often serialized into **JSON** using libraries like Gson or Jackson.\n\n**Common Mistakes:** \n- God Classes (doing too many things, violating SOLID).\n- SQL Injection (always use `PreparedStatement` in JDBC instead of concatenating strings).\n\n**Recap:** You understand structural principles and data persistence, ready for the final CLI project.",
+      "exercises": [
+        {
+          "id": "ex-16-arch-mc",
+          "title": "SOLID Principles",
+          "type": "multipleChoice",
+          "instructionMarkdown": "Which design pattern is best used when an object requires multiple optional configuration parameters during creation?",
+          "choices": ["Factory Method", "Builder Pattern", "Strategy Pattern"],
+          "correctChoice": 1
+        },
+        {
+          "id": "ex-17-pattern-func",
+          "title": "Factory Simulation",
+          "type": "function",
+          "instructionMarkdown": "Write a factory function `createGreeting` that takes a `string` representing a language code ('en', 'es', 'fr'). Return 'Hello' for 'en', 'Hola' for 'es', 'Bonjour' for 'fr', and 'Unknown' otherwise.",
+          "hints": [
+            "Use a `switch` expression or `if/else` block."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          },
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static String createGreeting(String lang) {\n        return \"Unknown\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "createGreeting",
+            "parameters": [
+              {
+                "name": "lang",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "test-lang-en",
+              "visibility": "public",
+              "arguments": ["en"],
+              "expected": "Hello"
+            },
+            {
+              "id": "test-lang-es",
+              "visibility": "public",
+              "arguments": ["es"],
+              "expected": "Hola"
+            },
+            {
+              "id": "test-hidden-lang-fr",
+              "visibility": "hidden",
+              "arguments": ["fr"],
+              "expected": "Bonjour"
+            },
+            {
+              "id": "test-hidden-lang-uk",
+              "visibility": "hidden",
+              "arguments": ["de"],
+              "expected": "Unknown"
+            }
+          ]
+        },
+        {
+          "id": "ex-18-proj-checkpoint",
+          "title": "Final Project Implementation Checkpoint",
+          "type": "project",
+          "instructionMarkdown": "Complete the CLI checkpoint so the program prints `READY: Task Manager` after initialization.",
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          },
+          "starterFiles": [
+            {
+              "path": "CLITool.java",
+              "content": "public class CLITool {\n    public static void main(String[] args) {\n        System.out.println(\"TODO\");\n        // Initialize the task manager and print the required ready message.\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "project-ready",
+              "visibility": "public",
+              "input": "",
+              "expected": "READY: Task Manager",
+              "comparison": "trimmed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

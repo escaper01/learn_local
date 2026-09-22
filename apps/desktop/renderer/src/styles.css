@@ -245,6 +245,7 @@ code { padding: 2px 5px; border-radius: 4px; color: #b2eacb; background: #182920
 .prompt-form label.wide { grid-column: 1 / -1; }
 .prompt-form input, .prompt-form select, .prompt-form textarea { width: 100%; padding: 8px; }
 .prompt-form textarea { min-height: 70px; resize: vertical; }
+.prompt-form textarea.prompt-request { min-height: 210px; }
 .prompt-generate { grid-column: 1 / -1; margin-top: 4px; }
 .prompt-preview { position: relative; display: grid; min-height: 430px; border: 1px solid #29362f; border-radius: 9px; overflow: hidden; background: #090e0c; }
 .prompt-preview > div { align-self: center; padding: 30px; color: #69776f; text-align: center; }

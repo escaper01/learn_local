@@ -2,33 +2,23 @@ import { describe, expect, it } from "vitest";
 import { buildCoursePrompt } from "./index";
 
 describe("course prompt generator", () => {
-  it("locks language and LearnPack security constraints", () => {
+  it("infers metadata while locking exact LearnPack exercise shapes", () => {
     const prompt = buildCoursePrompt({
-      language: "python",
-      languageName: "Python",
-      runtimeVersion: "3.13",
-      fileExtension: "py",
-      containerRequirements: "Python 3.13 standard library",
-      experience: "beginner",
-      goal: "Learn automation",
-      topics: "files and functions",
-      skipTopics: "web frameworks",
-      dailyMinutes: 30,
-      durationWeeks: 6,
-      projectTheme: "personal productivity",
-      teachingStyle: "supportive",
-      customInstructions: "Use short lessons."
+      language: "Python",
+      learningRequest: "Learn files and functions for personal automation. Skip web frameworks."
     });
-    expect(prompt).toContain("Python 3.13");
-    expect(prompt).toContain("runtime.adapter must be \"python\"");
-    expect(prompt).toContain("Python 3.13 standard library");
-    expect(prompt).toContain("Runtime requirements are metadata");
-    expect(prompt).toContain("Shell commands");
-    expect(prompt).toContain("Use short lessons.");
+    expect(prompt).toContain("Programming language: Python");
+    expect(prompt).toContain("Learn files and functions for personal automation");
+    expect(prompt).toContain("Do not ask follow-up questions");
+    expect(prompt).toContain("For Python use Python 3.13");
+    expect(prompt).toContain('"instructionMarkdown"');
+    expect(prompt).toContain('"choices": ["First answer"');
+    expect(prompt).toContain('"kind": "function"');
+    expect(prompt).toContain("Use returns, never returnType");
+    expect(prompt).toContain("starterFiles and tests both exist");
     expect(prompt).toContain("every required file in this single response");
     expect(prompt).toContain("compress those files into the final .learnpack archive");
-    expect(prompt).toContain("files and functions");
     expect(prompt).toContain("at least three meaningful exercises");
-    expect(prompt).toContain("Use only forward slashes in paths");
+    expect(prompt).toContain("Never use Windows backslashes");
   });
 });

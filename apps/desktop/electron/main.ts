@@ -360,6 +360,7 @@ function registerIpc(): void {
         let importedTests: Array<{ id: string; visibility: "public" | "hidden"; arguments: FunctionValue[]; expected: FunctionValue }> | undefined;
         let outputTests: OutputTestDefinition[] | undefined;
         let importedExerciseType: "function" | "debug" | "output" | "project" | undefined;
+        let useOutputHarness = false;
         let importedEntrypoint: FunctionEntrypoint | undefined;
         let executionLimits: { [Key in keyof typeof EXECUTION_POLICY]: number } = EXECUTION_POLICY;
         let executionSource = request.sourceCode;
@@ -380,13 +381,14 @@ function registerIpc(): void {
             throw new AppError("WORKSPACE_FILES_REQUIRED", "validation", "This multi-file exercise requires all workspace files.");
           }
           importedExerciseType = exercise.type;
+          useOutputHarness = exercise.type === "output" || exercise.type === "project" || (exercise.type === "debug" && !exercise.entrypoint);
           executionLimits = {
             ...EXECUTION_POLICY,
             timeoutMs: Math.min(exercise.limits?.timeoutMs ?? EXECUTION_POLICY.timeoutMs, EXECUTION_POLICY.timeoutMs),
             memoryMb: Math.min(exercise.limits?.memoryMb ?? EXECUTION_POLICY.memoryMb, EXECUTION_POLICY.memoryMb),
             maxOutputKb: Math.min(exercise.limits?.maxOutputKb ?? EXECUTION_POLICY.maxOutputKb, EXECUTION_POLICY.maxOutputKb)
           };
-          if (exercise.type === "function" || exercise.type === "debug") {
+          if (exercise.type === "function" || (exercise.type === "debug" && exercise.entrypoint)) {
             const fallback = request.language === "java" ? { className: "Solution", name: "sum" } : { name: "sum_values" };
             const className = exercise.entrypoint?.className ?? fallback.className;
             importedEntrypoint = {
@@ -397,7 +399,7 @@ function registerIpc(): void {
             };
           }
           const selectedTests = (exercise.tests ?? []).filter((test) => request.action === "submit" || test.visibility === "public");
-          if (exercise.type === "output" || exercise.type === "project") {
+          if (useOutputHarness) {
             outputTests = selectedTests.map((test) => {
               if (typeof test.input !== "string" || typeof test.expected !== "string") throw new AppError("EXERCISE_TYPES_UNSUPPORTED", "validation", "Output tests require text input and expected output.");
               return { id: test.id, visibility: test.visibility, input: test.input, expected: test.expected, comparison: (test.comparison ?? "exact") as OutputTestDefinition["comparison"] };
@@ -413,7 +415,7 @@ function registerIpc(): void {
           exerciseId = request.language === "java" ? SUM_EXERCISE.id : PYTHON_SUM_EXERCISE.id;
         }
         if (request.language === "java") {
-          if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
+          if (useOutputHarness && outputTests) {
             const workspace = await java21Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
             workspaceDirectory = workspace.directory;
             const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
@@ -428,7 +430,7 @@ function registerIpc(): void {
           result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
           }
         } else {
-          if ((importedExerciseType === "output" || importedExerciseType === "project") && outputTests) {
+          if (useOutputHarness && outputTests) {
             const workspace = await python3Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
             workspaceDirectory = workspace.directory;
             const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });

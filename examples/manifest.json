@@ -1,0 +1,37 @@
+{
+  "format": "learnpack",
+  "schemaVersion": "1.0.0",
+  "id": "java-comprehensive-cli",
+  "version": "1.0.0",
+  "course": {
+    "title": "Java 21 CLI Foundations & Beyond",
+    "description": "A comprehensive 6-week course taking you from absolute beginner to advanced Java 21 developer. You will build a strong foundation in fundamentals, OOP, collections, concurrency, and architecture while crafting robust command-line tools.",
+    "language": "java",
+    "languageVersion": "21",
+    "fileExtension": "java",
+    "level": "beginner",
+    "estimatedHours": 21,
+    "authors": [
+      {
+        "name": "AI-generated for local use"
+      }
+    ]
+  },
+  "runtime": {
+    "adapter": "java",
+    "adapterRange": ">=0.1.0 <2.0.0",
+    "runtimeVersion": "21",
+    "containerRequirements": "Java 21 JDK with the standard library"
+  },
+  "modules": [
+    "content/module-01-basics.json",
+    "content/module-02-oop.json",
+    "content/module-03-collections-exceptions.json",
+    "content/module-04-functional-concurrent.json",
+    "content/module-05-io-testing-debugging.json",
+    "content/module-06-architecture-patterns.json"
+  ],
+  "projects": [
+    "projects/final-project.json"
+  ]
+}

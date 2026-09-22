@@ -326,7 +326,7 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
         for (const test of exercise.tests ?? []) {
           if (testIds.has(test.id)) issues.push({ code: "PACK_DUPLICATE_TEST_ID", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' repeats test ID '${test.id}'.` });
           testIds.add(test.id);
-          if (exercise.type === "output" || exercise.type === "project") {
+          if (exercise.type === "output" || exercise.type === "project" || (exercise.type === "debug" && !exercise.entrypoint)) {
             if (typeof test.input !== "string" || typeof test.expected !== "string") issues.push({ code: "PACK_OUTPUT_TEST_INVALID", severity: "error", file: location, message: `Output test '${test.id}' requires string input and expected output.` });
           } else if (exercise.type === "function" || exercise.type === "debug") {
             const parameters = exercise.entrypoint?.parameters;

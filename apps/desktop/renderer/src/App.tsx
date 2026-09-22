@@ -33,6 +33,27 @@ function loadLocalList<T>(key: string): T[] {
   catch { return []; }
 }
 
+function normalizePromptForm(value: unknown): CoursePromptRequest {
+  const record = typeof value === "object" && value ? value as Record<string, unknown> : {};
+  const rawLanguage = typeof record.languageName === "string" ? record.languageName : typeof record.language === "string" ? record.language : "Java";
+  const language = rawLanguage === "java" ? "Java" : rawLanguage === "python" ? "Python" : rawLanguage;
+  if (typeof record.learningRequest === "string") return { language, learningRequest: record.learningRequest };
+  const request = [
+    record.goal,
+    record.topics,
+    typeof record.skipTopics === "string" && record.skipTopics ? `Exclude: ${record.skipTopics}` : "",
+    typeof record.projectTheme === "string" && record.projectTheme ? `Build projects around: ${record.projectTheme}` : "",
+    record.customInstructions
+  ].filter((item): item is string => typeof item === "string" && item.trim().length > 0).join("\n");
+  return { language, learningRequest: request || "Teach the language from fundamentals through practical projects." };
+}
+
+function loadPromptTemplates(): PromptTemplate[] {
+  return loadLocalList<{ id?: unknown; name?: unknown; form?: unknown }>("learnlocal.promptTemplates")
+    .filter((template) => typeof template.id === "string" && typeof template.name === "string")
+    .map((template) => ({ id: template.id as string, name: template.name as string, form: normalizePromptForm(template.form) }));
+}
+
 function initialTheme(): Theme {
   const saved = localStorage.getItem("learnlocal.theme");
   if (saved === "dark" || saved === "light") return saved;
@@ -69,20 +90,8 @@ const PYTHON_SOLUTION_CODE = `def sum_values(values):
 `;
 
 const DEFAULT_PROMPT_FORM: CoursePromptRequest = {
-  language: "java",
-  languageName: "Java",
-  runtimeVersion: "21",
-  fileExtension: "java",
-  containerRequirements: "Java 21 JDK with the standard library",
-  experience: "beginner",
-  goal: "Build a strong programming foundation and complete practical projects",
-  topics: "fundamentals, functions, collections, debugging, testing",
-  skipTopics: "",
-  dailyMinutes: 30,
-  durationWeeks: 6,
-  projectTheme: "useful command-line tools",
-  teachingStyle: "supportive",
-  customInstructions: ""
+  language: "Java",
+  learningRequest: "Teach me from the fundamentals through functions, collections, debugging, testing, and practical projects."
 };
 
 function friendlyError(error: unknown): AppErrorShape {
@@ -242,7 +251,7 @@ export default function App() {
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState("");
-  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>(() => loadLocalList("learnlocal.promptTemplates"));
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>(loadPromptTemplates);
   const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>(() => loadLocalList("learnlocal.promptHistory"));
   const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
   const [activeCourse, setActiveCourse] = useState<CourseView | null>(null);
@@ -591,25 +600,9 @@ export default function App() {
     catch (reason) { setError(friendlyError(reason)); }
   };
 
-  const openPromptGenerator = async () => {
+  const openPromptGenerator = () => {
     setShowPrompt(true);
-    try {
-      const values = await window.learnLocal.settings.list({ language });
-      const daily = values.find((setting) => setting.key === "learning.dailyMinutes")?.value;
-      const style = values.find((setting) => setting.key === "prompt.teachingStyle")?.value;
-      const custom = values.find((setting) => setting.key === "prompt.customInstructions")?.value;
-      setPromptForm((current) => ({
-        ...current,
-        language,
-        languageName: language === "java" ? "Java" : "Python",
-        runtimeVersion: language === "java" ? "21" : "3.13",
-        fileExtension: language === "java" ? "java" : "py",
-        containerRequirements: language === "java" ? "Java 21 JDK with the standard library" : "Python 3.13 with the standard library",
-        ...(typeof daily === "number" ? { dailyMinutes: daily } : {}),
-        ...(typeof style === "string" ? { teachingStyle: style as CoursePromptRequest["teachingStyle"] } : {}),
-        ...(typeof custom === "string" ? { customInstructions: custom } : {})
-      }));
-    } catch (reason) { setError(friendlyError(reason)); }
+    setPromptForm((current) => ({ ...current, language: activeCourse?.summary.language ?? (language === "java" ? "Java" : "Python") }));
   };
 
   const generatePrompt = async () => {
@@ -624,7 +617,7 @@ export default function App() {
   };
 
   const savePromptTemplate = () => {
-    const name = window.prompt("Template name", `${promptForm.languageName} course` )?.trim();
+    const name = window.prompt("Template name", `${promptForm.language} course` )?.trim();
     if (!name) return;
     const next = [{ id: crypto.randomUUID(), name, form: promptForm }, ...promptTemplates].slice(0, 20);
     setPromptTemplates(next);
@@ -921,20 +914,8 @@ export default function App() {
               <div className="prompt-form">
                 <div className="prompt-template-bar"><select aria-label="Load prompt template" defaultValue="" onChange={(event) => { const template = promptTemplates.find((candidate) => candidate.id === event.target.value); if (template) setPromptForm(template.form); event.target.value = ""; }}><option value="">Load template…</option>{promptTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button type="button" onClick={savePromptTemplate}>Save current</button></div>
                 {promptTemplates.length > 0 && <div className="prompt-template-chips">{promptTemplates.map((template) => <span key={template.id}><button type="button" onClick={() => setPromptForm(template.form)}>{template.name}</button><button type="button" aria-label={`Delete ${template.name} template`} onClick={() => removePromptTemplate(template.id)}>×</button></span>)}</div>}
-                <label>Language name<input value={promptForm.languageName} placeholder="Rust" onChange={(event) => setPromptForm({ ...promptForm, languageName: event.target.value })} /></label>
-                <label>Language identifier<input value={promptForm.language} placeholder="rust" pattern="[a-z][a-z0-9-]*" onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} /></label>
-                <label>Runtime/toolchain version<input value={promptForm.runtimeVersion} placeholder="1.82" onChange={(event) => setPromptForm({ ...promptForm, runtimeVersion: event.target.value })} /></label>
-                <label>Source extension<input value={promptForm.fileExtension} placeholder="rs" onChange={(event) => setPromptForm({ ...promptForm, fileExtension: event.target.value.replace(/^\./, "") })} /></label>
-                <label className="wide">Container/runtime requirements<textarea placeholder="Compiler or interpreter, version, standard libraries, and system tools needed" value={promptForm.containerRequirements} onChange={(event) => setPromptForm({ ...promptForm, containerRequirements: event.target.value })} /></label>
-                <label>Experience<select value={promptForm.experience} onChange={(event) => setPromptForm({ ...promptForm, experience: event.target.value as CoursePromptRequest["experience"] })}><option value="new">Completely new</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
-                <label className="wide">Learning goal<textarea value={promptForm.goal} onChange={(event) => setPromptForm({ ...promptForm, goal: event.target.value })} /></label>
-                <label className="wide">Required topics<textarea placeholder="One topic per line, or a detailed comma-separated list" value={promptForm.topics} onChange={(event) => setPromptForm({ ...promptForm, topics: event.target.value })} /></label>
-                <label className="wide">Topics to exclude<textarea placeholder="Optional topics the course must skip" value={promptForm.skipTopics} onChange={(event) => setPromptForm({ ...promptForm, skipTopics: event.target.value })} /></label>
-                <label>Minutes per day<input type="number" min="10" max="240" value={promptForm.dailyMinutes} onChange={(event) => setPromptForm({ ...promptForm, dailyMinutes: Number(event.target.value) })} /></label>
-                <label>Duration in weeks<input type="number" min="1" max="52" value={promptForm.durationWeeks} onChange={(event) => setPromptForm({ ...promptForm, durationWeeks: Number(event.target.value) })} /></label>
-                <label>Teaching style<select value={promptForm.teachingStyle} onChange={(event) => setPromptForm({ ...promptForm, teachingStyle: event.target.value as CoursePromptRequest["teachingStyle"] })}><option value="supportive">Supportive</option><option value="concise">Concise</option><option value="socratic">Socratic</option><option value="project-based">Project-based</option></select></label>
-                <label className="wide">Project theme<input value={promptForm.projectTheme} onChange={(event) => setPromptForm({ ...promptForm, projectTheme: event.target.value })} /></label>
-                <label className="wide">Additional course instructions<textarea placeholder="Accessibility, explanation depth, pacing, or other requirements" value={promptForm.customInstructions} onChange={(event) => setPromptForm({ ...promptForm, customInstructions: event.target.value })} /></label>
+                <label className="wide">Programming language<input value={promptForm.language} placeholder="Java, Python, Rust, C#, …" onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value })} /></label>
+                <label className="wide">What do you want to learn or build?<textarea className="prompt-request" placeholder="Describe your goal and topics in your own words. You can also mention anything to exclude, your experience, or a project idea. The AI will infer the remaining course details." value={promptForm.learningRequest} onChange={(event) => setPromptForm({ ...promptForm, learningRequest: event.target.value })} /></label>
                 <button className="submit-button prompt-generate" onClick={() => void generatePrompt()}>Generate LearnPack prompt</button>
               </div>
               <div className="prompt-preview">

@@ -46,6 +46,20 @@ function validEntries(): Map<string, unknown> {
 }
 
 describe("LearnPack semantic validation", () => {
+  it("validates the repaired AI-generated example course", async () => {
+    const root = resolve(import.meta.dirname, "../../../examples");
+    const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8")) as { modules: string[]; projects: string[] };
+    const entries = new Map<string, unknown>([["manifest.json", manifest]]);
+    for (const path of [...manifest.modules, ...manifest.projects]) {
+      entries.set(path, JSON.parse(await readFile(join(root, ...path.split("/")), "utf8")));
+    }
+    expect(validateLearnPackContent(entries).summary).toMatchObject({
+      id: "java-comprehensive-cli",
+      moduleCount: 6,
+      exerciseCount: 18
+    });
+  });
+
   it("normalizes Windows ZIP separators before validating paths", () => {
     expect(normalizeArchivePath("content\\module-01.json")).toBe("content/module-01.json");
     expect(normalizeArchivePath("..\\manifest.json")).toBe("../manifest.json");

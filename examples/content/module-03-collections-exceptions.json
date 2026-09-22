@@ -1,0 +1,110 @@
+{
+  "id": "module-03",
+  "title": "Module 3: Collections & Exceptions",
+  "description": "Learn error handling, Generics, and the Java Collections Framework.",
+  "lessons": [
+    {
+      "id": "lesson-03-collections-errors",
+      "title": "Exceptions, Generics, Lists, Maps, and Sorting",
+      "theoryMarkdown": "# Collections and Exceptions\n\n## Exceptions\nJava handles runtime errors using `try`, `catch`, `finally`, and `throw`. Checked exceptions must be handled; RuntimeExceptions don't require explicit handling.\n\n```java\ntry {\n    int data = 10 / 0;\n} catch (ArithmeticException e) {\n    System.out.println(\"Cannot divide by zero\");\n}\n```\n\n## Generics & Collections Framework\nGenerics provide type safety (e.g., `List<String>`). The Collections Framework provides structures like `ArrayList`, `HashSet`, and `HashMap`.\n\n```java\nMap<String, Integer> scores = new HashMap<>();\nscores.put(\"Alice\", 95);\n```\nFor sorting, classes can implement `Comparable`, or you can provide a `Comparator`. Basic algorithms like Bubble Sort and Merge Sort operate on arrays or Lists.\n\n**Common Mistakes:** \n- `NullPointerException`: calling methods on a null reference.\n- `ConcurrentModificationException`: modifying a collection while iterating over it with a for-each loop.\n\n**Recap:** You've learned how to gracefully handle crashes and utilize powerful data structures like Lists and Maps.",
+      "exercises": [
+        {
+          "id": "ex-07-collections-mc",
+          "title": "Map vs Set",
+          "type": "multipleChoice",
+          "instructionMarkdown": "Which interface represents a collection that contains no duplicate elements and does not associate keys with values?",
+          "choices": ["List", "Set", "Map"],
+          "correctChoice": 1
+        },
+        {
+          "id": "ex-08-collections-func",
+          "title": "Count Unique Words",
+          "type": "function",
+          "instructionMarkdown": "Write a function `countUnique` that takes an array of strings and returns the number of distinct words.",
+          "hints": [
+            "A `HashSet` automatically prevents duplicates.",
+            "Add all array elements to a Set.",
+            "Return the size of the Set."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          },
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public class Solution {\n    public static int countUnique(String[] words) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "countUnique",
+            "parameters": [
+              {
+                "name": "words",
+                "type": "string[]"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "test-unique-1",
+              "visibility": "public",
+              "arguments": [["apple", "banana", "apple"]],
+              "expected": 2
+            },
+            {
+              "id": "test-unique-2",
+              "visibility": "public",
+              "arguments": [["one", "two", "three"]],
+              "expected": 3
+            },
+            {
+              "id": "test-hidden-unique-1",
+              "visibility": "hidden",
+              "arguments": [["same", "same", "same", "same"]],
+              "expected": 1
+            },
+            {
+              "id": "test-hidden-unique-2",
+              "visibility": "hidden",
+              "arguments": [[]],
+              "expected": 0
+            }
+          ]
+        },
+        {
+          "id": "ex-09-exceptions-debug",
+          "title": "Debug: Array Bounds",
+          "type": "debug",
+          "instructionMarkdown": "Fix the catch block to correctly identify and suppress the out-of-bounds error so 'Done' is printed.",
+          "hints": [
+            "Check which exception is actually being thrown by `arr[5]`."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          },
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) {\n        try {\n            int[] arr = {1, 2, 3};\n            System.out.print(arr[5]);\n        } catch (NullPointerException e) {\n            // Wrong exception caught!\n        }\n        System.out.print(\"Done\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "test-debug-exc",
+              "visibility": "public",
+              "input": "",
+              "expected": "Done"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

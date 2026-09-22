@@ -4,7 +4,7 @@ LearnLocal's prompt generator asks an AI assistant to produce every required JSO
 
 ## Generate the JSON files
 
-1. Open **Generate prompt** in LearnLocal. Enter any programming language, its safe lowercase identifier, version, source extension, descriptive runtime/toolchain requirements, required topics, and topics to exclude. Then copy the generated prompt.
+1. Open **Generate prompt** in LearnLocal. Enter any programming language and describe what you want to learn or build in one combined request. You may include topics, exclusions, experience, or project ideas when they matter; the AI infers the identifier, version, extension, runtime requirements, level, duration, teaching progression, and projects. Then copy the generated prompt.
 2. Paste it into your AI assistant. Its response should begin with `manifest.json`, then contain every referenced module and project as a separate labeled JSON block.
 3. Save the JSON as `manifest.json` in a new empty course folder. Do not copy the `SAVE AS:` line or Markdown code fences into the file.
 4. In LearnLocal's prompt generator, select **Create files from manifest** and choose the saved manifest. During development the file picker opens in `learnpack-spec/examples`; otherwise it opens in Documents. LearnLocal creates every referenced path and preserves any file that already exists.

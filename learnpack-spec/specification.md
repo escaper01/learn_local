@@ -22,6 +22,8 @@ LearnPack content is untrusted. The importer performs structural and semantic va
 
 Exercises describe arguments, expected values, starter files, hints, and bounded resource requests. A trusted adapter shipped with LearnLocal converts those declarations into a workspace and allowlisted command arguments.
 
+Function exercises use a typed `entrypoint` with argument tests. Output and project exercises use text `input` and `expected` tests. Debug exercises may use the output style when no entrypoint is declared, or the typed function style when an entrypoint is declared.
+
 Course language identifiers are extensible. A course whose language has no trusted installed adapter is imported in study mode and cannot execute learner code. Course-provided runtime metadata never selects an image or command.
 
 ## Compatibility

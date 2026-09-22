@@ -137,20 +137,8 @@ export const settingResetSchema = z.object({
 }).strict();
 
 export const coursePromptRequestSchema = z.object({
-  language: languageIdSchema,
-  languageName: z.string().min(1).max(80),
-  runtimeVersion: z.string().min(1).max(40),
-  fileExtension: z.string().regex(/^[a-zA-Z0-9]{1,12}$/),
-  containerRequirements: z.string().min(1).max(1000),
-  experience: z.enum(["new", "beginner", "intermediate", "advanced"]),
-  goal: z.string().min(3).max(1000),
-  topics: z.string().max(4000),
-  skipTopics: z.string().max(4000),
-  dailyMinutes: z.number().int().min(10).max(240),
-  durationWeeks: z.number().int().min(1).max(52),
-  projectTheme: z.string().max(500),
-  teachingStyle: z.enum(["supportive", "concise", "socratic", "project-based"]),
-  customInstructions: z.string().max(4000)
+  language: z.string().min(1).max(80),
+  learningRequest: z.string().min(3).max(8000)
 }).strict();
 export type CoursePromptRequest = z.infer<typeof coursePromptRequestSchema>;
 

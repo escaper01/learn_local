@@ -55,4 +55,4 @@ Installer output is written to `release/`. The manual packaging workflow builds 
 
 The repository also includes a canonical importable course at `learnpack-spec/examples/java-foundations.learnpack`.
 
-To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). Enter the language, version, file extension, requested toolchain/container requirements, and topics. The AI produces all separately labeled JSON files in one response; save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block, and package the files into the `.learnpack` archive yourself.
+To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). Choose the programming language and describe what you want to learn or build; the AI infers the remaining course and runtime metadata. It produces all separately labeled JSON files in one response. Save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block, and package the files into the `.learnpack` archive yourself.
