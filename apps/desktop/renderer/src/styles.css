@@ -59,7 +59,7 @@ h1 { margin: 9px 0 7px; font-size: clamp(29px, 2.5vw, 39px); line-height: 1.12; 
 .lesson-navigation button strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .lesson-navigation > p { display: grid; place-content: center; min-width: 52px; margin: 0; color: #68757f; text-align: center; font-size: 8px; text-transform: uppercase; }
 .lesson-navigation > p strong { color: #63d596; font-size: 13px; }
-.lesson-navigation.bottom { margin: 24px 0 0; }
+.lesson-navigation.bottom { margin: 24px auto 0; }
 .concept-card { display: flex; gap: 14px; padding: 17px; margin: 0 0 29px; border: 1px solid #274737; border-radius: 10px; background: linear-gradient(135deg, #14241d, #131b20); }
 .concept-icon { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; border-radius: 8px; background: #204d38; color: #6ee2a2; font-size: 19px; }
 .concept-card strong { font-size: 13px; }

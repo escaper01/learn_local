@@ -268,6 +268,7 @@ export default function App() {
   const activeActionRef = useRef<"run" | "submit" | null>(null);
   const activeCourseRef = useRef<CourseView | null>(null);
   const hydratedLanguage = useRef<"java" | "python" | null>(null);
+  const lessonPaneRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -513,6 +514,7 @@ export default function App() {
     setQuizCorrect(null);
     setResult(null);
     setView("lesson");
+    window.requestAnimationFrame(() => lessonPaneRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
   };
 
   const selectProject = async (project: CourseView["projects"][number]) => {
@@ -711,7 +713,7 @@ export default function App() {
         </header>
 
         <div className={`lesson-grid ${!activeImportedExercise ? "reading-only" : ""}`}>
-          <article className="lesson-pane">
+          <article className="lesson-pane" ref={lessonPaneRef}>
             <div className="eyebrow">{(activeImportedExercise?.type ?? "lesson").toUpperCase()} · {(activeCourse?.summary.language ?? language).toUpperCase()} {activeCourse?.summary.languageVersion ?? ""}</div>
             <h1>{activeImportedExercise?.title ?? activeLesson?.title ?? "Choose a lesson"}</h1>
             <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? "Read the lesson carefully, then open an assessment from the Curriculum tab when you are ready."}/>
