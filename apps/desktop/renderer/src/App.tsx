@@ -665,6 +665,11 @@ export default function App() {
   const nextLesson = activeLessonIndex >= 0 && activeLessonIndex < courseLessons.length - 1 ? courseLessons[activeLessonIndex + 1] : null;
   const courseExercises = activeCourse?.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises) ?? [];
   const completedCourseExercises = courseExercises.filter((exercise) => exercise.completed).length;
+  const lessonNavigation = (placement: "top" | "bottom") => activeCourse && activeLesson ? <nav className={`lesson-navigation ${placement}`} aria-label={`${placement === "top" ? "Top" : "Bottom"} lesson navigation`}>
+    <button type="button" disabled={!previousLesson} title={previousLesson?.title ?? "This is the first lesson"} onClick={() => previousLesson && selectCourseLesson(previousLesson)}><span aria-hidden="true">←</span><span><small>Previous lesson</small><strong>{previousLesson?.title ?? "Course start"}</strong></span></button>
+    <p><strong>{activeLessonIndex + 1}</strong><span>of {courseLessons.length}</span></p>
+    <button type="button" disabled={!nextLesson} title={nextLesson?.title ?? "This is the final lesson"} onClick={() => nextLesson && selectCourseLesson(nextLesson)}><span><small>Next lesson</small><strong>{nextLesson?.title ?? "Course complete"}</strong></span><span aria-hidden="true">→</span></button>
+  </nav> : null;
 
   return (
     <main className="app-shell">
@@ -710,17 +715,14 @@ export default function App() {
             <div className="eyebrow">{(activeImportedExercise?.type ?? "lesson").toUpperCase()} · {(activeCourse?.summary.language ?? language).toUpperCase()} {activeCourse?.summary.languageVersion ?? ""}</div>
             <h1>{activeImportedExercise?.title ?? activeLesson?.title ?? "Choose a lesson"}</h1>
             <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? "Read the lesson carefully, then open an assessment from the Curriculum tab when you are ready."}/>
-            {activeCourse && activeLesson && <nav className="lesson-navigation" aria-label="Lesson navigation">
-              <button type="button" disabled={!previousLesson} title={previousLesson?.title ?? "This is the first lesson"} onClick={() => previousLesson && selectCourseLesson(previousLesson)}><span aria-hidden="true">←</span><span><small>Previous lesson</small><strong>{previousLesson?.title ?? "Course start"}</strong></span></button>
-              <p><strong>{activeLessonIndex + 1}</strong><span>of {courseLessons.length}</span></p>
-              <button type="button" disabled={!nextLesson} title={nextLesson?.title ?? "This is the final lesson"} onClick={() => nextLesson && selectCourseLesson(nextLesson)}><span><small>Next lesson</small><strong>{nextLesson?.title ?? "Course complete"}</strong></span><span aria-hidden="true">→</span></button>
-            </nav>}
+            {lessonNavigation("top")}
             <div className="concept-card">
               <span className="concept-icon">∑</span>
               <div><strong>{activeLesson?.title ?? "Course lesson"}</strong><SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
             </div>
             {(activeImportedExercise?.hints ?? []).map((hint, index) => <details className="hint" key={`${index}-${hint}`} open><summary>Hint {index + 1} of {activeImportedExercise?.hintCount ?? 0}</summary><p>{hint}</p></details>)}
             {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && <button className="ghost-button reveal-hint" type="button" onClick={() => void revealNextHint()}>Reveal hint {activeImportedExercise.hints.length + 1}</button>}
+            {!activeImportedExercise && lessonNavigation("bottom")}
           </article>
 
           {activeImportedExercise && (activeImportedExercise.type === "multipleChoice" ? (
