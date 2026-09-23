@@ -1,0 +1,231 @@
+{
+  "id": "module-16-build-automation-dependencies-git-and-ci",
+  "title": "Chapter 16: Build Automation, Dependencies, Git, and CI",
+  "description": "Make a clean checkout produce a reviewable, traceable artifact. Learners inspect Maven's effective model and Gradle's task graph, pin wrappers and dependencies, evaluate transitive supply-chain cost, construct coherent Git commits and resolve merges by intent, and configure CI gates that test the same commands developers run locally.",
+  "lessons": [
+    {
+      "id": "m16-l01-maven-pom-lifecycle-scopes-plugins-and-effective-configurati",
+      "title": "Maven POM, lifecycle, scopes, plugins, and effective configuration",
+      "theoryMarkdown": "# Maven POM, lifecycle, scopes, plugins, and effective configuration\n\n## Maven builds from a declared model\nA pom.xml identifies groupId, artifactId, and version, dependencies, plugins, and properties. The conventional layout separates src/main/java, src/main/resources, src/test/java, and src/test/resources.\n```xml\n<properties>\n  <maven.compiler.release>21</maven.compiler.release>\n  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\n</properties>\n```\nThis is a POM fragment, not a complete build file. Declare plugin and dependency versions explicitly or inherit a reviewed managed set. Use the committed Maven Wrapper with a release supporting Java 21.\n\n## Lifecycle and scope\nRunning verify executes earlier phases such as compile, test, and package. install also places the artifact in the local repository; it does not deploy to production. test-scoped dependencies belong to tests, provided dependencies are expected from the runtime environment, and runtime dependencies need not be on the compile classpath.\n\n## Practice\nCreate a small external Maven project, run `./mvnw verify` or `.\\mvnw.cmd verify`, inspect target, and inspect help:effective-pom and dependency:tree. Break one test and ensure verify fails. Explain why skipping tests while packaging produces a different level of evidence.",
+      "exercises": [
+        {
+          "id": "m16-l1-check",
+          "type": "multipleChoice",
+          "title": "Maven POM, lifecycle, scopes, plugins, and effective configuration: concept check",
+          "instructionMarkdown": "Does Maven install deploy the application to production?",
+          "choices": [
+            "No; it installs the artifact in the local repository",
+            "Yes; it starts a production server",
+            "Only if unit tests pass"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Focus on what mvn install writes to your local repository versus what shipping to a remote environment would additionally require."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m16-l02-gradle-wrapper-tasks-lazy-configuration-plugins-and-caching",
+      "title": "Gradle wrapper, tasks, lazy configuration, plugins, and caching",
+      "theoryMarkdown": "# Gradle wrapper, tasks, lazy configuration, plugins, and caching\n\n## Gradle models tasks and their inputs\nA Java project can use this build.gradle.kts fragment:\n```kotlin\nplugins { java }\njava {\n    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }\n}\nrepositories { mavenCentral() }\ntasks.test { useJUnitPlatform() }\n```\nThe test framework dependency and versions must also be declared. The wrapper pins Gradle itself; the Java toolchain selects the compiler/runtime used for tasks. Commit wrapper files and use a compatible reviewed version rather than relying on a machine-global install.\n\n## Configuration versus execution\nGradle first configures a task graph, then executes selected work. Lazy task registration avoids unnecessary configuration. Inputs and outputs enable up-to-date checks and caching; undeclared environment-dependent inputs can produce stale results.\n\n## Practice\nRun tasks, test, and build using the wrapper. Change one source file and observe what rebuilds. Compare a clean build with an incremental build. Avoid network calls and side effects during configuration. Explain why a successful IDE run does not prove the command-line build contains the same dependencies or test configuration.",
+      "exercises": [
+        {
+          "id": "m16-l2-check",
+          "type": "multipleChoice",
+          "title": "Gradle wrapper, tasks, lazy configuration, plugins, and caching: concept check",
+          "instructionMarkdown": "Why do declared task inputs and outputs matter for a Gradle build, beyond what the wrapper pins?",
+          "choices": [
+            "They enable up-to-date checks and caching so unaffected tasks can be skipped",
+            "They determine which operating system the build may run on",
+            "They replace the need for the wrapper to pin a Gradle version"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Separate what the wrapper fixes (the Gradle distribution) from what task inputs/outputs enable (skipping unaffected work)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m16-l03-dependency-graphs-version-control-licenses-and-supply-chain-",
+      "title": "Dependency graphs, version control, licenses, and supply-chain risk",
+      "theoryMarkdown": "# Dependency graphs, version control, licenses, and supply-chain risk\n\n## A dependency adds obligations\nLibrary coordinates identify an artifact and version. Transitive dependencies arrive through other dependencies and can introduce conflicts, licenses, vulnerabilities, or unexpected code. A declared version alone does not reveal the complete resolved graph.\n\n```text\n./mvnw dependency:tree\n./gradlew dependencies\n./gradlew dependencyInsight --dependency example-library\n```\nChoose the command for your build tool. Version alignment and dependency management centralize compatible sets, while lockfiles or locking features constrain resolution according to the tool's model.\n\n## Review questions\nWhat problem does the library solve? Is it maintained? Which transitive libraries does it add? Does its license fit distribution? Can its features be configured narrowly? What is the upgrade and removal plan? Do not use a forced major upgrade merely to silence a scanner without checking compatibility.\n\n## Practice\nDocument the resolved graph of a small JUnit project. Introduce two paths to different versions of one library and inspect the selected version. Remove an unused dependency and verify the build. Record checksums/provenance and an SBOM approach for a release. Dependency scanning identifies known issues; it does not prove absence of vulnerabilities.",
+      "exercises": [
+        {
+          "id": "m16-l3-check",
+          "type": "multipleChoice",
+          "title": "Dependency graphs, version control, licenses, and supply-chain risk: concept check",
+          "instructionMarkdown": "Why inspect transitive dependencies?",
+          "choices": [
+            "They are always identical to direct dependencies",
+            "They add runtime code and maintenance/security obligations",
+            "They never enter artifacts"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Walk one level below a direct dependency in the tree and notice what code, licenses, and versions arrive uninvited."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m16-l04-git-commits-branches-merges-conflicts-and-code-review",
+      "title": "Git commits, branches, merges, conflicts, and code review",
+      "theoryMarkdown": "# Git commits, branches, merges, conflicts, and code review\n\n## History should explain intent\nA Git commit records a snapshot and its parents. A branch is a movable reference to a commit. The working tree, staging area, and committed history are different states.\n```text\ngit status\ngit diff\ngit add src/main/java/academy/Receipt.java\ngit diff --staged\ngit commit -m \"Validate receipt quantities before calculating totals\"\n```\nStage deliberately and review the staged diff. A coherent commit connects a requirement, implementation, and verification; avoid mixing a feature with unrelated formatting.\n\n## Merges and reviews\nA merge combines histories. Rebasing replays commits and changes their identities, so rewriting shared history needs agreement. Conflict markers show overlapping edits, not which side is correct. Read both intentions, produce a coherent combined behavior, and rerun relevant tests.\n\n## Practice\nIn a disposable training repository, create two branches changing different receipt rules, merge them, and resolve one intentional conflict. Review for correctness, tests, failure behavior, and readability. Explain why a clean textual merge can still introduce a semantic bug. Never discard unrelated working changes to make your own branch easier to manage.",
+      "exercises": [
+        {
+          "id": "m16-l4-check",
+          "type": "multipleChoice",
+          "title": "Git commits, branches, merges, conflicts, and code review: concept check",
+          "instructionMarkdown": "Can a conflict-free merge introduce a behavioral defect?",
+          "choices": [
+            "Yes; textual compatibility does not prove semantic compatibility",
+            "No; Git checks business rules",
+            "Only if a file is binary"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "A clean text merge only proves the lines don't overlap; re-derive what the combined logic actually computes at runtime."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m16-l05-clean-ci-builds-artifacts-quality-gates-and-definition-of-do",
+      "title": "Clean CI builds, artifacts, quality gates, and definition of done",
+      "theoryMarkdown": "# Clean CI builds, artifacts, quality gates, and definition of done\n\n## CI reproduces the development contract\nA clean checkout must resolve controlled dependencies, compile, run checks, and produce an artifact with a traceable revision. CI should invoke the same wrapper commands used locally.\n```text\n./mvnw --batch-mode verify\n```\nFor Gradle use the corresponding wrapper build command. A pipeline can separate fast unit tests from slower integration tests while keeping failures visible. Store reports and artifacts so reviewers can inspect what ran.\n\n## Definition of done\nA code change may also require migration, documentation, compatibility testing, dependency review, and an operational rollback plan. Select checks by risk. A flaky test is a defect in the delivery system; repeatedly rerunning until green hides uncertainty.\n\n## Practice\nConfigure a pipeline on a training repository, intentionally fail a unit test, and confirm no release artifact is promoted. Include Java-version reporting and artifact revision metadata. Explain the difference between building once and promoting the same artifact versus rebuilding independently for production. Keep secrets in the CI secret facility and ensure logs do not print them.",
+      "exercises": [
+        {
+          "id": "m16-l5-check",
+          "type": "multipleChoice",
+          "title": "Clean CI builds, artifacts, quality gates, and definition of done: concept check",
+          "instructionMarkdown": "Why promote the same built artifact between environments?",
+          "choices": [
+            "To eliminate all configuration",
+            "To bypass integration testing",
+            "To keep released bytes traceable to tested bytes"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Compare rebuilding separately per environment against carrying forward the exact bytes that already passed verification."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m16-assessment",
+      "title": "Chapter 16 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 16 assessment\n\nApply this chapter's build, dependency, Git, and CI reasoning to the decision scenario, then repair **Do not swallow build verification failures** with the same insistence on traceable, reproducible verification that the Maven, Gradle, dependency-graph, and CI lessons modeled. Write a prediction for what the broken exit-code check will report before running the debugger, and preserve the intended pass/fail signal when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency. Complete the implementation and external practice described in the five lessons as well. Review the changed source for its contract, then explain the relevant tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m16-judgment",
+          "type": "multipleChoice",
+          "title": "Build Automation, Dependencies, Git, and CI: professional judgment",
+          "instructionMarkdown": "The release artifact differs from the one tested. What process improves traceability?",
+          "choices": [
+            "Build once and promote those verified bytes",
+            "Rebuild with uncontrolled versions",
+            "Disable CI caches only"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m16-coding-lab",
+          "type": "function",
+          "title": "Chapter 16 implementation lab: artifact",
+          "instructionMarkdown": "Implement `artifact`. Trim both inputs and return name-version.jar. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nApply trim to both strings. Empty trimmed components are allowed for this formatting helper; a real build descriptor needs its own validation.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String artifact(String value1, String value2) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "artifact",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              },
+              {
+                "name": "value2",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m16-code-1",
+              "visibility": "public",
+              "arguments": [
+                "app",
+                "1.0"
+              ],
+              "expected": "app-1.0.jar"
+            },
+            {
+              "id": "m16-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                " core ",
+                " 21 "
+              ],
+              "expected": "core-21.jar"
+            },
+            {
+              "id": "m16-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "",
+                "1"
+              ],
+              "expected": "-1.jar"
+            }
+          ],
+          "hints": [
+            "Trim value1 and value2 independently before joining them with a hyphen and the .jar suffix.",
+            "Check the empty-trimmed-component boundary: an empty name or version still produces a valid, if unusual, name-version.jar string."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m16-debug-lab",
+          "type": "debug",
+          "title": "Do not swallow build verification failures",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `FAIL`. The exit-code check currently treats a nonzero code as passing; preserve the surrounding structure while correcting which values count as verification failure, and explain why your fix changes the result instead of hard-coding the print. Output tests verify the printed result; preserving the intended pass/fail contract requires reading the source, not just matching output.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        int exitCode=1; System.out.print(exitCode>=0 ? \"PASS\" : \"FAIL\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m16-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "FAIL",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Only exit code zero signifies successful verification; positive codes are failures."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

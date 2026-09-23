@@ -1,0 +1,232 @@
+{
+  "id": "module-21-reflection-annotations-modules-and-metaprogramming",
+  "title": "Chapter 21: Reflection, Annotations, Modules, and Metaprogramming",
+  "description": "Understand and contain the runtime mechanisms used by frameworks. Learners inspect Class metadata, invoke members with validated types, design annotation retention and processing, explain method handles and bridge methods, diagnose class-loader identity and leaks, and declare JPMS exports, opens, services, and runtime images without weakening boundaries casually.",
+  "lessons": [
+    {
+      "id": "m21-l01-class-objects-and-reflective-type-inspection",
+      "title": "Class objects and reflective type inspection",
+      "theoryMarkdown": "# Class objects and reflective type inspection\n\n## Runtime metadata\nClass<?> describes a runtime type whose precise generic identity is unknown to the caller.\n```java\nClass<?> type = String.class;\nSystem.out.println(type.getName()); // java.lang.String\nfor (var method : type.getDeclaredMethods()) {\n    System.out.println(method.getName());\n}\n```\nT.class, object.getClass(), and Class.forName obtain Class objects in different ways. getMethods includes inherited public methods; getDeclaredMethods reports members declared on that type, including nonpublic ones. Enumeration order is not a stable report contract.\n\n## Scope the mechanism\nReflection is useful for serializers, dependency wiring, and tooling. Ordinary domain code is usually clearer with explicit interfaces. Generic signature metadata may be available, but runtime object checks still cannot generally prove List<String> from its erased class.\n\n## Practice\nInspect a record's components and a class's public constructors. Sort metadata before printing a deterministic report. Compare getMethods and getDeclaredMethods on a subclass. Reject arbitrary class names from untrusted requests; an inspection tool should define an allowlist and access policy.",
+      "exercises": [
+        {
+          "id": "m21-l1-check",
+          "type": "multipleChoice",
+          "title": "Class objects and reflective type inspection: concept check",
+          "instructionMarkdown": "Does getDeclaredMethods include only public inherited methods?",
+          "choices": [
+            "Yes; private methods are erased",
+            "No; it reports methods declared on that type",
+            "Yes; it is identical to getMethods"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Compare what getDeclaredMethods reports for a type itself against what getMethods collects by walking public inherited members."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l02-constructors-fields-methods-method-handles-and-access-contro",
+      "title": "Constructors, fields, methods, method handles, and access control",
+      "theoryMarkdown": "# Constructors, fields, methods, method handles, and access control\n\n## Lookup and invocation fail at runtime\n```java\nvar method = String.class.getMethod(\"substring\", int.class);\nObject result = method.invoke(\"Java\", 1);\nSystem.out.println(result); // ava\n```\nThis fragment requires handling reflective checked exceptions. Method lookup uses exact parameter types, so int.class differs from Integer.class. Invocation can fail because the receiver, arguments, accessibility, or called method is wrong. InvocationTargetException wraps a failure thrown by the target; inspect its cause.\n\n## Access boundaries\nsetAccessible is not universal permission to bypass modules. Strong encapsulation can reject deep access. Opening a package for reflection is a deployment/API decision, not a routine fix for every diagnostic.\n\nMethodHandle represents a typed executable reference with lookup-based access checking. It can support dynamic runtime machinery, but its invocation typing and adaptation rules require care.\n\n## Beyond invoking existing members\nTesting and mocking frameworks such as Mockito usually do not rely on reflective invocation alone to fabricate a mock. They use bytecode-generation libraries (ByteBuddy, or the older cglib and ASM) to synthesize a new proxy subclass at runtime, override its methods, and define that generated class into the JVM. The mock then behaves like ordinary compiled code rather than paying reflective dispatch overhead on every call.\n\n## Practice\nInvoke a valid method, request a nonexistent signature, and invoke a method that throws. Report these as different failures. Compare reflective invocation with an interface call and justify why reflection is necessary before using it in application logic.",
+      "exercises": [
+        {
+          "id": "m21-l2-check",
+          "type": "multipleChoice",
+          "title": "Constructors, fields, methods, method handles, and access control: concept check",
+          "instructionMarkdown": "What wraps an exception thrown by a reflectively invoked target?",
+          "choices": [
+            "InvocationTargetException",
+            "ClassNotFoundException always",
+            "NoSuchMethodException always"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Distinguish a failure inside the invoked method itself from a failure to even locate or access that method."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l03-annotation-targets-retention-processing-and-generated-code",
+      "title": "Annotation targets, retention, processing, and generated code",
+      "theoryMarkdown": "# Annotation targets, retention, processing, and generated code\n\n## Metadata needs a consumer\n```java\n@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)\n@java.lang.annotation.Target(java.lang.annotation.ElementType.METHOD)\n@interface Audited {\n    String action();\n}\n```\nTarget restricts where an annotation may appear. SOURCE retention supports compile-time tooling only; CLASS stores metadata without ordinary runtime reflection visibility; RUNTIME enables reflection. An annotation does not log or validate anything by itself.\n\n## Compile-time versus runtime\nAn annotation processor can generate source and diagnostics during compilation. A runtime framework can inspect annotations and apply behavior through reflection or proxies. These approaches differ in startup cost, error timing, tooling, and visibility. @Inherited has limited class-annotation inheritance semantics; it does not automatically propagate all method/interface annotations.\n\n## Practice\nAnnotate two methods and write a narrow inspector listing their action values. Change retention to SOURCE and predict the result. Define a compile-time validation rule that would be preferable to a late runtime failure. Explain the difference between @Override, which helps the compiler, and your custom annotation, which needs its own consumer.",
+      "exercises": [
+        {
+          "id": "m21-l3-check",
+          "type": "multipleChoice",
+          "title": "Annotation targets, retention, processing, and generated code: concept check",
+          "instructionMarkdown": "Does a custom runtime annotation execute behavior by itself?",
+          "choices": [
+            "Yes; its name selects a JVM action",
+            "It depends on retention: SOURCE runs at compile time and RUNTIME runs automatically at startup",
+            "No; a consumer or framework must interpret it"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "An annotation is metadata attached to program elements; retention only controls how long that metadata survives, not whether anything reads or acts on it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l04-class-loaders-delegation-plugins-identity-and-loader-leaks",
+      "title": "Class loaders, delegation, plugins, identity, and loader leaks",
+      "theoryMarkdown": "# Class loaders, delegation, plugins, identity, and loader leaks\n\n## A name alone is not runtime identity\nThe defining class loader and binary name together identify a runtime class. Two loaders can define classes with identical names and bytes that are not assignment-compatible. This matters for plugins and redeployed applications.\n\n```java\nSystem.out.println(String.class.getClassLoader()); // bootstrap represented as null\nSystem.out.println(Main.class.getClassLoader());\n```\nThe bootstrap loader supplies foundational classes. Other loaders commonly delegate to parents before defining their own classes, though custom policies exist. Class loading, linking, and initialization are related stages; initialization can trigger static code.\n\n## Retention\nA long-lived thread, listener, cache, or ThreadLocal referencing a plugin object can retain its defining loader and associated classes after apparent unloading. Clearing one application field is insufficient if another route remains.\n\n## Practice\nInspect loaders for platform and application classes. Sketch two plugins sharing an API loader but owning implementation loaders. Explain why placing duplicate API classes in both child loaders breaks interoperability. Design explicit plugin shutdown that unregisters listeners and closes resources before releasing loader references.",
+      "exercises": [
+        {
+          "id": "m21-l4-check",
+          "type": "multipleChoice",
+          "title": "Class loaders, delegation, plugins, identity, and loader leaks: concept check",
+          "instructionMarkdown": "What forms runtime class identity?",
+          "choices": [
+            "Package name alone",
+            "Binary name plus defining class loader",
+            "Source filename alone"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Think about why two plugins that each define a class with the same name and bytes can still fail an instanceof check against one another."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l05-jpms-descriptors-requires-exports-opens-services-and-jlink",
+      "title": "JPMS descriptors, requires, exports, opens, services, and jlink",
+      "theoryMarkdown": "# JPMS descriptors, requires, exports, opens, services, and jlink\n\n## Modules declare reliable boundaries\n```java\nmodule academy.app {\n    requires java.net.http;\n    exports academy.api;\n}\n```\nThis belongs in module-info.java. requires expresses module dependencies; exports makes public types in a package available to other modules. opens permits reflective access and can be restricted to selected modules. Exporting a package does not automatically open private internals.\n\n## Services and runtime images\nuses declares consumption of a service interface; provides ... with ... declares providers. ServiceLoader discovers implementations without application code constructing each provider directly. jlink creates a runtime image from a resolved module graph; it is not a general replacement for packaging arbitrary nonmodular dependencies.\n\nClasspath code belongs to unnamed modules and differs from explicit module-path code. Split packages and automatic modules complicate migration; inspect the actual dependency graph.\n\n## Practice\nCreate a tiny API module and implementation module, compile them on a module path, and attempt access to an unexported package. Add a ServiceLoader provider. Explain whether a serializer truly requires opens and limit it to the relevant package and module.",
+      "exercises": [
+        {
+          "id": "m21-l5-check",
+          "type": "multipleChoice",
+          "title": "JPMS descriptors, requires, exports, opens, services, and jlink: concept check",
+          "instructionMarkdown": "What is opens for in JPMS?",
+          "choices": [
+            "Deliberate reflective access",
+            "Automatically exporting every API",
+            "Disabling dependency resolution"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall the difference between making a package's public types usable at compile time and permitting deep reflective access to its members at runtime."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-assessment",
+      "title": "Chapter 21 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 21 assessment\n\nBring together Class metadata inspection, reflective invocation, annotation retention, class-loader identity, and JPMS boundaries to solve the decision scenario and repair **Reflective primitive parameter type**, where a lookup written against the wrong parameter type must be corrected without hiding the mismatch behind a hard-coded result. Write a prediction before running the debugger and preserve the intended reflective operation when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency. Complete the implementation and external practice described in the five lessons as well. Review the changed source for its contract, then explain the relevant tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m21-judgment",
+          "type": "multipleChoice",
+          "title": "Reflection, Annotations, Modules, and Metaprogramming: professional judgment",
+          "instructionMarkdown": "Untrusted text selects arbitrary reflection targets. What boundary is needed?",
+          "choices": [
+            "A narrowly validated allowed set of types and operations",
+            "setAccessible everywhere",
+            "Broad catches around all calls"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m21-coding-lab",
+          "type": "function",
+          "title": "Inspect a record's runtime components",
+          "instructionMarkdown": "Implement componentNames(String selector). Use Class.getRecordComponents to report component names in declaration order for the provided nested Task and Owner records. selector Task -> id,title; Owner -> name; any other text -> empty string. Keep the nested records and inspect their metadata rather than hard-coding the outputs. Tests verify results; source review checks actual reflection.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    record Task(long id, String title) {}\n    record Owner(String name) {}\n    public static String componentNames(String selector) {\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "componentNames",
+            "parameters": [
+              {
+                "name": "selector",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m21-components-1",
+              "visibility": "public",
+              "arguments": [
+                "Task"
+              ],
+              "expected": "id,title"
+            },
+            {
+              "id": "m21-components-2",
+              "visibility": "public",
+              "arguments": [
+                "Owner"
+              ],
+              "expected": "name"
+            },
+            {
+              "id": "m21-components-3",
+              "visibility": "hidden",
+              "arguments": [
+                "task"
+              ],
+              "expected": ""
+            },
+            {
+              "id": "m21-components-4",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": ""
+            }
+          ],
+          "hints": [
+            "Call getRecordComponents() on the Class object for the matched record and read each component's name in declaration order, rather than hard-coding the two known selectors.",
+            "Make sure an unmatched or case-mismatched selector (such as lowercase \"task\") falls through to the empty-string result instead of throwing or matching accidentally."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m21-debug-lab",
+          "type": "debug",
+          "title": "Reflective primitive parameter type",
+          "instructionMarkdown": "The supplied program looks up `substring` with `Integer.class` as the parameter type, but `String.substring` is declared with the primitive `int` parameter, so the reflective lookup fails before it can run. Repair the lookup so it matches the declared signature and the program writes exactly `ava`. Preserve the reflective invocation and explain why the parameter type mismatch changes the result; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended reflective operation requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        var method=String.class.getMethod(\"substring\",Integer.class);System.out.print(method.invoke(\"Java\",1));\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m21-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "ava",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The declared parameter is primitive int; reflective lookup requires that Class."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

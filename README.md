@@ -53,6 +53,17 @@ npm run dist   # platform installer
 
 Installer output is written to `release/`. The manual packaging workflow builds Windows, macOS, and Linux artifacts. Public trusted releases still require repository-owner signing credentials and an update distribution endpoint.
 
-The repository includes a small canonical import fixture at `learnpack-spec/examples/java-foundations.learnpack` and a comprehensive, theory-first Java 21 source course under `examples/`. The latter contains 20 chapters, 135 focused lessons, chapter-aligned assessments, six cumulative milestones, and a final capstone. Regenerate it deterministically with `node scripts/generate-java-curriculum.mjs` before packaging it yourself as a `.learnpack` archive.
+The repository includes a small canonical import fixture at `learnpack-spec/examples/java-foundations.learnpack` and a full Java 21 developer academy under `examples/`. The academy contains 25 chapters, 152 sequential lessons, 208 knowledge checks and executable labs, five cumulative portfolio phases, and a production-minded capstone. It progresses from first compilation through the JVM, language fundamentals, algorithms, object design, testing, builds, concurrency, networking, SQL/JDBC, architecture, security, Spring/JPA, distributed systems, and operations.
+
+Every file under `examples/content/` and `examples/projects/` is independently authored curriculum and is the source of truth. There is no curriculum-content generator. The pack distinguishes runnable standard-library exercises from external database/framework/deployment work and reviewer-assessed portfolio requirements. Checkpoints test behavior; they do not certify professional mastery.
+
+Package the reviewed files using the PowerShell commands in `NOTES`, from `examples/`:
+
+```powershell
+Compress-Archive -Path manifest.json,content,projects -DestinationPath ..\my-course.zip
+Move-Item ..\my-course.zip ..\my-course.learnpack
+```
+
+The resulting `my-course.learnpack` is validated against the current JSON by the LearnPack tests. `npm run curriculum:package` is an alternative archive-only helper; it never changes lesson content. `node scripts/verify-java-curriculum.mjs` checks instructor reference solutions for all function labs, debug repairs, and project cases in the locally available Java 21 Docker image. Instructor fixtures are excluded from the pack. This verifies those cases, not every illustrative snippet or external framework integration.
 
 To author a course with any AI assistant, use LearnLocal's prompt generator and follow the [LearnPack authoring guide](docs/learnpack-authoring.md). Choose the programming language and describe what you want to learn or build; the AI infers the remaining course and runtime metadata. It produces all separately labeled JSON files in one response. Save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block, and package the files into the `.learnpack` archive yourself.

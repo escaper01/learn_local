@@ -1,0 +1,254 @@
+{
+  "id": "module-17-concurrency-and-asynchronous-programming",
+  "title": "Chapter 17: Concurrency and Asynchronous Programming",
+  "description": "Reason about concurrency from ownership and happens-before guarantees. Learners reproduce races, separate atomicity from visibility, guard invariants with the appropriate primitive, propagate interruption and cancellation, compose CompletableFuture stages on controlled executors, use virtual threads for suitable blocking workloads, bound queues, and shut every executor down deliberately.",
+  "lessons": [
+    {
+      "id": "m17-l01-threads-shared-memory-races-visibility-and-happens-before",
+      "title": "Threads, shared memory, races, visibility, and happens-before",
+      "theoryMarkdown": "# Threads, shared memory, races, visibility, and happens-before\n\n## Concurrency exposes shared state\nTwo threads can both read counter=0, compute 1, and write 1; one increment is lost. count++ is a read-modify-write sequence even though it is one Java expression.\n```java\nThread worker = new Thread(() -> System.out.println(\"worker\"));\nworker.start();\nworker.join();\nSystem.out.println(\"finished\");\n```\nPlace this in a method declaring InterruptedException. start schedules a separate execution; calling run directly executes on the caller. join waits for termination and provides visibility of the completed thread's actions.\n\n## Visibility and ordering\nHappens-before describes guaranteed visibility between actions, including monitor release/acquire, volatile write/read, thread start, and successful join. Observing a race “work” in repeated runs does not establish a guarantee. sleep is not synchronization.\n\n## Practice\nImplement two workers incrementing a shared counter, predict the ideal total, and explain a possible lost-update interleaving. Then confine each worker's total locally and combine after join. Distinguish concurrency from parallelism: overlapping progress does not require simultaneous CPU execution.",
+      "exercises": [
+        {
+          "id": "m17-l1-check",
+          "type": "multipleChoice",
+          "title": "Threads, shared memory, races, visibility, and happens-before: concept check",
+          "instructionMarkdown": "Does Thread.sleep publish shared writes reliably?",
+          "choices": [
+            "Yes; all caches flush during sleep",
+            "Yes; a longer sleep proves safety",
+            "No; sleeping is not a synchronization relationship"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall which actions establish happens-before edges (start, join, monitor release/acquire, volatile write/read) and notice sleep's absence from that list."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m17-l02-synchronized-volatile-locks-conditions-and-atomics",
+      "title": "synchronized, volatile, locks, conditions, and atomics",
+      "theoryMarkdown": "# synchronized, volatile, locks, conditions, and atomics\n\n## Guard one invariant consistently\n```java\nfinal class Counter {\n    private int value;\n    synchronized void increment() { value++; }\n    synchronized int value() { return value; }\n}\n```\nBoth access paths acquire the same monitor. Synchronization provides mutual exclusion and visibility. Synchronizing writes but leaving reads unprotected can still violate the visibility contract.\n\nvolatile makes reads/writes visible with ordering guarantees but does not make count++ atomic. AtomicInteger.incrementAndGet handles one atomic update. Several related atomics do not automatically protect a multi-field invariant such as transferring a balance.\n\nReentrantLock supports interruptible/timed acquisition; unlock belongs in finally. Conditions require a loop checking the predicate because waking does not guarantee the desired state. Acquire multiple locks in a consistent order to avoid deadlock cycles.\n\n## Practice\nRepair a counter with synchronized, then AtomicInteger, and explain both contracts. Design a two-field invariant and show why independent atomic increments are insufficient. Add a bounded lock acquisition policy. Do not hold locks across slow network operations without a compelling ownership reason.",
+      "exercises": [
+        {
+          "id": "m17-l2-check",
+          "type": "multipleChoice",
+          "title": "synchronized, volatile, locks, conditions, and atomics: concept check",
+          "instructionMarkdown": "Thread 1 locks accountA then waits for accountB; Thread 2 locks accountB then waits for accountA. What is the risk, and what practice from this lesson avoids it?",
+          "choices": [
+            "No risk; ReentrantLock detects and prevents this automatically",
+            "Deadlock is possible; avoid it by always acquiring the two locks in the same consistent order",
+            "The threads will simply queue in the order they called lock()"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Picture Thread 1 holding accountA while it waits for accountB at the exact moment Thread 2 holds accountB while waiting for accountA."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m17-l03-executors-callable-future-interruption-cancellation-and-shut",
+      "title": "Executors, Callable, Future, interruption, cancellation, and shutdown",
+      "theoryMarkdown": "# Executors, Callable, Future, interruption, cancellation, and shutdown\n\n## Own task execution and shutdown\n```java\ntry (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {\n    var result = pool.submit(() -> 6 * 7);\n    System.out.println(result.get()); // 42\n}\n```\nThis Java 21 example uses ExecutorService as AutoCloseable. Callable returns a value and may throw; Future.get waits and can report ExecutionException or InterruptedException. A timeout on get limits the wait, not automatically the lifetime of the task; cancellation needs separate handling.\n\n## Cooperative cancellation\nTasks should react to interruption during blocking calls or check interrupted status during long computations. Catching InterruptedException usually requires propagating it or restoring status with Thread.currentThread().interrupt(). Swallowing it can defeat shutdown.\n\nPool size is not the only bound: common executor factories use queues that may grow without limit. Production submission needs queue/admission limits and a rejection policy. Closing an executor waits for work; tasks ignoring cancellation can delay shutdown.\n\n## Practice\nSubmit a failing task and inspect the original cause through ExecutionException. Add a timeout, cancel outstanding work, and verify resources close. Explain who owns a supplied executor and why a helper should not unexpectedly shut down a caller-owned pool.",
+      "exercises": [
+        {
+          "id": "m17-l3-check",
+          "type": "multipleChoice",
+          "title": "Executors, Callable, Future, interruption, cancellation, and shutdown: concept check",
+          "instructionMarkdown": "Does Future.get(timeout) automatically stop the task on timeout?",
+          "choices": [
+            "No; cancellation and task cooperation need separate handling",
+            "Yes; the worker is forcibly killed",
+            "Yes; its executor always shuts down"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Distinguish what happens to the caller waiting on get from what happens to the still-running task once that wait times out."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m17-l04-completablefuture-composition-errors-timeouts-and-executors",
+      "title": "CompletableFuture composition, errors, timeouts, and executors",
+      "theoryMarkdown": "# CompletableFuture composition, errors, timeouts, and executors\n\n## Compose eventual results\n```java\nvar result = java.util.concurrent.CompletableFuture\n    .supplyAsync(() -> 21)\n    .thenApply(n -> n * 2)\n    .thenApply(Object::toString);\nSystem.out.println(result.join()); // 42\n```\nthenApply transforms a value; thenCompose flattens a stage returning another future; thenCombine combines independent results. Non-async continuations may execute on the completing thread. Async methods without an explicit executor generally use the shared common pool.\n\n## Failure and lifetime\nexceptionally maps a failure to a fallback; handle sees both result and failure; whenComplete observes completion but can itself fail. Do not turn every error into a success value that conceals outages. join wraps exceptional completion in CompletionException.\n\nTimeout completion and cancellation do not necessarily stop underlying I/O. Propagate deadlines to the actual operation and release its resources. Avoid blocking inside stages that need the same small executor to make progress.\n\n## Practice\nCombine two independent calculations and implement a dependent third using thenCompose. Inject one failure and prove which stages run. Provide an explicit executor, close it after completion, and explain the difference between observing an error and recovering from it.",
+      "exercises": [
+        {
+          "id": "m17-l4-check",
+          "type": "multipleChoice",
+          "title": "CompletableFuture composition, errors, timeouts, and executors: concept check",
+          "instructionMarkdown": "Which stage flattens a function returning another future?",
+          "choices": [
+            "thenApply alone",
+            "whenComplete",
+            "thenCompose"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Compare a continuation returning a plain value to one returning another CompletableFuture, and ask which combinator avoids a nested future."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m17-l05-virtual-threads-concurrent-collections-semaphores-and-latche",
+      "title": "Virtual threads, concurrent collections, semaphores, and latches",
+      "theoryMarkdown": "# Virtual threads, concurrent collections, semaphores, and latches\n\n## Virtual threads suit blocking workloads\n```java\ntry (var executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {\n    var result = executor.submit(() -> \"loaded\");\n    System.out.println(result.get());\n}\n```\nVirtual threads are supported in Java 21. They reduce the cost of many waiting threads, not the CPU cost of computation. Do not pool virtual threads merely to limit database access; bound the scarce downstream resource with a semaphore or connection pool. Java 21 has pinning limitations, including blocking while holding certain monitors, so measure the target runtime.\n\n## Concurrent structures\nConcurrentHashMap supports thread-safe operations, but get-then-put is still a compound protocol; use compute/merge where appropriate. BlockingQueue combines transfer with waiting. CountDownLatch waits for a fixed count; Semaphore bounds permits. CopyOnWriteArrayList favors frequent iteration and rare mutation because each write copies storage.\n\n## Practice\nDesign 100 independent blocking tasks with at most 5 simultaneous dependency calls. Release permits in finally and preserve interruption. Explain how unbounded task submission can still consume excessive memory despite cheap virtual threads. Avoid timing-sensitive tests based only on sleeps.",
+      "exercises": [
+        {
+          "id": "m17-l5-check",
+          "type": "multipleChoice",
+          "title": "Virtual threads, concurrent collections, semaphores, and latches: concept check",
+          "instructionMarkdown": "Why bound downstream calls when using virtual threads?",
+          "choices": [
+            "Virtual threads remove database pool limits",
+            "Cheap waiting threads do not make the downstream service unlimited",
+            "Virtual threads always serialize execution"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Separate the cost of holding a waiting thread from the fixed capacity of the downstream service or connection pool it eventually calls."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m17-assessment",
+      "title": "Chapter 17 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 17 assessment\n\nApply this chapter's happens-before and ownership reasoning to the decision scenario, then repair **Restore interruption** with the same cooperative-cancellation discipline the executor, CompletableFuture, and virtual-thread lessons modeled. Write a prediction for what the broken interrupted-status check will report before running the debugger, and preserve the intended interruption contract when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency. Complete the implementation and external practice described in the five lessons as well. Review the changed source for its contract, then explain the relevant tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m17-judgment",
+          "type": "multipleChoice",
+          "title": "Concurrency and Asynchronous Programming: professional judgment",
+          "instructionMarkdown": "A task ignores interruption and blocks shutdown. What contract is missing?",
+          "choices": [
+            "Cooperative cancellation and bounded lifecycle management",
+            "A larger integer accumulator",
+            "A volatile reference alone"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m17-coding-lab",
+          "type": "function",
+          "title": "Join task results without shared mutation",
+          "instructionMarkdown": "Implement parallelSum(int[] values). Submit one Callable<Integer> per supplied value to a Java 21 ExecutorService, collect all Future results, and return their sum. Input is non-null, has at most 1000 values, and the sum fits int. Close the executor; on interruption restore the interrupt and throw IllegalStateException with the cause; wrap other task failures with their cause. Automated tests verify results only: review executor ownership, actual submission, and cancellation behavior separately.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int parallelSum(int[] values) {\n        // Submit, collect, and close; handle interruption deliberately.\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "parallelSum",
+            "parameters": [
+              {
+                "name": "values",
+                "type": "int[]"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m17-sum-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  1,
+                  2,
+                  3
+                ]
+              ],
+              "expected": 6
+            },
+            {
+              "id": "m17-sum-2",
+              "visibility": "public",
+              "arguments": [
+                []
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m17-sum-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  -4,
+                  5
+                ]
+              ],
+              "expected": 1
+            },
+            {
+              "id": "m17-sum-4",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  7
+                ]
+              ],
+              "expected": 7
+            },
+            {
+              "id": "m17-sum-5",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  100,
+                  -100,
+                  3,
+                  3
+                ]
+              ],
+              "expected": 6
+            }
+          ],
+          "hints": [
+            "Submit one Callable per array element before calling get on any Future, so all tasks are running concurrently rather than sequentially.",
+            "On InterruptedException, restore the interrupt with Thread.currentThread().interrupt() and wrap it in IllegalStateException; unwrap other Future failures' causes before rethrowing."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m17-debug-lab",
+          "type": "debug",
+          "title": "Restore interruption",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `true`. The catch block currently swallows InterruptedException without restoring the interrupted status; preserve the surrounding try/catch structure while making the thread's interrupted flag observable again, and explain why your fix changes the result instead of hard-coding the print. Output tests verify the printed result; preserving the intended interruption contract requires reading the source, not just matching output.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        Thread.currentThread().interrupt();try{Thread.sleep(1);}catch(InterruptedException e){}System.out.print(Thread.currentThread().isInterrupted());\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m17-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "true",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The catch must restore the interrupted status when it cannot propagate the exception."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

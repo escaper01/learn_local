@@ -1,0 +1,15 @@
+{
+  "id": "phase-2-portfolio",
+  "title": "Portfolio Phase 2: Chapters 6-10",
+  "descriptionMarkdown": "# Phase 2 — Issue tracker and priority index\n\n## Graded checkpoint\nChapter 10 accepts id|priority|title records, rejects bad or repeated IDs, and sorts by descending priority with an ascending-ID tie-breaker. Preserve all different tasks even when priorities match. Error counts and order are part of the contract.\n\n## Independent application\nBuild an in-memory issue tracker using records for transparent values, an enum for lifecycle, and a sealed result family where alternatives carry different data. Expose a repository role and implement it with collections chosen for actual operations. Add dependencies between issues and a traversal that identifies reachable prerequisites. Specify a policy for cycles rather than hanging indefinitely.\n\n## Required evidence\n- Equality and hashing tests for IDs used as map keys.\n- Comparator tests with ties and extreme values; show why priority alone is not identity.\n- A type-safe reusable helper without raw types or blanket unchecked suppressions.\n- Complexity notes for lookup, ordered reports, dependency traversal, and insertion.\n- Traces for empty input, duplicate records, disconnected nodes, and cycles.\n\n## Review and completion\nDemonstrate two repository implementations behind the same behavioral contract. A reviewer adds a workflow state or changes priority ordering; identify the affected code before editing it. Explain the cost of each data structure and defend composition versus inheritance. A passing index task does not assess the complete graph feature or architecture; those require repository review.",
+  "learningObjectives": [
+    "Model closed workflow choices and transparent immutable issue values honestly",
+    "Substitute repository implementations while preserving equality, hashing, and ordering contracts",
+    "Use generics to preserve result and repository type relationships without raw types",
+    "Choose collections from ordering, uniqueness, lookup, mutation, and ownership requirements",
+    "Analyze and test search, sorting, dependency traversal, and worst-case behavior"
+  ],
+  "checkpointExerciseIds": [
+    "m10-phase-project"
+  ]
+}

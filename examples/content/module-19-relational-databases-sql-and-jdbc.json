@@ -1,0 +1,240 @@
+{
+  "id": "module-19-relational-databases-sql-and-jdbc",
+  "title": "Chapter 19: Relational Databases, SQL, and JDBC",
+  "description": "Design durable relational state and access it safely from Java. Learners normalize a schema with keys and constraints, write joins and aggregates, read query plans and index tradeoffs, evolve schemas through migrations, bind values with PreparedStatement, manage pooled connection ownership, and test commits, rollbacks, isolation anomalies, locking, and deadlock recovery.",
+  "lessons": [
+    {
+      "id": "m19-l01-tables-keys-constraints-relationships-and-normalization",
+      "title": "Tables, keys, constraints, relationships, and normalization",
+      "theoryMarkdown": "# Tables, keys, constraints, relationships, and normalization\n\n## Relational structure encodes rules\n```sql\nCREATE TABLE task (\n  id BIGINT PRIMARY KEY,\n  title VARCHAR(200) NOT NULL,\n  status VARCHAR(20) NOT NULL,\n  CHECK (status IN ('OPEN', 'DONE'))\n);\n```\nThe SQL dialect may require adjustments in an external database lab. A primary key identifies each row; a foreign key references another table; UNIQUE prevents duplicates; NOT NULL and CHECK constrain values. Application validation improves feedback, while database constraints protect all writers.\n\n## Normalization\nStoring a customer's address repeatedly on current orders creates update anomalies if all copies must change together. Separate facts according to their dependencies. Historical order-address snapshots may intentionally remain separate because they represent what was true at purchase time. Normalization is about meaning, not splitting every field into another table.\n\n## Practice\nModel tasks, users, assignments, and tags, including a many-to-many link table. Choose deletion behavior for referenced users. Insert duplicate keys and invalid statuses to observe constraints. Explain why a Java check followed by insert cannot alone prevent concurrent duplicate creation.",
+      "exercises": [
+        {
+          "id": "m19-l1-check",
+          "type": "multipleChoice",
+          "title": "Tables, keys, constraints, relationships, and normalization: concept check",
+          "instructionMarkdown": "Why retain a database unique constraint after application validation?",
+          "choices": [
+            "Concurrent writers can race past application checks",
+            "Validation prevents all concurrency",
+            "Constraints exist only for documentation"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Picture two requests passing an application-level uniqueness check at the same instant, then ask what stops both from inserting."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m19-l02-select-joins-grouping-indexes-and-query-plans",
+      "title": "SELECT, joins, grouping, indexes, and query plans",
+      "theoryMarkdown": "# SELECT, joins, grouping, indexes, and query plans\n\n## Query logical stages\n```sql\nSELECT u.id, COUNT(t.id) AS open_count\nFROM app_user u\nLEFT JOIN task t ON t.owner_id = u.id AND t.status = 'OPEN'\nGROUP BY u.id\nORDER BY u.id;\n```\nThe LEFT JOIN keeps users without open tasks. Moving the status condition into WHERE can eliminate unmatched rows and change the result. COUNT(t.id) counts non-null matched IDs; COUNT(*) would also count the retained unmatched row.\n\nWHERE filters rows before grouping; HAVING filters groups. ORDER BY is required for contractual result order. Pagination needs a stable ordering and a strategy for concurrent changes; offsets can become expensive at scale.\n\n## Indexes and plans\nAn index accelerates supported access paths while adding storage and write work. Column order and selectivity matter for composite indexes. Read EXPLAIN output against representative data rather than assuming an index is used.\n\n## Practice\nSeed users with zero, one, and several tasks. Compare inner and left joins. Add an index for owner/status queries and inspect the plan before and after. Explain why selecting every column can increase I/O and coupling.",
+      "exercises": [
+        {
+          "id": "m19-l2-check",
+          "type": "multipleChoice",
+          "title": "SELECT, joins, grouping, indexes, and query plans: concept check",
+          "instructionMarkdown": "How can a WHERE condition on the right table change a LEFT JOIN?",
+          "choices": [
+            "It always adds missing rows",
+            "It has no effect on join results",
+            "It can remove the unmatched rows"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Trace whether the filter runs during the join (in the ON clause) or after it (in WHERE), and what happens to an unmatched row's null columns in each case."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m19-l03-insert-update-delete-affected-rows-and-schema-evolution",
+      "title": "INSERT, UPDATE, DELETE, affected rows, and schema evolution",
+      "theoryMarkdown": "# INSERT, UPDATE, DELETE, affected rows, and schema evolution\n\n## Every modification needs a target\n```sql\nUPDATE task SET status = 'DONE'\nWHERE id = 42 AND status = 'OPEN';\n```\nThe condition includes the expected prior state. An affected-row count of zero may mean absence or a conflicting state; define how the application distinguishes them. Forgetting WHERE can update every row. Verify destructive statements in a disposable test database.\n\nINSERT supplies rows subject to constraints. DELETE removes rows and may trigger foreign-key restrictions or cascades. Upsert syntax and behavior vary by database; do not assume one dialect's statement is portable.\n\n## Evolve schemas safely\nVersion migrations and test against a previous populated schema. Adding a non-null column to existing data requires a backfill/default strategy. For rolling deployments, add compatible structures first, migrate data, switch readers/writers, and remove old structures only after old code is gone.\n\n## Practice\nCreate and complete a task while checking row counts. Attempt a forbidden delete under a foreign key. Write a migration adding priority and test old rows receive a meaningful value. Include recovery and backup assumptions; automatically dropping data is not a safe rollback plan.",
+      "exercises": [
+        {
+          "id": "m19-l3-check",
+          "type": "multipleChoice",
+          "title": "INSERT, UPDATE, DELETE, affected rows, and schema evolution: concept check",
+          "instructionMarkdown": "Why check an update's affected-row count?",
+          "choices": [
+            "It replaces transaction handling",
+            "The expected row or prior state may not exist",
+            "It is always exactly one"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "An UPDATE's WHERE clause encodes an expected prior state; consider what a zero-row result tells you versus a one-row result."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m19-l04-datasource-connections-preparedstatement-resultset-and-pooli",
+      "title": "DataSource, connections, PreparedStatement, ResultSet, and pooling",
+      "theoryMarkdown": "# DataSource, connections, PreparedStatement, ResultSet, and pooling\n\n## Separate SQL text from values\n```java\nString sql = \"SELECT title FROM task WHERE id = ?\";\ntry (var connection = dataSource.getConnection();\n     var statement = connection.prepareStatement(sql)) {\n    statement.setLong(1, id);\n    try (var rows = statement.executeQuery()) {\n        if (rows.next()) System.out.println(rows.getString(\"title\"));\n    }\n}\n```\nThis fragment requires an initialized DataSource and a JDBC driver for an external database. Parameters are one-based. Binding values handles types and prevents the value from becoming SQL syntax. Placeholders cannot replace table names or sort directions; whitelist such structural choices.\n\n## Resource and result contracts\nClosing a pooled connection generally returns it to the pool. Never keep it in a global field across unrelated requests. ResultSet starts before the first row. Primitive getters may require wasNull to distinguish SQL NULL from a default primitive value; use appropriate nullable retrieval.\n\n## Practice\nImplement findById and a bounded list query. Test malicious-looking text as a bound value. Verify no resources leak on mapping failure. Document query timeout and pool limits. An in-memory repository fake does not validate driver behavior or SQL syntax.",
+      "exercises": [
+        {
+          "id": "m19-l4-check",
+          "type": "multipleChoice",
+          "title": "DataSource, connections, PreparedStatement, ResultSet, and pooling: concept check",
+          "instructionMarkdown": "Can a prepared-statement value placeholder select an arbitrary table name?",
+          "choices": [
+            "No; structural SQL choices need controlled construction",
+            "Yes; every SQL token is a bound value",
+            "Only if it is the first placeholder"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Ask whether a bound parameter becomes a literal value or is parsed as SQL syntax, and where a table or column name would need to go instead."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m19-l05-transactions-isolation-anomalies-locks-rollback-and-deadlock",
+      "title": "Transactions, isolation anomalies, locks, rollback, and deadlocks",
+      "theoryMarkdown": "# Transactions, isolation anomalies, locks, rollback, and deadlocks\n\n## One invariant, one transaction\nA transfer must debit and credit atomically. JDBC connections commonly begin in auto-commit mode; disable it for multi-step work.\n```java\ntry (var connection = dataSource.getConnection()) {\n    connection.setAutoCommit(false);\n    try {\n        debit(connection);\n        credit(connection);\n        connection.commit();\n    } catch (java.sql.SQLException failure) {\n        try { connection.rollback(); }\n        catch (java.sql.SQLException rollback) { failure.addSuppressed(rollback); }\n        throw failure;\n    }\n}\n```\nThis is a SQL-failure sketch. A complete implementation must also define rollback for application exceptions and restore connection state according to pool policy.\n\n## Isolation and locks\nIsolation levels affect dirty reads, nonrepeatable reads, and phantoms according to the database's actual implementation. Optimistic version checks detect competing updates; pessimistic locks block other operations. Deadlocks can still occur; consistent access order and bounded retry of the whole safe transaction can help.\n\n## Practice\nInject failure between debit and credit and prove neither persists. Run competing updates from two connections. Keep network calls outside the transaction when possible. Explain why retrying only the final statement can violate the original transaction's assumptions.",
+      "exercises": [
+        {
+          "id": "m19-l5-check",
+          "type": "multipleChoice",
+          "title": "Transactions, isolation anomalies, locks, rollback, and deadlocks: concept check",
+          "instructionMarkdown": "What must a failed two-step transfer preserve?",
+          "choices": [
+            "Only the credit must commit",
+            "A catch block alone guarantees consistency",
+            "Neither side commits a partial transfer"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Trace the debit and credit as one unit of work and ask what rollback must undo if the second statement never runs."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m19-assessment",
+      "title": "Chapter 19 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 19 assessment\n\nApply this chapter's schema, transaction, and JDBC reasoning to the decision scenario, then repair **SQL NULL is not the string NULL** with the same attention to constraints and query semantics the joins, updates, and prepared-statement lessons modeled. Write a prediction for what the broken SQL predicate will produce before running the debugger, and preserve the intended query semantics when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency. Complete the implementation and external practice described in the five lessons as well. Review the changed source for its contract, then explain the relevant tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m19-judgment",
+          "type": "multipleChoice",
+          "title": "Relational Databases, SQL, and JDBC: professional judgment",
+          "instructionMarkdown": "Two writers both pass a uniqueness check. What is the final protection?",
+          "choices": [
+            "A database constraint with defined conflict handling",
+            "A larger application cache",
+            "A single validation method name"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m19-coding-lab",
+          "type": "function",
+          "title": "Chapter 19 implementation lab: placeholders",
+          "instructionMarkdown": "Implement `placeholders`. Return count comma-separated question marks; non-positive counts produce an empty string. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nCounts are at most 10000; nonpositive inputs return empty text. This helper does not validate SQL execution: complete the JDBC external lab separately.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String placeholders(int value1) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "placeholders",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m19-code-1",
+              "visibility": "public",
+              "arguments": [
+                3
+              ],
+              "expected": "?,?,?"
+            },
+            {
+              "id": "m19-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                0
+              ],
+              "expected": ""
+            },
+            {
+              "id": "m19-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                -2
+              ],
+              "expected": ""
+            },
+            {
+              "id": "m19-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                1
+              ],
+              "expected": "?"
+            },
+            {
+              "id": "m19-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                5
+              ],
+              "expected": "?,?,?,?,?"
+            }
+          ],
+          "hints": [
+            "Build the count question marks and join them with commas, without a leading or trailing separator.",
+            "Return an empty string for zero or negative counts before attempting to build any placeholders."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m19-debug-lab",
+          "type": "debug",
+          "title": "SQL NULL is not the string NULL",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `SELECT id FROM task WHERE owner_id IS NULL`. The query currently compares owner_id to NULL with `=`, which SQL never evaluates as true; preserve the surrounding string construction while correcting the null predicate, and explain why your fix changes the result instead of hard-coding the print. Output tests verify the printed result; preserving the intended query semantics requires reading the source, not just matching output.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        String sql=\"SELECT id FROM task WHERE owner_id = NULL\";System.out.print(sql);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m19-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "SELECT id FROM task WHERE owner_id IS NULL",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Use SQL's null predicate, not equality."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

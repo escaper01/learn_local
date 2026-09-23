@@ -1,0 +1,256 @@
+{
+  "id": "module-11-exceptions-validation-and-failure-design",
+  "title": "Chapter 11: Exceptions, Validation, and Failure Design",
+  "description": "Treat failures as API behavior rather than afterthoughts. Learners choose checked or unchecked semantics from caller recovery, translate infrastructure errors without losing causes, read cause and suppressed chains, establish resource ownership with try-with-resources, and design validation and user messages that aid correction without exposing sensitive internals.",
+  "lessons": [
+    {
+      "id": "m11-l01-throwable-hierarchy-and-checked-versus-unchecked-exceptions",
+      "title": "Throwable hierarchy and checked versus unchecked exceptions",
+      "theoryMarkdown": "# Throwable hierarchy and checked versus unchecked exceptions\n\n## Failure categories\nThrowable is the root. Error generally represents conditions ordinary application code should not attempt to recover from. Exception includes checked exceptions and RuntimeException subclasses. Checked exceptions must be caught or declared; unchecked does not mean harmless.\n```java\nstatic String load(java.nio.file.Path path) throws java.io.IOException {\n    return java.nio.file.Files.readString(path);\n}\n```\nThe signature tells callers that file access can fail. A caller able to choose another file may recover; a service boundary may translate the failure into an application-level response. IllegalArgumentException commonly indicates a violated input contract.\n\n## Design decision\nChecked exceptions can make expected recovery obligations visible, but blindly wrapping every failure into RuntimeException discards that benefit. Conversely, forcing catches for programming defects often leads to meaningless handlers. Select a policy based on the caller's useful response and the abstraction boundary.\n\n## Practice\nClassify file missing, invalid domain amount, index bug, exhausted heap, and interrupted wait. Write the recovery action or explain why recovery belongs elsewhere. Never catch Throwable just to continue; it can hide serious runtime conditions and cancellation.",
+      "exercises": [
+        {
+          "id": "m11-l1-check",
+          "type": "multipleChoice",
+          "title": "Throwable hierarchy and checked versus unchecked exceptions: concept check",
+          "instructionMarkdown": "Which failure must generally be caught or declared by a caller?",
+          "choices": [
+            "Every RuntimeException",
+            "Every Error",
+            "A checked IOException"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Checked exceptions declared with throws must be caught or declared by the caller; RuntimeException and Error carry no such compiler-enforced obligation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l02-throwing-domain-specific-failures-and-preserving-causes",
+      "title": "Throwing domain-specific failures and preserving causes",
+      "theoryMarkdown": "# Throwing domain-specific failures and preserving causes\n\n## Name the failed domain operation\nA useful exception explains what operation failed, identifies safe context, and retains the original cause.\n```java\nfinal class ReportLoadException extends RuntimeException {\n    ReportLoadException(String reportId, Throwable cause) {\n        super(\"Could not load report \" + reportId, cause);\n    }\n}\n```\nTranslate IOException into this exception where the application boundary speaks in reports rather than files. Do not put file contents, passwords, tokens, or arbitrary user input into the message.\n\n## Failure versus absence\nAn empty search result is not automatically an exception. Optional may express a legitimate missing item; failure to contact storage is a different event. Returning an empty collection after a database outage makes “no data” indistinguishable from “could not determine data.”\n\nA mutation should validate first, then change state. If several steps can fail, define rollback or atomicity rather than leaving half a business operation complete.\n\n## Practice\nDesign exceptions for unknown task, forbidden transition, and unavailable repository. State which are recoverable by the user. Simulate a nested IOException and print the cause chain. Test that failed withdrawal leaves balance unchanged and that a diagnostic contains no secret input.",
+      "exercises": [
+        {
+          "id": "m11-l2-check",
+          "type": "multipleChoice",
+          "title": "Throwing domain-specific failures and preserving causes: concept check",
+          "instructionMarkdown": "Why retain the original exception as a cause?",
+          "choices": [
+            "To hide its stack trace",
+            "To preserve diagnostic evidence across abstraction translation",
+            "To force automatic retry"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "The cause constructor parameter links the new exception to the original one so its message and stack trace remain reachable through getCause() after translation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l03-catching-propagation-multi-catch-and-reading-stack-traces",
+      "title": "Catching, propagation, multi-catch, and reading stack traces",
+      "theoryMarkdown": "# Catching, propagation, multi-catch, and reading stack traces\n\n## Catch at a useful boundary\n```java\ntry {\n    int count = Integer.parseInt(input);\n    process(count);\n} catch (NumberFormatException error) {\n    System.out.println(\"Enter a whole number\");\n}\n```\nThis handler knows how to correct the input. Catching Exception around the entire application would also catch unrelated defects in process and could mislabel them as parsing problems. Narrow the try block when different operations require different handling.\n\n## Trace evidence\nRead the exception type and message, then caused-by sections. The first relevant application frame identifies where to investigate; framework frames explain the path but may not be the defect. Rethrowing the same exception retains its stack information. Constructing a new exception without its cause loses evidence.\n\nMulti-catch handles alternatives with the same response, such as IOException | SecurityException. Subtype and supertype alternatives cannot be combined redundantly. finally runs on ordinary exits, but returning from finally can suppress a pending return or exception and should be avoided.\n\n## Practice\nCreate a three-method call chain that fails at its deepest point. Locate every application frame. Translate the exception once and verify the original cause remains visible. Explain why logging at every layer produces multiple reports of one failure.",
+      "exercises": [
+        {
+          "id": "m11-l3-check",
+          "type": "multipleChoice",
+          "title": "Catching, propagation, multi-catch, and reading stack traces: concept check",
+          "instructionMarkdown": "Why narrow a try block around parsing?",
+          "choices": [
+            "Unrelated failures should not be mislabeled as invalid text",
+            "A broader catch(Exception) block runs measurably slower than catching NumberFormatException directly",
+            "Exceptions disappear outside a try block"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "A try block scoped to just the parsing call keeps a defect in process() from being caught and mislabeled as a parsing failure."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l04-try-with-resources-ownership-and-suppressed-exceptions",
+      "title": "try-with-resources, ownership, and suppressed exceptions",
+      "theoryMarkdown": "# try-with-resources, ownership, and suppressed exceptions\n\n## Own the lifetime\n```java\ntry (var reader = java.nio.file.Files.newBufferedReader(path);\n     var writer = java.nio.file.Files.newBufferedWriter(output)) {\n    writer.write(reader.readLine());\n}\n```\nResources implementing AutoCloseable close when the block exits normally or exceptionally, in reverse declaration order. If opening the second resource fails, the first still closes. If the body fails and close also fails, the body exception remains primary and close failures are suppressed.\n\n## Ownership is separate from usage\nA method that opens a stream usually owns closure. A method receiving a caller-owned stream should document whether it closes it; surprising closure can break later work. Closing a buffered wrapper normally closes its underlying stream. Files.lines returns a resource-backed stream and also requires closure.\n\nResource cleanup is different from garbage collection. A socket or file descriptor can exhaust an operating-system limit long before heap pressure triggers collection.\n\n## Practice\nCreate a small AutoCloseable whose close records its name; nest two and verify reverse order. Make both the body and close throw, then inspect getSuppressed(). Write a copy function with an explicit ownership policy. Handle an empty file before passing null from readLine to writer.write.",
+      "exercises": [
+        {
+          "id": "m11-l4-check",
+          "type": "multipleChoice",
+          "title": "try-with-resources, ownership, and suppressed exceptions: concept check",
+          "instructionMarkdown": "If both the body and close fail in try-with-resources, which failure is primary?",
+          "choices": [
+            "The close failure always replaces the body",
+            "Both are discarded",
+            "The body's failure, with close failure suppressed"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "try-with-resources keeps the body's failure as primary and attaches any exception thrown by close() as a suppressed exception, retrievable via getSuppressed()."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l05-boundary-validation-and-safe-user-facing-error-reporting",
+      "title": "Boundary validation and safe user-facing error reporting",
+      "theoryMarkdown": "# Boundary validation and safe user-facing error reporting\n\n## Validate at the right level\nSyntactic validation checks representation: “is this a decimal integer?” Semantic validation checks meaning: “is this quantity positive and below the stock limit?” Authorization asks whether this caller may perform the operation. Passing one does not imply passing the others.\n\n```java\nstatic int quantity(String text) {\n    int result;\n    try { result = Integer.parseInt(text); }\n    catch (NumberFormatException cause) {\n        throw new IllegalArgumentException(\"quantity must be an integer\", cause);\n    }\n    if (result < 1 || result > 1000)\n        throw new IllegalArgumentException(\"quantity must be 1..1000\");\n    return result;\n}\n```\nThe example makes range and spelling distinct. For forms, collecting several field errors helps users fix them together. Inside a domain operation, failing immediately before mutation may be simpler.\n\n## Practice\nDesign an error response containing a stable code and safe field messages. Keep internal exception details in protected diagnostics. Test blank, negative, extreme, and malformed quantities. Include an authorization test using a valid quantity: valid data must still be denied to an unauthorized actor.",
+      "exercises": [
+        {
+          "id": "m11-l5-check",
+          "type": "multipleChoice",
+          "title": "Boundary validation and safe user-facing error reporting: concept check",
+          "instructionMarkdown": "Does valid input prove that the caller is authorized?",
+          "choices": [
+            "Yes; parsing performs authentication",
+            "No; authorization is a separate check",
+            "Yes; valid data implies ownership"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Passing syntactic and semantic validation says nothing about who the caller is; authorization is a separate check performed independently of the parsed value."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-assessment",
+      "title": "Chapter 11 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 11 assessment\n\nBefore touching the debugger, use this chapter's rules on cause preservation and exception translation to predict what **Preserve the original cause** should print, then run it and repair the defect so the caught NumberFormatException survives as the thrown exception's cause.\n\nThe parsePort function lab exercises boundary validation in isolation; it is not proof of every competency from checked-versus-unchecked design through safe user-facing error reporting covered across the chapter's five lessons. Review the repaired source and explain why forwarding the cause matters for diagnosis, without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m11-judgment",
+          "type": "multipleChoice",
+          "title": "Exceptions, Validation, and Failure Design: professional judgment",
+          "instructionMarkdown": "A storage outage is converted to an empty result. What is lost?",
+          "choices": [
+            "The distinction between absence and failure",
+            "The specific exception type that caused the outage",
+            "The retry count already attempted"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m11-coding-lab",
+          "type": "function",
+          "title": "Chapter 11 implementation lab: parsePort",
+          "instructionMarkdown": "Implement `parsePort`. Parse a decimal port from 1 through 65535; return -1 for malformed or out-of-range text. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nUse Integer.parseInt spelling rules with no whitespace trimming, then require 1..65535. Malformed and out-of-range values return -1.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int parsePort(String value1) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "parsePort",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m11-code-1",
+              "visibility": "public",
+              "arguments": [
+                "8080"
+              ],
+              "expected": 8080
+            },
+            {
+              "id": "m11-code-2",
+              "visibility": "public",
+              "arguments": [
+                "0"
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "bad"
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                "65535"
+              ],
+              "expected": 65535
+            },
+            {
+              "id": "m11-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                "65536"
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-6",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-7",
+              "visibility": "hidden",
+              "arguments": [
+                " 80 "
+              ],
+              "expected": -1
+            }
+          ],
+          "hints": [
+            "Decide separately whether the text is a syntactically valid decimal integer (Integer.parseInt, no trimming) and whether the parsed value falls within 1..65535.",
+            "Check the boundaries 0, 1, 65535, and 65536, plus malformed and whitespace-padded text, before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m11-debug-lab",
+          "type": "debug",
+          "title": "Preserve the original cause",
+          "instructionMarkdown": "Repair the exception translation so the caught NumberFormatException is passed as the cause of the thrown IllegalArgumentException, and the program writes exactly `true`. Keep the two-exception structure and explain why forwarding the cause makes the getCause() check pass, rather than hard-coding the print statement. Output tests verify the printed result; confirming the cause is genuinely preserved requires reading the source.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        try { try {Integer.parseInt(\"bad\");} catch(NumberFormatException e){throw new IllegalArgumentException(\"quantity\");} } catch(IllegalArgumentException e){System.out.print(e.getCause() instanceof NumberFormatException);}\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m11-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "true",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Pass the caught exception as the translated exception's cause."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

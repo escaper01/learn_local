@@ -1,0 +1,15 @@
+{
+  "id": "phase-1-portfolio",
+  "title": "Portfolio Phase 1: Chapters 1-5",
+  "descriptionMarkdown": "# Phase 1 — Budget ledger\n\n## Graded checkpoint\nImplement the IN/OUT command processor in chapter 5. It must validate positive amounts, preserve balance after rejection, detect long overflow, and produce correct results for changing inputs. Main reads standard input; Ledger owns the calculation. Output tests check the behavior, not the quality of the class design.\n\n## Independent application\nExtend the core into a console budget ledger with descriptions, transaction history, category totals, and search. Keep cents as integers; decide what counts as income, expense, and refund before adding commands. Separate parsing from account behavior. Do not expose a mutable balance field to the console layer.\n\n## Required evidence\n- A decision table for zero, negative, malformed, excessive, and overflowing amounts.\n- A trace showing that a rejected withdrawal leaves the original balance intact.\n- Build and run instructions using Java 21 from a clean folder, plus a runnable JAR.\n- A stack/reference diagram explaining which objects the console and ledger share.\n- Sample sessions for ordinary work, empty input, and recovery after errors.\n\n## Review and completion\nA reviewer supplies new transactions, asks you to explain validation order, and changes one rule such as a withdrawal limit. The implementation must adapt without duplicating the rule in the UI. Correctness and invariant preservation are mandatory; readable names, small methods, and reproducible commands are also required. This phase does not require collections or frameworks beyond material already taught; arrays are sufficient for the initial history.",
+  "learningObjectives": [
+    "Compile, run, package, and diagnose the ledger from both terminal and IDE",
+    "Represent monetary values and validate parsed input without truncation or overflow surprises",
+    "Decompose transaction rules into small methods with explicit contracts and boundary tests",
+    "Use arrays and strings without leaking aliases or confusing identity with content equality",
+    "Protect ledger and account invariants inside cohesive domain objects"
+  ],
+  "checkpointExerciseIds": [
+    "m05-phase-project"
+  ]
+}

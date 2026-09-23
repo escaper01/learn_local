@@ -1,0 +1,268 @@
+{
+  "id": "module-22-jvm-memory-garbage-collection-and-performance",
+  "title": "Chapter 22: JVM Memory, Garbage Collection, and Performance",
+  "description": "Investigate JVM behavior with representative evidence. Learners distinguish heap, stacks, metaspace, code cache, and native memory; explain reachability and collector tradeoffs; account for JIT warmup and speculative optimization; read CPU, allocation, lock, JFR, heap, and thread evidence; and repair unwanted retention and unbounded caches without folklore tuning.",
+  "lessons": [
+    {
+      "id": "m22-l01-stacks-heap-metaspace-code-cache-native-memory-and-allocatio",
+      "title": "Stacks, heap, metaspace, code cache, native memory, and allocation",
+      "theoryMarkdown": "# Stacks, heap, metaspace, code cache, native memory, and allocation\n\n## Memory is larger than the Java heap\nHeap holds ordinary objects; each thread has stack frames; metaspace holds class metadata; compiled native code occupies a code cache. Direct buffers, native libraries, and thread structures also consume process memory. A container limit covers the process, so setting the heap equal to the entire container limit leaves no headroom.\n\n```java\nlong used = Runtime.getRuntime().totalMemory()\n    - Runtime.getRuntime().freeMemory();\nSystem.out.println(\"Approximate heap use: \" + used);\n```\nThis is a rough instantaneous heap estimate, not a full retained-size or process-memory measurement.\n\n## Allocation\nObject allocation is often cheap through thread-local allocation buffers, but retained graphs and allocation churn affect collection. The JVM may eliminate some allocations when observable behavior permits it; source-level new does not define an exact measured allocation cost.\n\n## Practice\nCompare heap measurements with process memory during a controlled load. Distinguish heap exhaustion, native-thread failure, metaspace growth, and direct-buffer pressure. Do not prescribe larger -Xmx for every OutOfMemoryError; identify the exhausted resource and retaining or workload cause.",
+      "exercises": [
+        {
+          "id": "m22-l1-check",
+          "type": "multipleChoice",
+          "title": "Stacks, heap, metaspace, code cache, native memory, and allocation: concept check",
+          "instructionMarkdown": "Does heap usage account for all process memory?",
+          "choices": [
+            "No; stacks, metaspace, code cache, and native memory also matter",
+            "Yes; the JVM allocates nothing outside heap",
+            "No, but setting -Xmx equal to the container's memory limit reclaims that extra headroom for the heap"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "List the memory regions besides the heap that a running JVM process still occupies, and consider what would happen if -Xmx consumed the entire container limit."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m22-l02-reachability-generations-collectors-pauses-throughput-and-la",
+      "title": "Reachability, generations, collectors, pauses, throughput, and latency",
+      "theoryMarkdown": "# Reachability, generations, collectors, pauses, throughput, and latency\n\n## Reachability, not reference counting\nAn object is reclaimable when no GC root can reach it. Cycles are reclaimable if the entire cycle is unreachable. Roots include thread-associated references and static/class-associated state. A reachable cache entry is retained even if no user still needs it.\n\nCollectors balance throughput, pause latency, concurrent CPU work, and footprint. Generational designs exploit the observation that many objects die young; the actual collector and options must match the target JDK and workload.\n\n```text\njava -Xlog:gc* -jar application.jar\n```\nUse a controlled external experiment and inspect event timing, heap changes, and pause distributions. Calling System.gc is only a request and is not a reliable application memory-management strategy.\n\n## Practice\nAllocate temporary objects versus objects retained in a static list and compare GC evidence. State a latency objective before changing collector configuration. Evaluate tail latency and throughput together. Explain why reducing allocations may improve throughput without necessarily fixing a leak caused by a single unbounded retention structure.",
+      "exercises": [
+        {
+          "id": "m22-l2-check",
+          "type": "multipleChoice",
+          "title": "Reachability, generations, collectors, pauses, throughput, and latency: concept check",
+          "instructionMarkdown": "Can an unreachable cycle of objects be reclaimed?",
+          "choices": [
+            "No; every cycle leaks",
+            "Only by manually breaking every link",
+            "Yes; reachability matters, not a cycle alone"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that a modern collector traces reachability from GC roots rather than counting references, so a self-contained cycle with no path from a root is still collectible."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m22-l03-jit-compilation-profiling-feedback-inlining-and-warmup",
+      "title": "JIT compilation, profiling feedback, inlining, and warmup",
+      "theoryMarkdown": "# JIT compilation, profiling feedback, inlining, and warmup\n\n## The executing code changes over time\nThe JVM can interpret code, compile hot paths, inline calls, and use observed type profiles to optimize. If assumptions stop holding, it can deoptimize. Startup performance and steady-state performance are therefore different measurements.\n\n```java\nlong start = System.nanoTime();\nlong result = calculate(input);\nlong elapsed = System.nanoTime() - start;\nSystem.out.println(result + \":\" + elapsed);\n```\nThis measures one call but does not establish a reliable microbenchmark. Dead-code elimination, constant folding, warmup, GC, competing processes, and timer overhead can dominate.\n\n## Benchmark discipline\nUse a benchmark harness such as JMH in a separate dependency-managed project. Consume results, vary realistic inputs, use warmup and independent forks, and report distributions and environment. Do not put artificial loops inside benchmarks unless the workload genuinely has them.\n\n## Practice\nCompare a constant computation with one using varying inputs. Explain why the optimizer may remove one. Separate cold-start from warmed measurements. Require a workload and effect size before replacing clear application code with a clever micro-optimization.",
+      "exercises": [
+        {
+          "id": "m22-l3-check",
+          "type": "multipleChoice",
+          "title": "JIT compilation, profiling feedback, inlining, and warmup: concept check",
+          "instructionMarkdown": "Why can a naive microbenchmark mislead?",
+          "choices": [
+            "JIT compilation never changes execution",
+            "Warmup and optimizations can change the measured work",
+            "nanoTime returns random values"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Consider what dead-code elimination, constant folding, and the shift from interpreted to compiled execution can do to a single timed call taken in isolation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m22-l04-cpu-allocation-lock-i-o-profiling-jfr-and-thread-dumps",
+      "title": "CPU, allocation, lock, I/O profiling, JFR, and thread dumps",
+      "theoryMarkdown": "# CPU, allocation, lock, I/O profiling, JFR, and thread dumps\n\n## Choose evidence for the symptom\nCPU profiling shows where execution spends processor time. Allocation profiling identifies churn. Heap analysis finds retained objects. Thread dumps reveal waiting and locking. I/O latency may dominate even when CPU is nearly idle.\n\n```text\njcmd <pid> Thread.print\njcmd <pid> JFR.start name=academy duration=60s filename=academy.jfr\n```\nThese external commands require a suitable JDK and access to the target process. Profiling files can contain sensitive operational details; store them appropriately. Inspect the process list rather than guessing a PID.\n\n## Experiment\nDefine a reproducible request mix, data volume, concurrency, and objective. Capture a baseline, change one dominant cause, then repeat. A faster mean can hide worse high-percentile latency. A flame-graph width represents sampled work, not necessarily one long invocation.\n\n## Practice\nSeed a slow loop, excess allocation, and lock contention as separate experiments. Select a diagnostic for each before changing code. Document what evidence would disprove your hypothesis. Do not profile an unrepresentative idle program and conclude the service has no performance issue.",
+      "exercises": [
+        {
+          "id": "m22-l4-check",
+          "type": "multipleChoice",
+          "title": "CPU, allocation, lock, I/O profiling, JFR, and thread dumps: concept check",
+          "instructionMarkdown": "Which evidence best investigates retained objects?",
+          "choices": [
+            "Heap analysis and reference paths",
+            "Only a compiler warning",
+            "Only HTTP status codes"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Match the diagnostic to the symptom: retention is a question about what still references an object, which a heap dump's path-to-GC-root view answers directly."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m22-l05-memory-leaks-threadlocal-listeners-queues-and-bounded-caches",
+      "title": "Memory leaks, ThreadLocal, listeners, queues, and bounded caches",
+      "theoryMarkdown": "# Memory leaks, ThreadLocal, listeners, queues, and bounded caches\n\n## Leaks are unwanted reachability\nTypical retaining structures include static maps, registered listeners, ThreadLocal values in long-lived workers, unbounded queues, and caches with no eviction.\n```java\ntry {\n    requestContext.set(context);\n    handleRequest();\n} finally {\n    requestContext.remove();\n}\n```\nThis fragment assumes an existing ThreadLocal. remove prevents one reused worker from retaining a completed request or exposing its context to later work.\n\n## Cache policy\nA cache needs maximum size or weight, expiry, invalidation, ownership, and hit/miss/eviction metrics. A bounded count can still retain too much memory if each value varies greatly in size. Weak references have specialized semantics and do not replace a coherent retention policy.\n\n## Practice\nCreate a listener registration that returns an unsubscribe handle, and test teardown. Load a cache beyond its limit and verify eviction. Distinguish memory that rises then plateaus from memory growing without bound under a stable workload. Explain why increasing heap size delays, rather than repairs, an unbounded cache defect.",
+      "exercises": [
+        {
+          "id": "m22-l5-check",
+          "type": "multipleChoice",
+          "title": "Memory leaks, ThreadLocal, listeners, queues, and bounded caches: concept check",
+          "instructionMarkdown": "Why remove a ThreadLocal value after a request?",
+          "choices": [
+            "It guarantees the thread terminates",
+            "It resets every static field",
+            "A reused worker can retain or expose stale request state"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Think about a pooled worker thread that survives across many requests: what happens to a ThreadLocal value if nothing ever calls remove()?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m22-assessment",
+      "title": "Chapter 22 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 22 assessment\n\nBring together memory-region layout, reachability-based collection, JIT warmup effects, profiling evidence, and retention policy to solve the decision scenario and repair **Evict over the cache boundary**, where an eviction predicate written against the wrong capacity lets the structure grow past its intended bound. Write a prediction before running the debugger and preserve the intended eviction behavior when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency. Complete the implementation and external practice described in the five lessons as well. Review the changed source for its contract, then explain the relevant tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m22-judgment",
+          "type": "multipleChoice",
+          "title": "JVM Memory, Garbage Collection, and Performance: professional judgment",
+          "instructionMarkdown": "Memory grows under stable load. What evidence should guide the repair?",
+          "choices": [
+            "Retained-object paths and boundedness of owning structures",
+            "Only increasing heap size",
+            "Only calling System.gc repeatedly"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m22-coding-lab",
+          "type": "function",
+          "title": "Bound an access-ordered cache",
+          "instructionMarkdown": "Implement cacheHits(String[] keys, int capacity). Simulate an initially empty least-recently-used cache: each access to a present key counts one hit and refreshes recency; a miss inserts the key and evicts the least recently used key if over capacity. Nonpositive capacity stores nothing and yields zero hits. keys and entries are non-null. Use an access-order LinkedHashMap or another correct bounded design. This checks retention policy, not JVM profiling competence.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int cacheHits(String[] keys, int capacity) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "cacheHits",
+            "parameters": [
+              {
+                "name": "keys",
+                "type": "string[]"
+              },
+              {
+                "name": "capacity",
+                "type": "int"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m22-cache-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  "a",
+                  "b",
+                  "a"
+                ],
+                2
+              ],
+              "expected": 1
+            },
+            {
+              "id": "m22-cache-2",
+              "visibility": "public",
+              "arguments": [
+                [],
+                2
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m22-cache-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  "a",
+                  "a"
+                ],
+                0
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m22-cache-4",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  "a",
+                  "b",
+                  "a",
+                  "c",
+                  "a",
+                  "b"
+                ],
+                2
+              ],
+              "expected": 2
+            },
+            {
+              "id": "m22-cache-5",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  "a",
+                  "a",
+                  "b",
+                  "a"
+                ],
+                1
+              ],
+              "expected": 1
+            }
+          ],
+          "hints": [
+            "Use an access-order LinkedHashMap (or an equivalent structure) so a get on a present key both counts a hit and moves that key to the most-recently-used position.",
+            "Handle capacity zero or negative as storing nothing at all, and confirm eviction removes exactly the least recently accessed key once the map exceeds capacity."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m22-debug-lab",
+          "type": "debug",
+          "title": "Evict over the cache boundary",
+          "instructionMarkdown": "The supplied removeEldestEntry predicate evicts only once the map exceeds three entries, so a capacity meant to hold two entries lets a third linger. Repair the boundary so eviction happens once size exceeds two and the program writes exactly `2`. Preserve the demonstrated LinkedHashMap eviction and explain why your fix changes the result; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended eviction behavior requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        var cache=new java.util.LinkedHashMap<Integer,Integer>(){protected boolean removeEldestEntry(java.util.Map.Entry<Integer,Integer> e){return size()>3;}};for(int i=0;i<3;i++)cache.put(i,i);System.out.print(cache.size());\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m22-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "2",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The required capacity is two entries; eviction occurs after an insertion."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

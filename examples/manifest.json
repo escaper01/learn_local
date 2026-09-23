@@ -1,19 +1,19 @@
 {
   "format": "learnpack",
   "schemaVersion": "1.0.0",
-  "id": "complete-java-21-curriculum",
-  "version": "2.0.0",
+  "id": "java-developer-academy-21",
+  "version": "3.1.0",
   "course": {
-    "title": "Complete Java 21: From First Program to Architecture",
-    "description": "A theory-first Java curriculum with 20 detailed chapters and 135 focused lessons, progressing from first principles through concurrency, streams, reflection, testing, JDBC, architecture, networking, and JSON. Assessments follow teaching rather than replacing it.",
+    "title": "Java Developer Academy: From Zero to Production",
+    "description": "A sequential Java 21 developer course with 25 chapters, 127 individually authored teaching lessons, 25 chapter assessments, 152 concept/scenario questions, 25 function labs, 25 distinct debugging tasks, and six input-driven project checkpoints. Includes worked examples and deliberate practice from first compilation through backend development. Framework, database, profiling, and deployment labs require an external project and portfolio review; automated checkpoints assess bounded behavior and do not certify professional mastery.",
     "language": "java",
     "languageVersion": "21",
     "fileExtension": "java",
     "level": "beginner",
-    "estimatedHours": 140,
+    "estimatedHours": 420,
     "authors": [
       {
-        "name": "LearnLocal curriculum team"
+        "name": "LearnLocal Java Academy"
       }
     ]
   },
@@ -21,37 +21,41 @@
     "adapter": "java",
     "adapterRange": ">=0.1.0 <2.0.0",
     "runtimeVersion": "21",
-    "containerRequirements": "Java 21 JDK with the standard library"
+    "containerRequirements": "Java 21 JDK. Graded labs use the standard library; ecosystem lessons label external Maven/Gradle, JUnit, Spring, Jakarta Persistence, database, and container requirements."
   },
   "modules": [
-    "content/module-01-java-origins-tooling-and-first-programs.json",
-    "content/module-02-types-variables-input-and-operators.json",
-    "content/module-03-control-flow-and-program-decomposition.json",
-    "content/module-04-arrays-memory-strings-and-immutability.json",
-    "content/module-05-build-tools-and-ai-assisted-development.json",
-    "content/module-06-object-oriented-programming-foundations.json",
-    "content/module-07-inheritance-polymorphism-interfaces-and-enums.json",
-    "content/module-08-files-streams-exceptions-and-date-time.json",
-    "content/module-09-algorithms-data-structures-and-generics.json",
-    "content/module-10-collections-ordering-sorting-and-hashing.json",
-    "content/module-11-lambdas-functional-interfaces-and-composition.json",
-    "content/module-12-regular-expressions.json",
-    "content/module-13-threads-and-synchronization.json",
-    "content/module-14-executors-futures-and-concurrent-collections.json",
-    "content/module-15-functional-data-processing-with-streams.json",
-    "content/module-16-reflection-annotations-class-loading-and-bytecode.json",
-    "content/module-17-logging-testing-and-debugging.json",
-    "content/module-18-sql-and-jdbc.json",
-    "content/module-19-software-architecture-and-design-patterns.json",
-    "content/module-20-networking-serialization-and-json.json"
+    "content/module-01-developer-orientation-and-the-java-toolchain.json",
+    "content/module-02-values-types-variables-and-expressions.json",
+    "content/module-03-control-flow-methods-and-decomposition.json",
+    "content/module-04-arrays-strings-references-and-memory.json",
+    "content/module-05-object-oriented-domain-modeling.json",
+    "content/module-06-enums-records-and-sealed-types.json",
+    "content/module-07-inheritance-interfaces-and-object-contracts.json",
+    "content/module-08-generics-and-type-safe-reuse.json",
+    "content/module-09-collections-and-data-structure-choice.json",
+    "content/module-10-algorithms-recursion-and-complexity.json",
+    "content/module-11-exceptions-validation-and-failure-design.json",
+    "content/module-12-files-nio-date-time-regex-and-serialization.json",
+    "content/module-13-lambdas-functional-interfaces-and-optional.json",
+    "content/module-14-stream-pipelines-and-data-processing.json",
+    "content/module-15-testing-debugging-and-logging.json",
+    "content/module-16-build-automation-dependencies-git-and-ci.json",
+    "content/module-17-concurrency-and-asynchronous-programming.json",
+    "content/module-18-networking-http-and-json-boundaries.json",
+    "content/module-19-relational-databases-sql-and-jdbc.json",
+    "content/module-20-architecture-solid-and-design-patterns.json",
+    "content/module-21-reflection-annotations-modules-and-metaprogramming.json",
+    "content/module-22-jvm-memory-garbage-collection-and-performance.json",
+    "content/module-23-secure-and-robust-java-development.json",
+    "content/module-24-spring-boot-and-jpa-foundations.json",
+    "content/module-25-distributed-delivery-and-professional-capstone.json"
   ],
   "projects": [
-    "projects/milestone-1.json",
-    "projects/milestone-2.json",
-    "projects/milestone-3.json",
-    "projects/milestone-4.json",
-    "projects/milestone-5.json",
-    "projects/milestone-6.json",
+    "projects/phase-1.json",
+    "projects/phase-2.json",
+    "projects/phase-3.json",
+    "projects/phase-4.json",
+    "projects/phase-5.json",
     "projects/final-capstone.json"
   ]
 }

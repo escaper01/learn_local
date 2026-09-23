@@ -1,0 +1,396 @@
+{
+  "id": "module-25-distributed-delivery-and-professional-capstone",
+  "title": "Chapter 25: Distributed Delivery and Professional Capstone",
+  "description": "Integrate the academy into an operable portfolio service. Learners version APIs, process duplicate messages idempotently, use outbox and saga patterns where their failure model requires them, bound caches, package a non-root container, implement readiness and graceful shutdown, define logs/metrics/traces and SLOs, execute safe rollouts, review unfamiliar code, and defend the capstone architecture from requirement through incident response.",
+  "lessons": [
+    {
+      "id": "m25-l01-api-compatibility-messaging-idempotency-outbox-saga-and-cach",
+      "title": "API compatibility, messaging, idempotency, outbox, saga, and caching",
+      "theoryMarkdown": "# API compatibility, messaging, idempotency, outbox, saga, and caching\n\n## Reliability crosses commit boundaries\nAt-least-once message delivery permits duplicates. A consumer must make its durable effect idempotent, often through an event ID recorded transactionally with that effect. Acknowledging before committing risks losing work; acknowledging after committing can cause replay, which deduplication must tolerate.\n\n## Outbox and saga\n```sql\nBEGIN;\nUPDATE task SET status = 'DONE' WHERE id = 42;\nINSERT INTO outbox(event_id, task_id, event_type)\nVALUES ('event-123', 42, 'TASK_COMPLETED');\nCOMMIT;\n```\nThis conceptual SQL uses application-supplied unique event IDs. A relay publishes committed outbox rows and may publish more than once. A saga coordinates several local transactions with explicit compensation; compensation is not a magical database rollback.\n\n## Compatibility and caching\nPrefer additive API changes with old-client fixtures. Cache keys include every result-affecting dimension, including tenant identity. Define size, expiry, invalidation, and stampede prevention.\n\n## Practice\nCrash the relay before and after publish, then replay. Prove one durable consumer effect. Simulate a stale cached authorization-sensitive value and identify why blind caching is unsafe. Compare these costs with retaining a modular monolith.",
+      "exercises": [
+        {
+          "id": "m25-l1-check",
+          "type": "multipleChoice",
+          "title": "API compatibility, messaging, idempotency, outbox, saga, and caching: concept check",
+          "instructionMarkdown": "Why can an outbox relay publish an event more than once?",
+          "choices": [
+            "A crash can occur after publish but before recording completion",
+            "Outbox makes duplicates impossible",
+            "Database commits cannot succeed"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Trace the relay's sequence of publish-then-mark-done and consider what a crash between those two steps forces on redelivery."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m25-l02-containers-runtime-images-configuration-health-and-graceful-",
+      "title": "Containers, runtime images, configuration, health, and graceful shutdown",
+      "theoryMarkdown": "# Containers, runtime images, configuration, health, and graceful shutdown\n\n## Build once, run with explicit limits\nA container packages the application and runtime, not its secrets or writable user data. Use a reviewed base, non-root identity, controlled dependency versions, and memory headroom beyond the heap. A Java runtime image can be smaller with jlink when the module graph supports it.\n\n## Readiness and shutdown\nLiveness asks whether restart may help; readiness asks whether traffic should be routed here. A temporary database outage need not trigger endless process restarts. During shutdown, stop accepting work, drain with a deadline, cancel remaining work, and close resources.\n\n```java\nexecutor.shutdown();\nif (!executor.awaitTermination(20, java.util.concurrent.TimeUnit.SECONDS)) {\n    executor.shutdownNow();\n}\n```\nThis fragment must handle InterruptedException by restoring interruption and deciding cancellation policy. shutdownNow requests interruption; it cannot forcibly make arbitrary code cooperate.\n\n## Practice\nWrite container build/run instructions and declare writable paths and resource limits. Test termination during an in-flight request. Verify readiness drops before shutdown while completed work remains durable. Keep management endpoints access-controlled and avoid making health probes perform expensive dependency operations.",
+      "exercises": [
+        {
+          "id": "m25-l2-check",
+          "type": "multipleChoice",
+          "title": "Containers, runtime images, configuration, health, and graceful shutdown: concept check",
+          "instructionMarkdown": "Does shutdownNow forcibly stop arbitrary Java tasks?",
+          "choices": [
+            "Yes; every thread is killed instantly",
+            "Yes; every transaction rolls back automatically",
+            "No; it requests interruption and tasks must cooperate"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that interruption in Java is a cooperative signal on the InterruptedException path, not a forced halt of running code."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m25-l03-logs-metrics-traces-slos-deployment-strategies-and-incidents",
+      "title": "Logs, metrics, traces, SLOs, deployment strategies, and incidents",
+      "theoryMarkdown": "# Logs, metrics, traces, SLOs, deployment strategies, and incidents\n\n## Define reliability in user terms\nAn SLI measures behavior such as successful requests or latency below a threshold. An SLO sets the target over a window. Error budgets quantify tolerated unreliability and help decide when reliability work takes priority.\n\n```text\nExample SLI: successful task reads / eligible task reads\nExample SLO: 99.9% over 30 days\nAlert: rapid error-budget consumption, with a runbook link\n```\nDefine exclusions and counting rules so the number cannot be improved by hiding failures. Metrics summarize trends; traces explain request paths; logs provide detailed events. Correlation needs propagation across asynchronous and remote boundaries.\n\n## Deployment and incidents\nRolling, canary, and blue-green strategies trade capacity and risk. Mixed versions require compatible schemas and APIs. A rollback may fail after a destructive migration, so test recovery assumptions.\n\n## Practice\nCreate a dashboard specification and one actionable alert. Write a runbook for database unavailability. Reconstruct a simulated incident timeline including detection delay and mitigation. Separate contributing system conditions from blame and assign concrete follow-up work.",
+      "exercises": [
+        {
+          "id": "m25-l3-check",
+          "type": "multipleChoice",
+          "title": "Logs, metrics, traces, SLOs, deployment strategies, and incidents: concept check",
+          "instructionMarkdown": "What does an SLO specify?",
+          "choices": [
+            "A guarantee of no incidents",
+            "A reliability target over a defined measurement window",
+            "Every implementation detail"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Notice that the example SLO is phrased as a percentage over a 30-day window, not as a promise that failures never happen."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m25-l04-reading-reviewing-refactoring-and-communicating-in-an-existi",
+      "title": "Reading, reviewing, refactoring, and communicating in an existing codebase",
+      "theoryMarkdown": "# Reading, reviewing, refactoring, and communicating in an existing codebase\n\n## Read before changing\nStart with build instructions, tests, entry points, and one real use-case path. Search callers and domain terms before renaming or extracting code. When behavior is unclear, write a characterization test that records current behavior, then determine whether that behavior is intended.\n\n```text\nChange note:\nRequirement: reject duplicate task IDs.\nEvidence: duplicate insert currently overwrites an existing task.\nRepair: reject before mutation and keep the previous record.\nRegression: duplicate create leaves original content unchanged.\n```\nA useful review explains the trigger, old behavior, new behavior, and evidence. Distinguish correctness requirements from stylistic preferences.\n\n## Refactoring\nRefactoring preserves observable behavior while changing structure. Extract methods, move behavior toward its data, or introduce a parameter object in small runnable steps. Mixing a semantic change with a broad refactor makes defects harder to locate.\n\n## Practice\nReview an unfamiliar repository method, trace its callers, and add one characterization test. Make a focused behavior change, then a separate structural improvement. Explain one rejected alternative and one remaining limitation in language a teammate can assess.",
+      "exercises": [
+        {
+          "id": "m25-l4-check",
+          "type": "multipleChoice",
+          "title": "Reading, reviewing, refactoring, and communicating in an existing codebase: concept check",
+          "instructionMarkdown": "What distinguishes refactoring from a feature change?",
+          "choices": [
+            "Refactoring preserves observable behavior",
+            "Refactoring must add dependencies",
+            "Refactoring cannot change class structure"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall the change-note example: separating a structural improvement from a behavior change is what lets a characterization test still pass afterward."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m25-l05-capstone-architecture-vertical-slices-portfolio-defense-and-",
+      "title": "Capstone architecture, vertical slices, portfolio defense, and continued growth",
+      "theoryMarkdown": "# Capstone architecture, vertical slices, portfolio defense, and continued growth\n\n## Deliver a task service in vertical slices\nBegin with create/list/complete commands over an in-memory domain. Next add durable storage and restart behavior, then an HTTP adapter and explicit JSON DTOs. Add dependency-managed tests, migrations, authentication/authorization, failure handling, bounded concurrency, observability, and deployment documentation only as each slice earns them.\n\n## Acceptance evidence\nThe final repository must include:\n- protected task invariants and a documented transition table;\n- unit tests, real-database integration tests, HTTP contract tests, and failure injection;\n- reproducible build commands, schema migrations, and old-version fixtures;\n- secret-safe logs, health endpoints, shutdown behavior, resource limits, and an operations runbook;\n- architecture decisions covering ownership, transactions, idempotency, security, and performance.\n\nThe LearnLocal checkpoint tests only a bounded executable slice. It cannot certify the complete portfolio or professional readiness. Reading pages or printing a readiness phrase does not establish mastery.\n\n## Defense\nDemonstrate a feature from requirement to persisted result. Diagnose a seeded failure using evidence, modify a rule without breaking unrelated behavior, and explain one tradeoff you would change at larger scale. A reviewer should be able to clone the project, run documented commands, and reproduce your evidence. Continued experience and review develop expertise beyond this course.",
+      "exercises": [
+        {
+          "id": "m25-l5-check",
+          "type": "multipleChoice",
+          "title": "Capstone architecture, vertical slices, portfolio defense, and continued growth: concept check",
+          "instructionMarkdown": "Does completing an automated course checkpoint certify professional readiness?",
+          "choices": [
+            "Yes; any green check proves mastery",
+            "Yes; printing READY proves all requirements",
+            "No; a broader portfolio and practical review are needed"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Consider how much of the acceptance-evidence list a bounded automated checkpoint can actually exercise versus what only a full portfolio and human review can confirm."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m25-assessment",
+      "title": "Chapter 25 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 25 assessment\n\nBring together idempotent messaging, graceful shutdown, observability/SLOs, and disciplined code review to solve the decision scenario and repair **Readiness during shutdown**, where a readiness check ignores the shutdown flag and keeps routing traffic to a draining instance. Write a prediction before running the debugger and preserve the intended readiness behavior when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency. Complete the implementation and external practice described in the five lessons as well. Review the changed source for its contract, then explain the relevant tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m25-judgment",
+          "type": "multipleChoice",
+          "title": "Distributed Delivery and Professional Capstone: professional judgment",
+          "instructionMarkdown": "A message was published but its acknowledgment was lost. What must the consumer tolerate?",
+          "choices": [
+            "Duplicate delivery without duplicate durable effects",
+            "Guaranteed one-time delivery",
+            "Automatic distributed rollback"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m25-coding-lab",
+          "type": "function",
+          "title": "Chapter 25 implementation lab: readiness",
+          "instructionMarkdown": "Implement `readiness`. Return READY only when database and queue are true and shuttingDown is false; otherwise NOT_READY. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nTreat the three parameters in order as database, queue, shuttingDown. The graded helper cannot verify service draining or orchestration.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String readiness(boolean value1, boolean value2, boolean value3) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "readiness",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "boolean"
+              },
+              {
+                "name": "value2",
+                "type": "boolean"
+              },
+              {
+                "name": "value3",
+                "type": "boolean"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m25-code-1",
+              "visibility": "public",
+              "arguments": [
+                true,
+                true,
+                false
+              ],
+              "expected": "READY"
+            },
+            {
+              "id": "m25-code-2",
+              "visibility": "public",
+              "arguments": [
+                true,
+                false,
+                false
+              ],
+              "expected": "NOT_READY"
+            },
+            {
+              "id": "m25-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                true,
+                true,
+                true
+              ],
+              "expected": "NOT_READY"
+            },
+            {
+              "id": "m25-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                false,
+                true,
+                false
+              ],
+              "expected": "NOT_READY"
+            },
+            {
+              "id": "m25-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                true,
+                true,
+                false
+              ],
+              "expected": "READY"
+            }
+          ],
+          "hints": [
+            "Combine the three boolean parameters with a single condition: both dependencies must be true and shuttingDown must be false for READY.",
+            "Check the case where every dependency is healthy but shuttingDown is true; that must still yield NOT_READY."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m25-debug-lab",
+          "type": "debug",
+          "title": "Readiness during shutdown",
+          "instructionMarkdown": "The supplied readiness check only looks at database and queue health and ignores shuttingDown entirely, so a draining instance still reports READY. Repair the condition so the program writes exactly `NOT_READY`. Preserve the demonstrated readiness logic and explain why your fix changes the result; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended readiness behavior requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        boolean database=true,queue=true,shuttingDown=true;System.out.print(database&&queue ? \"READY\" : \"NOT_READY\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m25-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "NOT_READY",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Readiness must reject new traffic during shutdown."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m25-phase-project",
+          "type": "project",
+          "title": "Secure task-import boundary",
+          "instructionMarkdown": "Implement SecureImport.run(String input). Each nonblank line is id|title|secret, with exactly three fields. Trim fields. id must match [A-Za-z0-9_-]{1,20}; title must contain 1..40 ASCII characters from [A-Za-z0-9 _-]; secret must be nonempty ASCII letters/digits only. Accept at most three unique records. For each accepted record output id|title|redacted where secret length <=4 becomes *** and longer secrets become *** plus their final four characters. Duplicate IDs, oversized/invalid fields, extra delimiters, or records past the capacity emit ERROR. Reject without consuming capacity or retaining an ID. Empty input returns an empty string. This bounded boundary exercise does not substitute for external framework, persistence, and security integration tests.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(SecureImport.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "SecureImport.java",
+              "content": "public final class SecureImport {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m25-phase-project-case-1",
+              "visibility": "public",
+              "input": "a|Review|abcdefgh",
+              "expected": "a|Review|***efgh",
+              "comparison": "exact"
+            },
+            {
+              "id": "m25-phase-project-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "m25-phase-project-case-3",
+              "visibility": "hidden",
+              "input": "a|A|abc\nb|B|1234",
+              "expected": "a|A|***\nb|B|***",
+              "comparison": "exact"
+            },
+            {
+              "id": "m25-phase-project-case-4",
+              "visibility": "hidden",
+              "input": "../x|Bad|secret\nok|Good|abcde",
+              "expected": "ERROR\nok|Good|***bcde",
+              "comparison": "exact"
+            },
+            {
+              "id": "m25-phase-project-case-5",
+              "visibility": "hidden",
+              "input": "a|A|abc\na|B|def\nb|B|abc\nc|C|abc\nd|D|abc",
+              "expected": "a|A|***\nERROR\nb|B|***\nc|C|***\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "m25-phase-project-case-6",
+              "visibility": "hidden",
+              "input": "a||secret\na|Good|secret\nb|Bad!|secret",
+              "expected": "ERROR\na|Good|***cret\nERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Parse and validate all fields before mutating state. Split with a negative limit when empty fields must be preserved.",
+            "Choose collections according to identity and ordering requirements. Build output lines and join them with a newline."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "java-developer-capstone",
+          "type": "project",
+          "title": "Task-service command core",
+          "instructionMarkdown": "Implement TaskService.run(String input) as an in-memory command processor. Process nonblank trimmed lines; split on | preserving empty fields and trim every field. Commands: ADD|id|title creates an OPEN task and prints OK; DONE|id marks it DONE and prints OK (repeating DONE is allowed); REMOVE|id removes an existing task and prints OK; LIST prints tasks by ascending numeric ID as id:status:title separated by semicolons, or EMPTY; STATS prints OPEN=<n>,DONE=<n>. IDs must be positive ints; title must be nonempty and contain neither pipe nor semicolon. Invalid syntax, duplicate ADD, unknown commands, invalid IDs, or missing tasks for DONE/REMOVE print ERROR and preserve state. Empty input returns empty text. Each command produces exactly one output line, joined with \\n and no trailing newline. Separate domain state from Main and keep each invocation independent. After this graded core, complete the external portfolio in projects/final-capstone.json; the core cannot assess JDBC, HTTP, deployment, or authorization.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(TaskService.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "TaskService.java",
+              "content": "public final class TaskService {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "java-developer-capstone-case-1",
+              "visibility": "public",
+              "input": "ADD|2|Test\nADD|1|Build\nDONE|2\nLIST\nSTATS",
+              "expected": "OK\nOK\nOK\n1:OPEN:Build;2:DONE:Test\nOPEN=1,DONE=1",
+              "comparison": "exact"
+            },
+            {
+              "id": "java-developer-capstone-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "java-developer-capstone-case-3",
+              "visibility": "hidden",
+              "input": "LIST\nSTATS\nDONE|1\nREMOVE|1",
+              "expected": "EMPTY\nOPEN=0,DONE=0\nERROR\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "java-developer-capstone-case-4",
+              "visibility": "hidden",
+              "input": "ADD|1|First\nADD|1|Second\nLIST\nDONE|1\nDONE|1\nSTATS",
+              "expected": "OK\nERROR\n1:OPEN:First\nOK\nOK\nOPEN=0,DONE=1",
+              "comparison": "exact"
+            },
+            {
+              "id": "java-developer-capstone-case-5",
+              "visibility": "hidden",
+              "input": "ADD|0|Bad\nADD|1|\nADD|2|Bad;Title\nADD|3|Valid\nREMOVE|3\nLIST",
+              "expected": "ERROR\nERROR\nERROR\nOK\nOK\nEMPTY",
+              "comparison": "exact"
+            },
+            {
+              "id": "java-developer-capstone-case-6",
+              "visibility": "hidden",
+              "input": " ADD | 7 | Trimmed \nDONE|7|extra\nBOGUS\nLIST",
+              "expected": "OK\nERROR\nERROR\n7:OPEN:Trimmed",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Parse and validate all fields before mutating state. Split with a negative limit when empty fields must be preserved.",
+            "Choose collections according to identity and ordering requirements. Build output lines and join them with a newline."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

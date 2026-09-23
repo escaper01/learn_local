@@ -1,0 +1,15 @@
+{
+  "id": "phase-3-portfolio",
+  "title": "Portfolio Phase 3: Chapters 11-15",
+  "descriptionMarkdown": "# Phase 3 — Durable reporting\n\n## Graded checkpoint\nChapter 15 validates dated expense records, rejects impossible dates and malformed amounts, aggregates cents into long totals, and reports months in chronological order. It deliberately avoids the real clock so cases are reproducible.\n\n## Independent application\nExtend the tracker with a versioned UTF-8 storage format, safe file ownership, and reports. Write a new snapshot to a temporary file before replacing the old one. Define recovery for a corrupt or truncated snapshot and keep valid old data until a complete replacement is ready. Use an injected Clock for deadlines and a documented time-zone policy for user reports.\n\n## Required evidence\n- Fixtures for old schema versions, missing fields, Unicode, empty files, and truncated input.\n- A filesystem integration test proving a failed write does not destroy the prior valid snapshot.\n- Pure reporting functions and stream collectors tested with empty groups and duplicates.\n- Regex tests including near-matches and bounded input lengths.\n- A logging example that preserves a failure cause without leaking record contents or secrets.\n- A debugging note containing a reproduction, hypothesis, observation, repair, and regression test.\n\n## Review and completion\nA reviewer disconnects or makes the storage path unwritable and supplies malformed records. The program must report useful failures and preserve consistent state. Tests must run without depending on today's date or a particular local time zone. Complete JUnit work in the external build project; LearnLocal's standard-library checkpoint does not supply JUnit dependencies.",
+  "learningObjectives": [
+    "Translate parsing and I/O failures without losing causes or leaving partially valid state",
+    "Own files safely with explicit paths, UTF-8, atomic updates, schemas, time types, and bounded regex",
+    "Keep reporting transformations pure and represent meaningful absence explicitly",
+    "Build readable stream reductions and collectors with tested empty and duplicate behavior",
+    "Create deterministic unit/integration evidence and diagnostics that support reproduction"
+  ],
+  "checkpointExerciseIds": [
+    "m15-phase-project"
+  ]
+}

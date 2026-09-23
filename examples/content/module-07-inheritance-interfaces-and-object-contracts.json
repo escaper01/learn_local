@@ -1,0 +1,249 @@
+{
+  "id": "module-07-inheritance-interfaces-and-object-contracts",
+  "title": "Chapter 7: Inheritance, Interfaces, and Object Contracts",
+  "description": "Design abstractions whose implementations remain safe substitutes. Learners contrast interfaces, abstract classes, inheritance, and composition; trace dynamic dispatch; implement equality and hashing for stable keys; construct total orderings; and test contracts against multiple implementations instead of trusting an inheritance diagram.",
+  "lessons": [
+    {
+      "id": "m07-l01-inheritance-and-the-liskov-substitution-principle",
+      "title": "Inheritance and the Liskov substitution principle",
+      "theoryMarkdown": "# Inheritance and the Liskov substitution principle\n\n## Substitution is behavioral\nA subtype must work wherever the supertype is promised. If an interface says a collection supports adding, an implementation that throws for every add violates that expectation unless optional mutation is explicitly part of the contract.\n\n## Prefer composition for reuse\n```java\ninterface Notifier { void send(String message); }\nfinal class AuditNotifier implements Notifier {\n    private final Notifier delegate;\n    AuditNotifier(Notifier delegate) { this.delegate = delegate; }\n    public void send(String message) {\n        System.out.println(\"Sending notification\");\n        delegate.send(message);\n    }\n}\n```\nThe wrapper reuses a collaborator through its interface. It does not need to inherit its storage or construction assumptions. State whether audit failure should prevent delivery: wrappers also have behavioral contracts.\n\n## Practice\nReview a Rectangle/Square inheritance design with independent setWidth and setHeight methods. Explain why preserving a square invariant can violate the parent's independent-dimension promise. Replace it with immutable shapes or a narrower interface. Write one contract test that can run against every Notifier implementation, including its documented failure behavior.",
+      "exercises": [
+        {
+          "id": "m07-l1-check",
+          "type": "multipleChoice",
+          "title": "Inheritance and the Liskov substitution principle: concept check",
+          "instructionMarkdown": "A subtype rejects inputs its parent promises to accept. Which principle is at risk?",
+          "choices": [
+            "Behavioral substitution",
+            "Only naming style",
+            "Only heap allocation"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that a subtype must remain a working substitute wherever the supertype's contract is promised; refusing an input the contract accepts breaks that substitutability."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l02-interfaces-abstract-classes-and-default-methods",
+      "title": "Interfaces, abstract classes, and default methods",
+      "theoryMarkdown": "# Interfaces, abstract classes, and default methods\n\n## Roles versus shared machinery\nAn interface describes a role and supports multiple implemented roles. An abstract class may own state, constructors, and shared implementation but occupies Java's single class-inheritance slot.\n```java\ninterface Printable {\n    String text();\n    default void print() { System.out.println(text()); }\n}\nabstract class Named {\n    private final String name;\n    protected Named(String name) { this.name = name; }\n    public final String name() { return name; }\n}\n```\nInterface fields are constants; per-instance state belongs in objects. Default methods permit shared behavior, but they do not justify hiding unrelated business policy in an interface. Conflicting inherited default methods require an explicit resolution.\n\n## Abstract does not mean interface\nAn abstract method has no implementation. An abstract class cannot be instantiated directly but can have concrete methods and initialization logic. Exposing protected fields makes subclasses depend on representation; prefer narrow protected operations when extension is necessary.\n\n## Practice\nDesign a ReportSource interface and two independent implementations. Then decide whether an abstract base adds useful shared lifecycle behavior or merely duplicates a few lines. Explain how a class can implement Printable and AutoCloseable without inheriting two class implementations.",
+      "exercises": [
+        {
+          "id": "m07-l2-check",
+          "type": "multipleChoice",
+          "title": "Interfaces, abstract classes, and default methods: concept check",
+          "instructionMarkdown": "What can an abstract class provide that an interface does not provide as ordinary instance storage?",
+          "choices": [
+            "Multiple class inheritance",
+            "Default method bodies for shared behavior",
+            "Constructors and instance fields"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that interfaces can also supply default method bodies; what an abstract class uniquely adds is a constructor and per-instance fields for real state."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l03-overriding-dynamic-dispatch-super-and-final",
+      "title": "Overriding, dynamic dispatch, super, and final",
+      "theoryMarkdown": "# Overriding, dynamic dispatch, super, and final\n\n## Runtime dispatch versus compile-time choice\n```java\nclass Animal { String sound() { return \"?\"; } }\nclass Dog extends Animal {\n    @Override String sound() { return \"woof\"; }\n}\nAnimal animal = new Dog();\nSystem.out.println(animal.sound()); // woof\n```\nThe declared type limits which methods may be called; the actual object's type determines the overriding implementation. Overloading chooses among different parameter lists at compile time. Static methods are hidden, not overridden; fields also do not participate in dynamic method dispatch.\n\n@Override catches accidental signature mistakes. An override cannot reduce access or broaden checked exceptions beyond the inherited contract. Covariant reference return types may narrow the returned type.\n\n## super and final\nsuper invokes superclass behavior or construction. A final method prevents overriding and a final class prevents subclassing. Private methods are implementation details rather than override hooks.\n\n## Practice\nAdd an overloaded describe(Animal) and describe(Dog), then pass an Animal variable containing a Dog. Predict the overload and separately predict sound(). Make one signature typo under @Override and explain the compiler's protection. Avoid calling overridable methods from a superclass constructor while subclass fields remain uninitialized.",
+      "exercises": [
+        {
+          "id": "m07-l3-check",
+          "type": "multipleChoice",
+          "title": "Overriding, dynamic dispatch, super, and final: concept check",
+          "instructionMarkdown": "Animal a = new Dog(); a.sound() calls an overridden instance method. Which implementation runs?",
+          "choices": [
+            "Animal.sound, because the variable's declared type is Animal",
+            "Dog.sound",
+            "Always Animal.sound"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall that dynamic dispatch picks the override based on the object's actual runtime type, not the reference variable's declared compile-time type."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l04-equals-hashcode-identity-and-immutable-keys",
+      "title": "equals, hashCode, identity, and immutable keys",
+      "theoryMarkdown": "# equals, hashCode, identity, and immutable keys\n\n## Equality must stay coherent\nLogical equality should be reflexive, symmetric, transitive, stable while relevant state is unchanged, and false for null. Equal objects must produce equal hash codes; unequal objects may collide.\n```java\nrecord TaskId(long value) {}\nvar ids = new java.util.HashSet<TaskId>();\nids.add(new TaskId(7));\nids.add(new TaskId(7));\nSystem.out.println(ids.size()); // 1\n```\nHashSet uses both hashing and equality. A matching hash is not proof of equality. A record is convenient when its components truly define a value.\n\n## Mutable-key failure\nIf a key's hash-relevant field changes after insertion, lookups may search a different bucket. The entry can remain present during iteration while containsKey fails. Prefer immutable keys. Equality across inheritance hierarchies also risks symmetry: a base class ignoring a subtype field may disagree with the subtype.\n\n## Practice\nWrite an ordinary immutable Id class with equals and hashCode, then test reflexivity, symmetry, transitivity, null, and differing values. Demonstrate the mutable-key failure in a scratch class and repair the design rather than repeatedly removing and reinserting keys. Decide whether account equality is based on balance or stable account ID.",
+      "exercises": [
+        {
+          "id": "m07-l4-check",
+          "type": "multipleChoice",
+          "title": "equals, hashCode, identity, and immutable keys: concept check",
+          "instructionMarkdown": "Two values are equal according to equals. What must follow?",
+          "choices": [
+            "Their hash codes are equal",
+            "Their references are identical",
+            "Their hash codes differ"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that the equals/hashCode contract requires equal objects to produce equal hash codes, even though a matching hash code alone never proves equality."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l05-comparable-comparator-total-ordering-and-composition",
+      "title": "Comparable, Comparator, total ordering, and composition",
+      "theoryMarkdown": "# Comparable, Comparator, total ordering, and composition\n\n## Ordering is another contract\nComparable defines one natural order for a type. Comparator supplies alternative orders without changing the type.\n```java\nrecord Person(String name, int age) {}\nvar order = java.util.Comparator.comparingInt(Person::age)\n    .thenComparing(Person::name);\nvar people = new java.util.ArrayList<>(java.util.List.of(\n    new Person(\"Lin\", 30), new Person(\"Ada\", 30)));\npeople.sort(order);\n```\nThe tie-breaker makes equal ages deterministic. Returning a-b to compare integers can overflow; use Integer.compare or comparingInt. A comparator must order pairs consistently and be transitive.\n\n## Sorted collections\nTreeSet treats compare(a,b)==0 as the same set position even if equals says the objects differ. Sorting people only by age is therefore dangerous for a set intended to retain all distinct people. Use a comparator consistent with the intended uniqueness policy.\n\n## Practice\nSort tasks by descending priority, ascending deadline, then ID. Define how missing deadlines are ordered using nullsFirst/nullsLast or a non-null representation. Construct three values to test transitivity and include extreme integer values. Explain the difference between stable sorting of a list and uniqueness in a TreeSet.",
+      "exercises": [
+        {
+          "id": "m07-l5-check",
+          "type": "multipleChoice",
+          "title": "Comparable, Comparator, total ordering, and composition: concept check",
+          "instructionMarkdown": "Why can a TreeSet sorted only by age lose distinct people?",
+          "choices": [
+            "TreeSet uses insertion order",
+            "Every set preserves duplicate values",
+            "Comparator equality determines the same set position"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that a TreeSet treats any pair for which compare(a,b)==0 as occupying the same position, regardless of what equals says about those objects."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-assessment",
+      "title": "Chapter 7 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 7 assessment\n\nDraw on this chapter's coverage of substitution, dynamic dispatch, and the equals/hashCode contract to work through the decision scenario and repair **Equality needs consistent hashing**, a lab where a hash-based lookup fails because a type's hashCode disagrees with its own equals. Write a prediction before running the debugger and preserve the intended lookup behavior when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency. Complete the implementation and external practice described in the five lessons as well. Review the changed source for its contract, then explain the relevant tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m07-judgment",
+          "type": "multipleChoice",
+          "title": "Inheritance, Interfaces, and Object Contracts: professional judgment",
+          "instructionMarkdown": "A subtype throws on every operation its interface promises. What should be reconsidered?",
+          "choices": [
+            "The abstraction and substitution contract",
+            "Only sorting speed",
+            "Only the filename"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m07-coding-lab",
+          "type": "function",
+          "title": "Chapter 7 implementation lab: sameKey",
+          "instructionMarkdown": "Implement `sameKey`. Return true when the two strings have equal case-sensitive content after trimming. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nBoth inputs are non-null; use trim on both and case-sensitive content equality.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static boolean sameKey(String value1, String value2) {\n        return false;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "sameKey",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              },
+              {
+                "name": "value2",
+                "type": "string"
+              }
+            ],
+            "returns": "boolean"
+          },
+          "tests": [
+            {
+              "id": "m07-code-1",
+              "visibility": "public",
+              "arguments": [
+                " A ",
+                "A"
+              ],
+              "expected": true
+            },
+            {
+              "id": "m07-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                "A",
+                "a"
+              ],
+              "expected": false
+            },
+            {
+              "id": "m07-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "",
+                ""
+              ],
+              "expected": true
+            },
+            {
+              "id": "m07-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                " A ",
+                " A "
+              ],
+              "expected": true
+            },
+            {
+              "id": "m07-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                "a",
+                "b"
+              ],
+              "expected": false
+            }
+          ],
+          "hints": [
+            "Trim each input first, then compare the trimmed strings with case-sensitive content equality — no case folding.",
+            "Trace the public example plus a boundary where trimming matters, such as two empty strings and two single letters differing only by case."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m07-debug-lab",
+          "type": "debug",
+          "title": "Equality needs consistent hashing",
+          "instructionMarkdown": "`Key` overrides equals to compare `id` but leaves hashCode returning the JVM's identity hash, so two equal keys can land in different HashSet buckets and `contains` reports `false` instead of `true`. Repair hashCode so it is consistent with the existing value-based equals, keeping the demonstrated construction and lookup calls, and explain why consistent hashing restores the lookup; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended operation requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    static class Key { final int id; Key(int id){this.id=id;} public boolean equals(Object o){return o instanceof Key k && k.id==id;} public int hashCode(){return System.identityHashCode(this);} }\n    public static void main(String[] args) throws Exception {\n        var set=new java.util.HashSet<Key>(); set.add(new Key(7)); System.out.print(set.contains(new Key(7)));\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m07-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "true",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Override hashCode consistently with the existing value-based equals."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

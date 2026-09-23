@@ -1,0 +1,15 @@
+{
+  "id": "phase-5-portfolio",
+  "title": "Portfolio Phase 5: Chapters 21-25",
+  "descriptionMarkdown": "# Phase 5 — Secure, operable service\n\n## Graded checkpoint\nChapter 25's import boundary validates names and field lengths, limits accepted records, rejects duplicate IDs, and redacts secrets. Its tests verify this local contract only. They cannot prove authentication, authorization, cryptographic correctness, or deployment safety.\n\n## Independent application\nAdd a Spring Boot adapter while retaining a domain core testable without Spring. Choose JDBC or JPA and record the tradeoff. If using JPA, inspect SQL, query counts, entity transitions, and optimistic locking. Profile a representative workload and repair one evidenced bottleneck or retention problem. Package a non-root runtime with explicit resource budgets.\n\n## Required evidence\n- Threat model with assets, entry points, object-level authorization, secret handling, and abuse cases.\n- An annotation/proxy explanation and an integration test of the actual transaction boundary.\n- Profile or flight-recording evidence with workload, before/after results, and limitations.\n- Bounded cache and queue policies; idempotent event handling and outbox design where needed.\n- Readiness, liveness, graceful shutdown, and failure-injection demonstrations.\n- Metrics with bounded labels, trace correlation, safe logs, one SLO, and an actionable alert/runbook.\n- Migration-compatible rollout and rollback/recovery instructions.\n\n## Review and completion\nA reviewer sends unauthorized requests, duplicates an event, degrades a dependency, and terminates the process during work. Explain observed behavior and recover using your runbook. Do not add reflection, messaging, or microservices merely to satisfy a checklist: an explicitly justified omission can be a better design.",
+  "learningObjectives": [
+    "Use runtime metadata and modules behind narrow validated boundaries rather than as application-wide magic",
+    "Support a performance change with representative CPU, allocation, memory, lock, or JFR evidence",
+    "Apply least privilege, structured APIs, secret hygiene, dependency control, and resource limits",
+    "Explain Spring bean, proxy, transaction, DTO, entity, query, locking, migration, and test behavior",
+    "Deliver compatibility, idempotency, deployment, observability, recovery, and portfolio evidence"
+  ],
+  "checkpointExerciseIds": [
+    "m25-phase-project"
+  ]
+}

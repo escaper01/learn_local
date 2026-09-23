@@ -22,6 +22,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "learnpack:example": "node scripts/generate-example-learnpack.mjs",
+    "curriculum:package": "node scripts/package-java-curriculum.mjs",
     "check": "npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {

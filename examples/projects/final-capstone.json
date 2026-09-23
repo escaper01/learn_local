@@ -1,13 +1,14 @@
 {
-  "id": "complete-java-capstone",
-  "title": "Complete Java 21 portfolio capstone",
-  "descriptionMarkdown": "Integrate the complete theory-first curriculum in a local Java application. Begin with the validated multi-file checkpoint, then evolve it with clear domain modeling, collections and algorithms, durable file and JDBC storage, structured logging, automated tests, concurrency where justified, an architectural pattern you can defend, and a documented JSON boundary.",
+  "id": "java-developer-capstone-project",
+  "title": "Production-minded Java task service",
+  "descriptionMarkdown": "# Final capstone — Java task service\n\n## Deliverable\nProvide a repository another developer can clone, build, test, and run from its README. Deliver a protected domain model, application use cases, CLI and HTTP adapters, a documented JSON contract, durable storage, migrations, and operational evidence. State supported versions and exact external prerequisites. Never include real credentials.\n\n## Graded command core\nThe chapter 25 TaskService checkpoint tests ADD, DONE, REMOVE, LIST, and STATS with varying inputs, rejection, stable ordering, duplicate handling, and state preservation. Keep Main as the input/output boundary and state inside the service. A constant readiness message cannot satisfy these cases. The automated result covers only this core.\n\n## Delivery sequence\n1. In-memory vertical slice: validated IDs and titles, explicit transitions, deterministic listing, and unit tests.\n2. Persistence: TaskStore adapter, file snapshot or JDBC schema, restart behavior, constraints, migrations, and rollback tests. Provide JDBC integration evidence for the final backend.\n3. HTTP: DTOs, status/error semantics, pagination, bounded JSON, and authorization per resource.\n4. Reliability: deadlines, cancellation, concurrency ownership, idempotency for retried writes, and a documented recovery strategy.\n5. Operations: reproducible artifact, external configuration, resource limits, health, shutdown, logging, metrics, and runbook.\n\n## Reviewer scenarios\nCreate several tasks, reject a duplicate without overwriting it, complete and remove tasks, and restart without losing committed data. Submit malformed input and another user's task ID. Inject a failure halfway through a transaction. Retry a request whose response was lost. Run competing updates and terminate during active work. Demonstrate one measured performance investigation and one schema upgrade from existing data.\n\n## Rubric\nAssess correctness (30%), automated and failure-path evidence (25%), design and explanation (20%), security and resource ownership (15%), and reproducibility/operations (10%). This is a review aid, not an accredited certification. Regardless of score, unresolved data loss, broken authorization, secret exposure, or an unreproducible build prevents completion. Fix failed scenarios and repeat review.\n\n## Oral defense\nTrace one feature from request to durable state. Explain why each dependency exists, what a transaction protects, where ownership changes, and which tests would detect a regression. Make a small unprepared change and diagnose a seeded defect. Completion provides portfolio evidence; professional expertise continues through practice, feedback, and maintaining real systems.",
   "learningObjectives": [
-    "Combine language fundamentals, object-oriented design, collections, streams, and error handling",
-    "Use tests, diagnostics, persistence, concurrency, architecture, and serialization deliberately",
-    "Explain the contracts, tradeoffs, security boundaries, and failure behavior of the finished application"
+    "Deliver features from requirement through operation",
+    "Integrate Java, SQL, HTTP, testing, security, concurrency, and architecture",
+    "Diagnose defects from evidence",
+    "Present credible entry-level Java developer portfolio evidence"
   ],
   "checkpointExerciseIds": [
-    "java-complete-capstone"
+    "java-developer-capstone"
   ]
 }

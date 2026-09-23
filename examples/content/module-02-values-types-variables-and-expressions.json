@@ -1,0 +1,249 @@
+{
+  "id": "module-02-values-types-variables-and-expressions",
+  "title": "Chapter 2: Values, Types, Variables, and Expressions",
+  "description": "Develop a precise value model for Java's primitives and references. The learner traces promotion, overflow, floating-point approximation, BigDecimal use, casts, equality, short-circuit evaluation, parsing, validation, and formatted output, then chooses representations that preserve a stated business rule rather than merely compiling.",
+  "lessons": [
+    {
+      "id": "m02-l01-primitive-types-ranges-literals-and-overflow",
+      "title": "Primitive types, ranges, literals, and overflow",
+      "theoryMarkdown": "# Primitive types, ranges, literals, and overflow\n\n## The eight primitive types\nbyte, short, int, and long are signed integers with 8, 16, 32, and 64 bits respectively. byte ranges from -128 to 127; int from -2^31 to 2^31-1. char is an unsigned 16-bit UTF-16 code unit. float and double represent binary floating-point approximations. boolean is true or false; Java does not specify a source-level storage size for it.\n\n```java\nint population = 2_000_000;\nlong large = 3_000_000_000L;\ndouble price = 0.1;\nchar initial = 'J';\nboolean active = true;\nSystem.out.println(Integer.MAX_VALUE + 1); // -2147483648\n```\nThe L suffix makes the large literal a long. Single quotes denote a char; double quotes denote a String, which is a reference type. Underscores improve numeric readability without changing the value. Hexadecimal 0x10 and binary 0b10000 both equal decimal 16.\n\n## Overflow is not automatic validation\nOrdinary integer arithmetic wraps when the mathematical result exceeds the range. It does not automatically throw. Math.addExact and Math.multiplyExact throw ArithmeticException instead, which is useful when silent wrapping would corrupt a result. Division truncates toward zero: -7 / 2 is -3. Integer division by zero throws; floating-point arithmetic has infinity and NaN.\n\n## Practice\nCalculate the number of seconds in 100 years using int and long intermediates. Explain why assigning an already-overflowed int expression to long cannot repair it. Choose types for an age, a database identifier, a flag, and an exact monetary amount, and state the range each application accepts.",
+      "exercises": [
+        {
+          "id": "m02-l1-check",
+          "type": "multipleChoice",
+          "title": "Primitive types, ranges, literals, and overflow: concept check",
+          "instructionMarkdown": "What does Integer.MAX_VALUE + 1 produce with ordinary int arithmetic?",
+          "choices": [
+            "An automatic ArithmeticException",
+            "A long value",
+            "Integer.MIN_VALUE"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "int arithmetic wraps silently instead of throwing on overflow: adding one to the largest representable int wraps around to the smallest one."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l02-variables-final-scope-and-definite-assignment",
+      "title": "Variables, final, scope, and definite assignment",
+      "theoryMarkdown": "# Variables, final, scope, and definite assignment\n\n## Declaration and assignment\nA declaration introduces a variable's name and type; assignment supplies its value. A local variable must be definitely assigned along every execution path before it is read. Object fields have default values, but that does not make defaults valid business state.\n```java\nint score;\nboolean passed = true;\nif (passed) {\n    score = 80;\n} else {\n    score = 0;\n}\nSystem.out.println(score);\nfinal int passingScore = 60;\n```\nRemoving the else leaves a path on which score is unassigned. The compiler rejects the read even if you believe that path will not occur. A variable declared inside braces is visible only within its scope. Prefer the narrowest useful scope and meaningful names such as passingScore rather than p.\n\n## final and var\nfinal prevents assigning a new value to that variable after initialization. For a reference, it does not prevent operations that mutate the referenced object. For example, a final array variable may still have its elements changed. Later immutability lessons address the object itself.\n\nLocal var asks the compiler to infer a fixed type from the initializer. `var count = 1;` remains an int variable; assigning text later is illegal. var needs an initializer and cannot infer a type from null alone. Use an explicit type when inference would hide important meaning.\n\n## Practice\nWrite a three-branch grade classification in which a result is assigned exactly once on every path. Try reading a loop-local variable after the loop. Explain each diagnostic. Then rename ambiguous variables and compare how much explanation the code still needs.",
+      "exercises": [
+        {
+          "id": "m02-l2-check",
+          "type": "multipleChoice",
+          "title": "Variables, final, scope, and definite assignment: concept check",
+          "instructionMarkdown": "A final int[] is assigned once. Which change remains legal?",
+          "choices": [
+            "Changing the variable's declared type",
+            "Changing an element",
+            "Assigning a second array to the variable"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "final only fixes what the variable itself refers to; it does not freeze the array object, so elements reached through that reference are still mutable."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l03-numeric-promotion-casting-bigdecimal-and-precision",
+      "title": "Numeric promotion, casting, BigDecimal, and precision",
+      "theoryMarkdown": "# Numeric promotion, casting, BigDecimal, and precision\n\n## Conversion happens before assignment\n```java\nint a = 7, b = 2;\ndouble truncated = a / b;        // 3.0\ndouble fractional = (double) a / b; // 3.5\nlong wrong = Integer.MAX_VALUE + 1; // already overflowed\nlong right = (long) Integer.MAX_VALUE + 1; // 2147483648\n```\nThe declared type of the destination does not control the intermediate operation. Widen an operand before division or addition. byte and short arithmetic always promotes to int under Java's binary numeric promotion rules. Narrowing casts can discard information: (int) 3.9 is 3 and (byte) 130 is -126. Even some widening conversions lose precision, such as a sufficiently large long converted to double.\n\n## Exact decimal arithmetic\nBinary floating point cannot exactly represent many decimal fractions. For decimal business rules, use text-based BigDecimal construction:\n```java\nvar price = new java.math.BigDecimal(\"0.10\");\nvar total = price.multiply(new java.math.BigDecimal(\"3\"));\nSystem.out.println(total.toPlainString()); // 0.30\n```\nConstructing BigDecimal from a double preserves the double's approximation. Nonterminating division needs an explicit scale and RoundingMode. Rounding is a business rule: state when it occurs and whether values are rounded individually or after aggregation.\n\nBigDecimal.equals considers scale; compareTo compares numeric magnitude, so 1.0 and 1.00 can compare numerically equal without equals returning true.\n\n## Practice\nImplement an average that cannot overflow when both int inputs are Integer.MAX_VALUE. Calculate a third of one currency unit with an explicit rounding policy, then explain why summing three rounded thirds may differ from one whole.",
+      "exercises": [
+        {
+          "id": "m02-l3-check",
+          "type": "multipleChoice",
+          "title": "Numeric promotion, casting, BigDecimal, and precision: concept check",
+          "instructionMarkdown": "Why does double result = 7 / 2 produce 3.0?",
+          "choices": [
+            "Integer division happens before conversion",
+            "double cannot represent 3.5",
+            "Assignment rounds every result down"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Both operands are int, so the division truncates toward zero before the result is ever converted to double; widen an operand first if you need the fraction."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l04-operators-precedence-equality-and-short-circuiting",
+      "title": "Operators, precedence, equality, and short-circuiting",
+      "theoryMarkdown": "# Operators, precedence, equality, and short-circuiting\n\n## Evaluation and meaning\nArithmetic binds more tightly than comparison; && binds more tightly than ||. Parentheses make intent explicit even when precedence is known. Java evaluates operands left to right, but short-circuit operators may skip evaluation of their right operand.\n```java\nString name = null;\nboolean usable = name != null && !name.isBlank();\nint count = 0;\nboolean selected = true || ++count > 0;\nSystem.out.println(count); // 0\n```\nThe null guard prevents dereferencing name. The increment is skipped because the left side of || is already true. Boolean & and | evaluate both sides, so substituting & for && can make the first expression throw.\n\n## Equality and side effects\n== compares primitive values or reference identity. Strings normally need equals for content; two separately created objects can contain the same characters without being identical. Assignment = changes a variable, while == asks a question. Prefix ++i increments before producing its value; postfix i++ produces the previous value then increments. Avoid packing several increments into one expression.\n\nBitwise &, |, ^, ~ and shifts manipulate integer bits. >>> shifts in zeros; >> preserves the sign bit. These operations are useful for masks and binary formats but are different from boolean conjunction. Underneath, every int and long is stored as a fixed-width sequence of bits using two's complement, which is why a negative value's leading bit is set and why -1 is all ones. A hexadecimal literal such as 0x10 or a binary literal such as 0b10000 from lesson one is simply a different way of writing the same stored value as the decimal literal 16.\n\n## Practice\nPredict `2 + 3 * 4 == 14 && false || true`, then parenthesize it. Write a safe predicate for a non-null, non-empty input. Build a decision table for “adult AND (member OR invitation)” and verify all combinations instead of testing one favorable example.",
+      "exercises": [
+        {
+          "id": "m02-l4-check",
+          "type": "multipleChoice",
+          "title": "Operators, precedence, equality, and short-circuiting: concept check",
+          "instructionMarkdown": "Why is x != null && x.isEmpty() safe from a null dereference?",
+          "choices": [
+            "&& catches NullPointerException",
+            "isEmpty accepts a null receiver",
+            "The right operand is skipped when x is null"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "&& short-circuits: once the left operand is false, the right operand is never evaluated, so isEmpty() is never invoked on a null reference."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l05-console-input-parsing-validation-and-formatted-output",
+      "title": "Console input, parsing, validation, and formatted output",
+      "theoryMarkdown": "# Console input, parsing, validation, and formatted output\n\n## A line is text until validated\nUse Scanner for small console programs, but choose one input style consistently. nextInt consumes a token and can leave its following newline; a subsequent nextLine may return the empty remainder. Reading a whole line and parsing it makes the boundary explicit.\n```java\nvar scanner = new java.util.Scanner(System.in);\nSystem.out.print(\"Age: \");\nString line = scanner.nextLine();\ntry {\n    int age = Integer.parseInt(line.trim());\n    if (age < 0 || age > 130) {\n        System.out.println(\"Age must be from 0 to 130\");\n    } else {\n        System.out.printf(java.util.Locale.ROOT, \"Age=%d%n\", age);\n    }\n} catch (NumberFormatException error) {\n    System.out.println(\"Enter a whole number\");\n}\n```\nThis is a method-body snippet. Parsing verifies numeric spelling and range; the following condition verifies the domain range. Neither check replaces the other. Later loop lessons show how to ask again after invalid input.\n\n## Output contracts\n%d formats an integer, %.2f formats a floating value with two fractional digits, %s formats text, and %n emits the platform line separator. Locale affects decimal punctuation. Exact machine-readable output should select its locale or use an explicit serialization format.\n\nClosing a Scanner closes its underlying stream. Do not close a shared System.in that another component still needs; assign stream ownership to the application.\n\n## Practice\nTry blank input, spaces, -1, 131, 25, and a number too large for int. Record a different diagnosis for malformed text and valid-but-out-of-range numbers. Test formatted output under a locale that uses a decimal comma.",
+      "exercises": [
+        {
+          "id": "m02-l5-check",
+          "type": "multipleChoice",
+          "title": "Console input, parsing, validation, and formatted output: concept check",
+          "instructionMarkdown": "A line parses as -3 but the accepted range is 1..10. Which check fails?",
+          "choices": [
+            "Character decoding necessarily",
+            "Semantic range validation",
+            "Integer syntax parsing"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "parseInt already succeeded, so the syntax was valid; the failure comes from a separate range check comparing the parsed value against the accepted domain."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-assessment",
+      "title": "Chapter 2 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 2 assessment\n\nUse the chapter's explanations of numeric promotion, casting, and overflow to solve the decision scenario and repair **Promotion before division**. Write a prediction of the exact decimal result before running the debugger, and preserve the intended division when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency: it checks one overflow-safe average, not every promotion and precision rule in the chapter. Complete the implementation and external practice described in the five lessons as well. Review the changed source for where truncation happened, then explain that tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m02-judgment",
+          "type": "multipleChoice",
+          "title": "Values, Types, Variables, and Expressions: professional judgment",
+          "instructionMarkdown": "A money calculation compiles but loses cents. What should be reviewed?",
+          "choices": [
+            "Numeric representation and rounding rules",
+            "Only whether variables are final",
+            "Only method visibility"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m02-coding-lab",
+          "type": "function",
+          "title": "Chapter 2 implementation lab: safeAverage",
+          "instructionMarkdown": "Implement `safeAverage`. Return the arithmetic mean as a double without overflowing an intermediate integer sum. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInputs may be any int values. Cast before adding or divide each operand as double to avoid overflow.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static double safeAverage(int value1, int value2) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "safeAverage",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              },
+              {
+                "name": "value2",
+                "type": "int"
+              }
+            ],
+            "returns": "double"
+          },
+          "tests": [
+            {
+              "id": "m02-code-1",
+              "visibility": "public",
+              "arguments": [
+                2,
+                4
+              ],
+              "expected": 3
+            },
+            {
+              "id": "m02-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                1,
+                2
+              ],
+              "expected": 1.5
+            },
+            {
+              "id": "m02-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                2147483647,
+                2147483647
+              ],
+              "expected": 2147483647
+            },
+            {
+              "id": "m02-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                -2147483648,
+                2147483647
+              ],
+              "expected": -0.5
+            },
+            {
+              "id": "m02-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                0,
+                0
+              ],
+              "expected": 0
+            }
+          ],
+          "hints": [
+            "Translate \"without overflowing an intermediate sum\" into casting an operand to double, or summing as long, before dividing by two.",
+            "Trace the public (2, 4) example plus a boundary pair such as two Integer.MAX_VALUE values and one negative/positive extreme before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m02-debug-lab",
+          "type": "debug",
+          "title": "Promotion before division",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `2.5`. The expression `(2 + 3) / 2` currently runs entirely in int arithmetic and truncates to 2 before that result is ever widened to double; preserve the demonstrated addition and explain why converting an operand before dividing, rather than hard-coding the printed value, is what restores the fractional result.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        double average = (2 + 3) / 2; System.out.print(average);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m02-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "2.5",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Convert an operand before the division; widening the result is too late."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

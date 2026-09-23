@@ -1,0 +1,3 @@
+Compress-Archive -Path manifest.json,content,projects -DestinationPath ..\my-course.zip
+Move-Item ..\my-course.zip ..\my-course.learnpack                                      
+

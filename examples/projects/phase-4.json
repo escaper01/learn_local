@@ -1,0 +1,15 @@
+{
+  "id": "phase-4-portfolio",
+  "title": "Portfolio Phase 4: Chapters 16-20",
+  "descriptionMarkdown": "# Phase 4 — Persistent modular service\n\n## Graded checkpoint\nChapter 20 applies event IDs idempotently: matching duplicates have no second effect; conflicting payloads are rejected; overflow neither changes the total nor records a failed ID. This is the deterministic core of a consumer, not a database transaction simulation.\n\n## Independent application\nBuild the tracker with a committed Maven or Gradle wrapper and declared dependency versions. Introduce a TaskStore port with JDBC implementation, versioned migrations, and a bounded HTTP/JSON adapter. Define transaction boundaries around use cases and configure timeouts for outgoing requests. Demonstrate controlled asynchronous work with an owned executor and cooperative cancellation.\n\n## Required evidence\n- Clean-checkout build/test commands, dependency graph, and CI results.\n- Database constraints and tests using the selected database engine, including rollback after a mid-operation failure.\n- A two-client concurrency test for conflicting updates or duplicate creation.\n- HTTP fixtures for successful requests, invalid input, conflict, and dependency failure.\n- Request and response size limits, deadline and retry policies, and source-reviewed resource closure.\n- An architecture diagram showing dependencies from adapters toward application/domain ports.\n\n## Review and completion\nRun the same use case through CLI and HTTP without duplicating domain rules. Explain the difference between a received HTTP error and a transport timeout. A reviewer injects a duplicate event and interrupts a worker; prove the invariant and shutdown contract remain intact. External database and network tests run outside LearnLocal's network-disabled exercise container.",
+  "learningObjectives": [
+    "Produce the same tested artifact from a clean checkout with controlled dependencies",
+    "Document shared-state ownership, happens-before guarantees, cancellation, bounds, and shutdown",
+    "Specify HTTP/JSON schemas, limits, status behavior, idempotency, deadlines, and retry policy",
+    "Protect relational invariants with constraints, prepared statements, short transactions, and rollback tests",
+    "Keep domain and application policy independent of database, HTTP, and framework details"
+  ],
+  "checkpointExerciseIds": [
+    "m20-phase-project"
+  ]
+}

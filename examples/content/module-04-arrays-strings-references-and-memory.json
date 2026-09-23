@@ -1,0 +1,252 @@
+{
+  "id": "module-04-arrays-strings-references-and-memory",
+  "title": "Chapter 4: Arrays, Strings, References, and Memory",
+  "description": "Use arrays and text without confusing variables, references, and objects. Learners diagram stack frames and heap identities, expose aliasing bugs, compare shallow and defensive copies, process Unicode deliberately, select StringBuilder for incremental construction, and design null and immutability contracts that callers cannot accidentally violate.",
+  "lessons": [
+    {
+      "id": "m04-l01-arrays-bounds-traversal-copying-and-multidimensional-data",
+      "title": "Arrays, bounds, traversal, copying, and multidimensional data",
+      "theoryMarkdown": "# Arrays, bounds, traversal, copying, and multidimensional data\n\n## Arrays own fixed indexed storage\nCreating new int[3] allocates three zero-valued elements. A String[3] instead begins with three null references. Valid indices are 0 through length-1; length is a field and cannot be changed. The `args` parameter of `public static void main(String[] args)` is one such array: the JVM launcher fills it with each word typed after the class name, in order, so `args.length` is 0 when none were supplied. Always check `args.length` before reading `args[0]`, the same as any other array access.\n```java\nint[] a = {10, 20, 30};\nint[] alias = a;\nint[] copy = java.util.Arrays.copyOf(a, a.length);\nalias[0] = 99;\nSystem.out.println(a[0]);    // 99\nSystem.out.println(copy[0]); // 10\n```\nAssigning an array reference does not copy elements. copyOf creates a new outer array. If its elements are references to mutable objects, those element references still point to shared objects; copying is shallow.\n\n## Traversal and multidimensional arrays\nUse indices when position matters and enhanced for for values. A two-dimensional int[][] is an array of row references, so rows can have different lengths or be null. Always use each row's length. Arrays.toString formats one dimension; deepToString handles nested arrays.\n\nArrays.sort mutates the supplied array. Copy first when the caller owns the original ordering. System.arraycopy supports efficient range copying and validates bounds; it does not convert arbitrary incompatible element types.\n\n## Practice\nImplement a reversed copy with source index length-1-i and destination index i. Test empty, singleton, duplicates, and negative values. After the call, inspect the original array to prove it was not mutated. Traverse a ragged matrix with row lengths 0, 2, and 1 and explain why a single shared column limit is wrong.",
+      "exercises": [
+        {
+          "id": "m04-l1-check",
+          "type": "multipleChoice",
+          "title": "Arrays, bounds, traversal, copying, and multidimensional data: concept check",
+          "instructionMarkdown": "After int[] b = a; b[0] = 9, what does a[0] read?",
+          "choices": [
+            "9",
+            "Its previous value",
+            "A compiler error"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Assigning one array variable to another copies only the reference, not the elements, so both variables observe mutations through the same underlying array."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l02-string-immutability-equality-unicode-and-encodings",
+      "title": "String immutability, equality, Unicode, and encodings",
+      "theoryMarkdown": "# String immutability, equality, Unicode, and encodings\n\n## Content and identity\nA String contains immutable text. equals compares content; == compares whether references identify the same object. Interning can make == appear to work for some literals and fail for equivalent text read from a file: the compiler places String literals in a shared string pool, so two identical literals in the same program are automatically the same interned object, while `new String(...)` and text built at runtime deliberately create a separate object outside that pool. `String.intern()` looks up (or adds) a String's contents in that pool and returns the pooled reference, which is how code can restore == identity for equal content after the fact, though equals remains the correct general-purpose comparison.\n```java\nString first = new String(\"Java\");\nString second = new String(\"Java\");\nSystem.out.println(first == second);      // false\nSystem.out.println(first.equals(second)); // true\nString upper = first.toUpperCase(java.util.Locale.ROOT);\nSystem.out.println(first); // Java\n```\nThe transformation returns a result; first remains unchanged. Use an explicit locale for identifiers and protocol text.\n\n## Unicode layers\nString.length counts UTF-16 code units. Some Unicode code points require two char values:\n```java\nString text = \"A\\uD83D\\uDCA1\";\nSystem.out.println(text.length()); // 3\nSystem.out.println(text.codePointCount(0, text.length())); // 2\n```\nCode points still do not always equal user-perceived characters: combining marks and emoji sequences can span several code points. charAt retrieves a code unit, not necessarily a complete character.\n\nEncoding translates characters to bytes. Use StandardCharsets.UTF_8 at file or network boundaries and the same encoding when decoding. Do not assume substring indices are safe user-visible character boundaries.\n\n## Practice\nCompare literal, constructed, and input-derived Strings with equals and ==. Reverse an ASCII word, then test a supplementary character and explain the limitation of reversing individual char values. Define whether a username is case-sensitive before choosing a normalization operation.",
+      "exercises": [
+        {
+          "id": "m04-l2-check",
+          "type": "multipleChoice",
+          "title": "String immutability, equality, Unicode, and encodings: concept check",
+          "instructionMarkdown": "Why can String.length exceed the number of Unicode code points?",
+          "choices": [
+            "Every letter uses four chars",
+            "length counts UTF-8 bytes",
+            "A supplementary code point uses two UTF-16 code units"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "length() counts UTF-16 code units, and a supplementary code point (like many emoji) is represented by a surrogate pair of two code units, so length() can exceed codePointCount()."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l03-stringbuilder-and-efficient-text-construction",
+      "title": "StringBuilder and efficient text construction",
+      "theoryMarkdown": "# StringBuilder and efficient text construction\n\n## Why a builder helps\nStrings do not change in place. Repeatedly appending to one String in a loop may repeatedly copy the growing prefix, producing quadratic copying work. StringBuilder keeps a mutable buffer that grows as needed.\n```java\nString[] names = {\"Ada\", \"Lin\", \"Sam\"};\nStringBuilder report = new StringBuilder();\nfor (int i = 0; i < names.length; i++) {\n    if (i > 0) report.append(\", \");\n    report.append(names[i]);\n}\nString result = report.toString();\nSystem.out.println(result); // Ada, Lin, Sam\n```\nThe delimiter condition avoids both a leading and trailing comma. toString gives an immutable String result. length reports characters currently stored; capacity reports allocated space and can be larger.\n\n## Operations and ownership\nappend adds at the end; insert and delete modify positions; setLength can truncate or extend. Repeated insertions at the beginning move existing characters and may still be expensive. StringBuilder is not synchronized; keep it local to a thread or protect access. StringBuffer synchronizes individual operations but does not automatically make a multi-operation protocol atomic.\n\nSmall fixed concatenations such as \"id=\" + id are usually clearer than explicit builders; the compiler/runtime can optimize them. Measure meaningful workloads before micro-optimizing every plus sign.\n\n## Practice\nBuild a line-numbered report with exactly one newline between records and none for empty input. Test zero, one, and three records. Compare a builder implementation with a join operation. Explain why returning a mutable shared builder from a domain object exposes its internal state.",
+      "exercises": [
+        {
+          "id": "m04-l3-check",
+          "type": "multipleChoice",
+          "title": "StringBuilder and efficient text construction: concept check",
+          "instructionMarkdown": "What does StringBuilder.capacity describe?",
+          "choices": [
+            "The number of completed String objects",
+            "Allocated buffer capacity, possibly larger than content length",
+            "The current visible character count only"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "capacity is the size of the currently allocated internal buffer, which can be larger than length()—the number of characters actually stored right now."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l04-stack-frames-heap-objects-references-and-garbage-collection",
+      "title": "Stack frames, heap objects, references, and garbage collection",
+      "theoryMarkdown": "# Stack frames, heap objects, references, and garbage collection\n\n## Frames and objects\nEach thread has a call stack. Each invocation has its own parameters and local values. A reference is a value identifying an object; copying that reference connects another variable to the same object.\n```java\nstatic void change(int[] values) {\n    values[0] = 7;\n    values = new int[] {99};\n}\n// Caller:\nint[] original = {1};\nchange(original);\nSystem.out.println(original[0]); // 7\n```\nThe first assignment mutates the caller-visible object. The second changes only the parameter's local reference. Draw original and values pointing to the first array, then redirect only values.\n\n## Lifetime and reachability\nObjects are eligible for reclamation when no GC root can reach them. Roots include live stack references and class-associated static references. Leaving a scope can remove one route to an object, but a collection may still retain it. A memory leak in Java commonly means an object remains reachable even though the application no longer needs it.\n\nThe stack/heap picture explains behavior, not a promise about every physical allocation. JVM optimization can eliminate objects when doing so preserves observable semantics. Do not depend on implementation memory addresses.\n\n## Practice\nTrace a method that returns a newly allocated array: the frame disappears, yet the returned array remains reachable. Build a list that retains arrays and explain why setting one temporary variable to null does not free them. Contrast StackOverflowError from unbounded recursion with heap exhaustion from retained data.",
+      "exercises": [
+        {
+          "id": "m04-l4-check",
+          "type": "multipleChoice",
+          "title": "Stack frames, heap objects, references, and garbage collection: concept check",
+          "instructionMarkdown": "Why can a returned object survive its creating method?",
+          "choices": [
+            "The caller retains a reachable reference",
+            "Every object lives in the caller's stack frame",
+            "Return automatically makes the object static"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "An object stays reachable, and therefore alive, as long as some GC root—such as the caller's variable holding the returned reference—can reach it, regardless of which method created it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l05-null-contracts-defensive-copying-and-immutable-design",
+      "title": "Null contracts, defensive copying, and immutable design",
+      "theoryMarkdown": "# Null contracts, defensive copying, and immutable design\n\n## Absence needs a contract\nnull is the absence of an object reference. Calling a method or accessing a field through it throws NullPointerException. Decide whether each API rejects null, represents absence explicitly, or substitutes a meaningful default. Silently converting every missing value to empty text can erase important distinctions.\n\n## Defensive ownership\n```java\nfinal class Scores {\n    private final int[] values;\n    Scores(int[] input) {\n        values = java.util.Arrays.copyOf(input, input.length);\n    }\n    int[] values() {\n        return java.util.Arrays.copyOf(values, values.length);\n    }\n}\n```\nCopying in the constructor prevents the caller from changing stored state through input. Copying on return prevents mutation through an accessor. final alone only blocks assigning another array to values. An array of mutable objects needs a deeper ownership decision than copying the outer array.\n\n## Immutable design\nAn immutable class validates completely during construction, does not expose mutators, and does not leak mutable internals. Avoid publishing this while construction is incomplete. Immutability simplifies reasoning about concurrent readers, hash-map keys, cached values, and historical snapshots. It does not mean every object in an application should be immutable; some aggregates legitimately own controlled mutable state.\n\n## Practice\nConstruct Scores from an array, modify that array, retrieve values(), and modify the returned array. The original Scores must remain unchanged in both cases. Add a null-input policy and test its documented exception. Explain why replacing int[] with a list of mutable Player objects requires another ownership policy.",
+      "exercises": [
+        {
+          "id": "m04-l5-check",
+          "type": "multipleChoice",
+          "title": "Null contracts, defensive copying, and immutable design: concept check",
+          "instructionMarkdown": "Why copy an internal array both on input and output?",
+          "choices": [
+            "To make references pass by reference",
+            "To disable garbage collection",
+            "To prevent mutation through caller-owned aliases"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Copying on both the way in and the way out breaks the caller's ability to reach the same array object your class stores, which is exactly what prevents mutation through an alias."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-assessment",
+      "title": "Chapter 4 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 4 assessment\n\nUse the chapter's explanations of aliasing, shallow copying, and reference identity to solve the decision scenario and repair **Copy versus alias**. Write a prediction of both array values before running the debugger, and preserve the intended sort when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency: it checks one non-mutating reverse, not every aliasing or Unicode rule in the chapter. Complete the implementation and external practice described in the five lessons as well. Review the changed source for which variable was aliased, then explain that tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m04-judgment",
+          "type": "multipleChoice",
+          "title": "Arrays, Strings, References, and Memory: professional judgment",
+          "instructionMarkdown": "A supposedly immutable object changes after construction. What should you inspect?",
+          "choices": [
+            "Aliases to mutable constructor inputs or returned values",
+            "Only its class name",
+            "Only whether a local variable is final"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m04-coding-lab",
+          "type": "function",
+          "title": "Chapter 4 implementation lab: reverse",
+          "instructionMarkdown": "Implement `reverse`. Return a new array in reverse order; do not mutate or alias the input array. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInput is non-null. Review the source and inspect the original array in a manual test to verify non-mutation; result-only tests cannot prove it.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int[] reverse(int[] value1) {\n        return new int[0];\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "reverse",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int[]"
+              }
+            ],
+            "returns": "int[]"
+          },
+          "tests": [
+            {
+              "id": "m04-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  1,
+                  2,
+                  3
+                ]
+              ],
+              "expected": [
+                3,
+                2,
+                1
+              ]
+            },
+            {
+              "id": "m04-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                []
+              ],
+              "expected": []
+            },
+            {
+              "id": "m04-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  5
+                ]
+              ],
+              "expected": [
+                5
+              ]
+            },
+            {
+              "id": "m04-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  2,
+                  2,
+                  -1
+                ]
+              ],
+              "expected": [
+                -1,
+                2,
+                2
+              ]
+            }
+          ],
+          "hints": [
+            "Translate \"return a new array in reverse order\" into allocating a fresh array and copying from source index length-1-i, never writing back into the input.",
+            "Trace the public [1,2,3] example plus an empty array and a single-element array before submitting, and confirm the input reference itself is left untouched."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m04-debug-lab",
+          "type": "debug",
+          "title": "Copy versus alias",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `3:1`. Assigning `sorted = original` makes both names refer to the same array, so sorting `sorted` also reorders `original`; preserve the demonstrated sort call and explain why creating an independent copy before sorting, rather than hard-coding the two printed numbers, keeps the original order intact.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        int[] original={3,1}; int[] sorted=original; java.util.Arrays.sort(sorted); System.out.print(original[0]+\":\"+sorted[0]);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m04-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "3:1",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Create an independent array before sorting; preserve original order."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

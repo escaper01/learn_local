@@ -1,0 +1,309 @@
+{
+  "id": "module-05-object-oriented-domain-modeling",
+  "title": "Chapter 5: Object-Oriented Domain Modeling",
+  "description": "Model a domain with behavior-rich classes instead of public data bags. Learners derive responsibilities from use cases, establish invariants in constructors and factories, choose visibility by ownership, replace hidden global state with explicit collaborators, and expose a small package API that can evolve without breaking its clients.",
+  "lessons": [
+    {
+      "id": "m05-l01-classes-objects-identity-state-and-behavior",
+      "title": "Classes, objects, identity, state, and behavior",
+      "theoryMarkdown": "# Classes, objects, identity, state, and behavior\n\n## Model behavior and invariants\nA class defines a type; an instance has identity, state, and behavior. An account's balance is not merely a public number: withdrawals must preserve a nonnegative balance and deposits must be valid. Put those rules with the state they govern.\n```java\nfinal class Account {\n    private long cents;\n    Account(long opening) {\n        if (opening < 0) throw new IllegalArgumentException();\n        cents = opening;\n    }\n    void withdraw(long amount) {\n        if (amount <= 0 || amount > cents)\n            throw new IllegalArgumentException(\"invalid withdrawal\");\n        cents -= amount;\n    }\n    long balance() { return cents; }\n}\n```\nTwo accounts with the same balance may still represent different accounts. That is entity identity, unlike two measurements representing the same value. Decide which distinction your domain needs.\n\n## Collaboration\nA receipt can ask an account for a balance but should not reach into its fields. A transfer use case coordinates two accounts; it also needs an atomicity policy so one side cannot succeed while the other fails. That becomes a transaction concern in later chapters.\n\n## Practice\nCreate two accounts, withdraw from one, and show the other is unchanged. Try zero, negative, equal-to-balance, and excessive withdrawals. Verify failed calls preserve the old balance. Add deposit with checked arithmetic. Explain why a public setBalance method lets callers bypass the withdrawal contract.",
+      "exercises": [
+        {
+          "id": "m05-l1-check",
+          "type": "multipleChoice",
+          "title": "Classes, objects, identity, state, and behavior: concept check",
+          "instructionMarkdown": "Which account operation best protects a nonnegative-balance rule?",
+          "choices": [
+            "A public writable balance field",
+            "An unrestricted setBalance",
+            "A validated withdraw operation that owns mutation"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "A method that validates before mutating keeps the nonnegative-balance rule in one place; a public field or unrestricted setter lets any caller bypass that check entirely."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l02-constructors-factories-validation-and-valid-object-state",
+      "title": "Constructors, factories, validation, and valid object state",
+      "theoryMarkdown": "# Constructors, factories, validation, and valid object state\n\n## Construction establishes validity\nIf every method assumes a nonblank customer name, the constructor must enforce it. A partially valid object shifts checks onto every caller.\n```java\nfinal class Customer {\n    private final String name;\n    Customer(String name) {\n        if (name == null || name.isBlank())\n            throw new IllegalArgumentException(\"name required\");\n        this.name = name.trim();\n    }\n    String name() { return name; }\n}\n```\nthis.name refers to the field; name refers to the parameter. Constructor chaining through this(...) centralizes validation. In Java 21, an explicit this(...) or super(...) constructor invocation must come first.\n\n## Factories\nA static factory can express meaning better than overloads: Money.ofCents(500) and Money.ofMajorUnits(\"5.00\") state units. A factory may return a cached instance or an interface implementation. A constructor always creates the declared concrete type. Neither mechanism excuses validation.\n\nDo not call overridable methods from constructors: subclass state may not yet be initialized. Do not register this in a listener or global collection before construction completes.\n\n## Practice\nCreate a Temperature value with factories for Celsius and Fahrenheit. Store one canonical unit and reject physically impossible values according to a documented policy. Test conversion boundaries and rounding expectations. Add a second constructor only if it represents the same unambiguous concept. Explain what happens when validation throws: the caller receives no successfully constructed value.",
+      "exercises": [
+        {
+          "id": "m05-l2-check",
+          "type": "multipleChoice",
+          "title": "Constructors, factories, validation, and valid object state: concept check",
+          "instructionMarkdown": "Why avoid calling an overridable method during construction?",
+          "choices": [
+            "Overriding is always resolved statically",
+            "Subclass state may not yet be initialized",
+            "Constructors cannot invoke any methods"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "A subclass's own fields are still at their default values while the superclass constructor runs, so a call to an overridden method can observe uninitialized subclass state."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l03-encapsulation-access-modifiers-and-information-hiding",
+      "title": "Encapsulation, access modifiers, and information hiding",
+      "theoryMarkdown": "# Encapsulation, access modifiers, and information hiding\n\n## Access is a design boundary\nprivate restricts a member to its declaring class's access context. Package-private is the default and allows collaboration within a package. public exposes an API to outside callers. protected supports subclasses and package access; across packages its subclass access rules are narrower than “any protected member anywhere.”\n\n## Hide representation behind behavior\n```java\nfinal class Inventory {\n    private int available;\n    Inventory(int initial) {\n        if (initial < 0) throw new IllegalArgumentException();\n        available = initial;\n    }\n    boolean reserve(int quantity) {\n        if (quantity <= 0) throw new IllegalArgumentException();\n        if (quantity > available) return false;\n        available -= quantity;\n        return true;\n    }\n}\n```\nreserve makes the validation and mutation one operation. A getter followed by an outside setter spreads the invariant and later becomes a concurrency hazard. Getters and setters for every field do not establish encapsulation by themselves.\n\n## API evolution\nIf callers depend only on reserve, the implementation can later use a different representation. If callers directly manipulate available, changing storage also changes their code. Exposing a mutable collection through a getter similarly exposes representation despite private fields.\n\n## Practice\nImplement release with positive-quantity validation and overflow checking. Test that failed reservations preserve stock. Sketch a read-only stock query without exposing mutation. Mark which types and members must be public when Inventory moves into its own package. Explain what evidence would justify expanding visibility.",
+      "exercises": [
+        {
+          "id": "m05-l3-check",
+          "type": "multipleChoice",
+          "title": "Encapsulation, access modifiers, and information hiding: concept check",
+          "instructionMarkdown": "What is the encapsulation benefit of reserve(quantity)?",
+          "choices": [
+            "It keeps stock validation and mutation together",
+            "It guarantees thread safety without synchronization",
+            "It makes all fields public"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Combining the availability check and the decrement inside one method is what keeps stock consistent; a separate getter call followed by an outside setter leaves a window where the invariant does not hold."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l04-static-members-dependency-injection-and-object-collaboration",
+      "title": "Static members, dependency injection, and object collaboration",
+      "theoryMarkdown": "# Static members, dependency injection, and object collaboration\n\n## Static and instance members\nA static field belongs to the loaded class; an instance field belongs to an individual object. A static method has no this reference. Constants and stateless utilities often fit static well, but mutable static state creates hidden dependencies between tests and callers.\n\n## Inject collaborators\n```java\ninterface ReceiptSink { void write(String text); }\nfinal class Checkout {\n    private final ReceiptSink sink;\n    Checkout(ReceiptSink sink) {\n        this.sink = java.util.Objects.requireNonNull(sink);\n    }\n    void finish(long cents) {\n        sink.write(\"Paid \" + cents);\n    }\n}\n```\nThe interface previews the next chapters: it describes an operation a collaborator must provide. Checkout receives that collaborator through its constructor. A console implementation can print; a test implementation can record the text. No framework is required for dependency injection.\n\n## Lifetime matters\nThe composition root, often main, constructs long-lived collaborators and connects them. If a collaborator owns a file or executor, the application must also decide who closes it. Injecting an object does not transfer ownership automatically. Avoid a global service locator that hides which dependencies a class needs.\n\n## Practice\nUse two Checkout instances with different sinks and show they do not share captured receipts. Replace a static mutable total with instance state. Explain why a static final List can still be mutable and why a shared test fixture can make tests pass or fail depending on execution order.",
+      "exercises": [
+        {
+          "id": "m05-l4-check",
+          "type": "multipleChoice",
+          "title": "Static members, dependency injection, and object collaboration: concept check",
+          "instructionMarkdown": "What does constructor injection make visible?",
+          "choices": [
+            "All global variables in the JVM",
+            "The complete database schema",
+            "Required object collaborators"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Listing collaborators as constructor parameters makes a class's actual dependencies visible at its call site, instead of hiding them behind static lookups or global state."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l05-packages-naming-cohesion-and-public-api-design",
+      "title": "Packages, naming, cohesion, and public API design",
+      "theoryMarkdown": "# Packages, naming, cohesion, and public API design\n\n## A package is more than a folder\nThe package declaration determines a type's namespace and package access boundary. Use lowercase domain-oriented names such as academy.ledger. A public type name should explain its role without relying on its containing folder.\n\n```java\npackage academy.ledger;\npublic final class Ledger {\n    public long totalCents() { return 0; }\n}\n```\nSave this as src/academy/ledger/Ledger.java. A caller can import academy.ledger.Ledger or use its full name. Imports are compile-time name conveniences; they do not copy source, download dependencies, or change access modifiers.\n\n## Cohesion and API size\nGroup types that implement one responsibility and tend to change together. Keep parsing helpers package-private when callers should interact only with Ledger. A public API should document units, null behavior, errors, mutability, and ownership. Once other code depends on it, changing those promises has a cost.\n\nNaming packages only util, manager, or common often hides unrelated responsibilities. Organizing solely by technical layer can also scatter one feature; choose boundaries based on actual change patterns.\n\n## Practice\nSplit the budget ledger into domain objects, console input, and a main composition root. Compile all sources with an explicit destination directory. Attempt to access a package-private parser from another package and explain the diagnostic. List the smallest public surface a second application needs. Draw dependencies and check that the domain does not import console or filesystem code.",
+      "exercises": [
+        {
+          "id": "m05-l5-check",
+          "type": "multipleChoice",
+          "title": "Packages, naming, cohesion, and public API design: concept check",
+          "instructionMarkdown": "What does an import declaration do?",
+          "choices": [
+            "Overrides access restrictions",
+            "Shortens type-name references during compilation",
+            "Downloads a library"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "import is a compile-time convenience for writing a shorter name; it neither changes what a package-private member allows nor fetches any code."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-assessment",
+      "title": "Chapter 5 assessment and deliberate practice",
+      "theoryMarkdown": "# Chapter 5 assessment\n\nUse the chapter's explanations of invariants, validation order, and encapsulated mutation to solve the decision scenario and repair **Preserve state on invalid mutation**. Write a prediction of the resulting balance before running the debugger, and preserve the intended validation when fixing it.\n\nThe function exercise is a bounded practice task, not proof of every chapter competency: it checks one guarded deposit, not every constructor, visibility, or dependency-injection rule in the chapter. Complete the implementation and external practice described in the five lessons as well. Review the changed source for when the guard runs relative to the mutation, then explain that tradeoff without consulting the answer.",
+      "exercises": [
+        {
+          "id": "m05-judgment",
+          "type": "multipleChoice",
+          "title": "Object-Oriented Domain Modeling: professional judgment",
+          "instructionMarkdown": "A setter bypasses stock validation. Where should the rule live?",
+          "choices": [
+            "Inside the operation that owns stock mutation",
+            "Only in the menu text",
+            "Only in documentation"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m05-coding-lab",
+          "type": "function",
+          "title": "Chapter 5 implementation lab: deposit",
+          "instructionMarkdown": "Implement `deposit`. Return balance + amount only when amount is positive; otherwise preserve the original balance. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInputs have a nonnegative balance and any amount for which an accepted sum fits int. Nonpositive deposits leave balance unchanged.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int deposit(int value1, int value2) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "deposit",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              },
+              {
+                "name": "value2",
+                "type": "int"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m05-code-1",
+              "visibility": "public",
+              "arguments": [
+                100,
+                25
+              ],
+              "expected": 125
+            },
+            {
+              "id": "m05-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                100,
+                -2
+              ],
+              "expected": 100
+            },
+            {
+              "id": "m05-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                100,
+                0
+              ],
+              "expected": 100
+            },
+            {
+              "id": "m05-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                0,
+                5
+              ],
+              "expected": 5
+            }
+          ],
+          "hints": [
+            "Translate \"only when amount is positive\" into a single guard that returns the unchanged balance for zero or negative amounts.",
+            "Trace the public 100+25 example plus a zero amount and a negative amount before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m05-debug-lab",
+          "type": "debug",
+          "title": "Preserve state on invalid mutation",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `10`. `withdraw` subtracts from `balance` before its `if (n > 10) return;` guard runs, so an oversized withdrawal has already changed the balance by the time it is rejected; preserve the demonstrated method call and explain why validating before mutating, rather than hard-coding the printed balance, keeps the account state intact.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    static class Account { int balance=10; void withdraw(int n){ balance-=n; if(n>10)return; } }\n    public static void main(String[] args) throws Exception {\n        Account a=new Account(); a.withdraw(15); System.out.print(a.balance);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m05-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "10",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Reject a withdrawal larger than the balance before modifying state."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m05-phase-project",
+          "type": "project",
+          "title": "Ledger command processor",
+          "instructionMarkdown": "Implement Ledger.run(String input). Process nonblank lines as exactly IN|amount or OUT|amount. Amount must be a positive decimal long; begin at balance zero. IN increases balance with overflow checking; OUT succeeds only up to the current balance. For each accepted line emit OK; for malformed, nonpositive, overflowing, or overdrawn commands emit ERROR and leave balance unchanged. End with BALANCE=<balance>. Join output lines with \\n, without a trailing newline. Tokens are case-sensitive; trim surrounding whitespace on each line and token. Empty input produces BALANCE=0. Use long cents, not floating-point money. Do not hard-code sample outputs.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(Ledger.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "Ledger.java",
+              "content": "public final class Ledger {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m05-phase-project-case-1",
+              "visibility": "public",
+              "input": "IN|100\nOUT|30",
+              "expected": "OK\nOK\nBALANCE=70",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "BALANCE=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-3",
+              "visibility": "hidden",
+              "input": "OUT|1\nIN|-1\nIN|x",
+              "expected": "ERROR\nERROR\nERROR\nBALANCE=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-4",
+              "visibility": "hidden",
+              "input": "IN|10\nOUT|10\nOUT|1",
+              "expected": "OK\nOK\nERROR\nBALANCE=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-5",
+              "visibility": "hidden",
+              "input": "IN|9223372036854775807\nIN|1",
+              "expected": "OK\nERROR\nBALANCE=9223372036854775807",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-6",
+              "visibility": "hidden",
+              "input": " IN | 20 \n\nOUT|5|extra\nOUT| 5",
+              "expected": "OK\nERROR\nOK\nBALANCE=15",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Parse and validate all fields before mutating state. Split with a negative limit when empty fields must be preserved.",
+            "Choose collections according to identity and ordering requirements. Build output lines and join them with a newline."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

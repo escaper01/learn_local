@@ -46,7 +46,7 @@ function validEntries(): Map<string, unknown> {
 }
 
 describe("LearnPack semantic validation", () => {
-  it("validates the comprehensive theory-first Java curriculum", async () => {
+  it("validates the complete Java developer academy", async () => {
     const root = resolve(import.meta.dirname, "../../../examples");
     const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8")) as { modules: string[]; projects: string[] };
     const entries = new Map<string, unknown>([["manifest.json", manifest]]);
@@ -54,10 +54,47 @@ describe("LearnPack semantic validation", () => {
       entries.set(path, JSON.parse(await readFile(join(root, ...path.split("/")), "utf8")));
     }
     expect(validateLearnPackContent(entries).summary).toMatchObject({
-      id: "complete-java-21-curriculum",
-      moduleCount: 20,
-      lessonCount: 135,
-      exerciseCount: 67
+      id: "java-developer-academy-21",
+      moduleCount: 25,
+      lessonCount: 152,
+      exerciseCount: 208
+    });
+
+    const modules = manifest.modules.map((path) => entries.get(path)) as Array<{
+      description: string;
+      lessons: Array<{ title: string; theoryMarkdown: string; exercises: unknown[] }>;
+    }>;
+    const teachingLessons = modules.flatMap((module) => module.lessons.slice(0, -1));
+    expect(teachingLessons).toHaveLength(127);
+    expect(modules.every((module) => module.description.length > 250)).toBe(true);
+    expect(teachingLessons.every((lesson) => lesson.exercises.length >= 1)).toBe(true);
+    expect(teachingLessons.every((lesson) => lesson.theoryMarkdown.startsWith(`# ${lesson.title}\n`))).toBe(true);
+    expect(new Set(teachingLessons.map((lesson) => lesson.theoryMarkdown)).size).toBe(teachingLessons.length);
+    expect(teachingLessons.some((lesson) => lesson.theoryMarkdown.includes("Define it in your own words"))).toBe(false);
+
+    const bodies = teachingLessons.map((lesson) => lesson.theoryMarkdown.split("\n\n").slice(1).join("\n\n"));
+    expect(new Set(bodies).size).toBe(bodies.length);
+    expect(bodies.every((body) => !body.includes("Trace the example four times"))).toBe(true);
+    const exercises = modules.flatMap((module) => module.lessons.flatMap((lesson) => lesson.exercises)) as Array<{
+      type: string; instructionMarkdown: string; tests?: Array<{ input?: string; expected: unknown }>;
+    }>;
+    const questions = exercises.filter((exercise) => exercise.type === "multipleChoice");
+    expect(new Set(questions.map((question) => question.instructionMarkdown)).size).toBe(questions.length);
+    for (const project of exercises.filter((exercise) => exercise.type === "project")) {
+      expect(new Set(project.tests?.map((test) => test.input)).size).toBeGreaterThanOrEqual(5);
+      expect(new Set(project.tests?.map((test) => test.expected)).size).toBeGreaterThanOrEqual(4);
+    }
+
+    const archive = await inspectLearnPack(resolve(root, "../my-course.learnpack"));
+    const source = validateLearnPackContent(entries);
+    expect(archive.manifest).toEqual(source.manifest);
+    expect(archive.modules).toEqual(source.modules);
+    expect(archive.projects).toEqual(source.projects);
+    expect(archive.summary).toMatchObject({
+      id: "java-developer-academy-21",
+      moduleCount: 25,
+      lessonCount: 152,
+      exerciseCount: 208
     });
   });
 
