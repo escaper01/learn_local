@@ -89,6 +89,8 @@ const PYTHON_SOLUTION_CODE = `def sum_values(values):
     return total
 `;
 
+const DEFAULT_LESSON_PANE_WIDTH = 48;
+
 const DEFAULT_PROMPT_FORM: CoursePromptRequest = {
   language: "Java",
   learningRequest: "Teach me from the fundamentals through functions, collections, debugging, testing, and practical projects."
@@ -238,6 +240,7 @@ export default function App() {
   const [importWarnings, setImportWarnings] = useState<ValidationIssue[]>([]);
   const [importFailure, setImportFailure] = useState<AppErrorShape | null>(null);
   const [repairCopied, setRepairCopied] = useState(false);
+  const [showTopicPanel, setShowTopicPanel] = useState(false);
   const [showRuntimes, setShowRuntimes] = useState(false);
   const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
@@ -269,6 +272,39 @@ export default function App() {
   const activeCourseRef = useRef<CourseView | null>(null);
   const hydratedLanguage = useRef<"java" | "python" | null>(null);
   const lessonPaneRef = useRef<HTMLElement | null>(null);
+  const lessonGridRef = useRef<HTMLDivElement | null>(null);
+  const [lessonPaneWidth, setLessonPaneWidth] = useState<number>(() => {
+    const saved = Number(localStorage.getItem("learnlocal.lessonPaneWidth"));
+    return Number.isFinite(saved) && saved >= 25 && saved <= 70 ? saved : DEFAULT_LESSON_PANE_WIDTH;
+  });
+  const [resizingPanes, setResizingPanes] = useState(false);
+
+  useEffect(() => {
+    if (!resizingPanes) return;
+    const handleMove = (event: MouseEvent) => {
+      const grid = lessonGridRef.current;
+      if (!grid) return;
+      const rect = grid.getBoundingClientRect();
+      const percent = ((event.clientX - rect.left) / rect.width) * 100;
+      setLessonPaneWidth(Math.min(70, Math.max(25, percent)));
+    };
+    const handleUp = () => setResizingPanes(false);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    return () => {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+    };
+  }, [resizingPanes]);
+
+  useEffect(() => {
+    if (resizingPanes) return;
+    localStorage.setItem("learnlocal.lessonPaneWidth", String(lessonPaneWidth));
+  }, [lessonPaneWidth, resizingPanes]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -661,16 +697,34 @@ export default function App() {
   const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
   const activeStarter = activeImportedExercise?.starterFiles.find((file) => file.path === activeFilePath) ?? activeImportedExercise?.starterFiles[0];
+  type CourseLesson = CourseView["modules"][number]["lessons"][number];
+  type CourseExercise = CourseLesson["exercises"][number];
+  type CourseStep = { lesson: CourseLesson; exercise: CourseExercise | null };
   const courseLessons = activeCourse?.modules.flatMap((module) => module.lessons) ?? [];
   const activeLessonIndex = activeLesson ? courseLessons.findIndex((lesson) => lesson.id === activeLesson.id) : -1;
-  const previousLesson = activeLessonIndex > 0 ? courseLessons[activeLessonIndex - 1] : null;
-  const nextLesson = activeLessonIndex >= 0 && activeLessonIndex < courseLessons.length - 1 ? courseLessons[activeLessonIndex + 1] : null;
+  // Every lesson's theory is its own step, followed by each of its exercises in order, so Next/Previous
+  // walk lesson-by-lesson AND exercise-by-exercise instead of jumping straight to the next lesson and
+  // silently skipping any exercises left in the current one.
+  const courseSteps: CourseStep[] = activeCourse?.modules.flatMap((module) => module.lessons.flatMap((lesson) => [
+    { lesson, exercise: null },
+    ...lesson.exercises.map((exercise) => ({ lesson, exercise }))
+  ])) ?? [];
+  const activeStepIndex = activeLesson ? courseSteps.findIndex((step) => step.lesson.id === activeLesson.id && (step.exercise?.id ?? null) === (activeImportedExercise?.id ?? null)) : -1;
+  const previousStep = activeStepIndex > 0 ? courseSteps[activeStepIndex - 1] : null;
+  const nextStep = activeStepIndex >= 0 && activeStepIndex < courseSteps.length - 1 ? courseSteps[activeStepIndex + 1] : null;
+  const goToCourseStep = (step: CourseStep) => { if (step.exercise) void selectCourseExercise(step.lesson, step.exercise); else selectCourseLesson(step.lesson); };
   const courseExercises = activeCourse?.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises) ?? [];
   const completedCourseExercises = courseExercises.filter((exercise) => exercise.completed).length;
   const lessonNavigation = (placement: "top" | "bottom") => activeCourse && activeLesson ? <nav className={`lesson-navigation ${placement}`} aria-label={`${placement === "top" ? "Top" : "Bottom"} lesson navigation`}>
-    <button type="button" disabled={!previousLesson} title={previousLesson?.title ?? "This is the first lesson"} onClick={() => previousLesson && selectCourseLesson(previousLesson)}><span aria-hidden="true">←</span><span><small>Previous lesson</small><strong>{previousLesson?.title ?? "Course start"}</strong></span></button>
+    <button type="button" disabled={!previousStep} title={previousStep ? (previousStep.exercise?.title ?? previousStep.lesson.title) : "This is the first step"} onClick={() => previousStep && goToCourseStep(previousStep)}>
+      <span aria-hidden="true">←</span>
+      <span><small>{!previousStep ? "Course start" : previousStep.lesson.id === activeLesson.id ? "Back" : "Previous lesson"}</small><strong>{!previousStep ? "Course start" : previousStep.lesson.id === activeLesson.id ? (previousStep.exercise?.title ?? previousStep.lesson.title) : previousStep.lesson.title}</strong></span>
+    </button>
     <p><strong>{activeLessonIndex + 1}</strong><span>of {courseLessons.length}</span></p>
-    <button type="button" disabled={!nextLesson} title={nextLesson?.title ?? "This is the final lesson"} onClick={() => nextLesson && selectCourseLesson(nextLesson)}><span><small>Next lesson</small><strong>{nextLesson?.title ?? "Course complete"}</strong></span><span aria-hidden="true">→</span></button>
+    <button type="button" disabled={!nextStep} title={nextStep ? (nextStep.exercise?.title ?? nextStep.lesson.title) : "This is the final step"} onClick={() => nextStep && goToCourseStep(nextStep)}>
+      <span><small>{!nextStep ? "Course complete" : nextStep.lesson.id === activeLesson.id ? "Continue" : "Next lesson"}</small><strong>{!nextStep ? "Course complete" : nextStep.lesson.id === activeLesson.id ? (nextStep.exercise?.title ?? nextStep.lesson.title) : nextStep.lesson.title}</strong></span>
+      <span aria-hidden="true">→</span>
+    </button>
   </nav> : null;
 
   return (
@@ -696,7 +750,14 @@ export default function App() {
 
       <section className="workspace">
         <header className="topbar">
-          <div className="crumbs"><span>{activeCourse?.summary.title ?? "Choose a course"}</span>{activeLesson && <><b>/</b><span>{activeLesson.title}</span></>}{activeImportedExercise && <><b>/</b><strong>{activeImportedExercise.title}</strong></>}</div>
+          <div className="topbar-left">
+            {activeCourse && view === "lesson" && <button type="button" className={`topic-toggle ${showTopicPanel ? "active" : ""}`} aria-pressed={showTopicPanel} title="Show or hide the course topics panel" onClick={() => setShowTopicPanel((current) => !current)}><span aria-hidden="true">☰</span></button>}
+            <div className="crumbs">
+              {activeCourse ? <button type="button" className="crumb-link" onClick={() => setView("curriculum")}>{activeCourse.summary.title}</button> : <span>Choose a course</span>}
+              {activeLesson && <><b>/</b>{activeImportedExercise ? <button type="button" className="crumb-link" onClick={() => selectCourseLesson(activeLesson)}>{activeLesson.title}</button> : <span className="crumb-current">{activeLesson.title}</span>}</>}
+              {activeImportedExercise && <><b>/</b><strong className="crumb-current">{activeImportedExercise.title}</strong></>}
+            </div>
+          </div>
           <div className="topbar-actions">
             <button
               className="theme-toggle"
@@ -712,7 +773,38 @@ export default function App() {
           </div>
         </header>
 
-        <div className={`lesson-grid ${!activeImportedExercise ? "reading-only" : ""}`}>
+        <div className="workspace-body">
+        {showTopicPanel && activeCourse && (
+          <aside className="topic-panel">
+            <div className="topic-panel-header"><strong>Course topics</strong><button type="button" className="ghost-button" aria-label="Close topics panel" onClick={() => setShowTopicPanel(false)}>×</button></div>
+            <div className="topic-panel-list">
+              {activeCourse.modules.map((module, moduleIndex) => (
+                <section className="topic-module" key={module.id}>
+                  <header><span>{String(moduleIndex + 1).padStart(2, "0")}</span><strong>{module.title}</strong></header>
+                  {module.lessons.map((lesson) => (
+                    <div className="topic-lesson" key={lesson.id}>
+                      <button type="button" className={`topic-lesson-link ${lesson.id === activeLesson?.id && !activeImportedExercise ? "active" : ""}`} onClick={() => selectCourseLesson(lesson)}>{lesson.title}</button>
+                      {lesson.exercises.length > 0 && (
+                        <div className="topic-exercise-list">
+                          {lesson.exercises.map((exercise) => (
+                            <button type="button" key={exercise.id} title={exercise.title} className={`topic-exercise-link ${exercise.completed ? "completed" : ""} ${exercise.id === activeImportedExercise?.id ? "active" : ""}`} onClick={() => void selectCourseExercise(lesson, exercise)}>
+                              <i>{exerciseIcon(exercise.type, exercise.completed)}</i><span>{exercise.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </section>
+              ))}
+            </div>
+          </aside>
+        )}
+        <div
+          className={`lesson-grid ${!activeImportedExercise ? "reading-only" : ""}`}
+          ref={lessonGridRef}
+          style={activeImportedExercise ? { gridTemplateColumns: `minmax(300px, ${lessonPaneWidth}%) 7px minmax(360px, ${100 - lessonPaneWidth}%)` } : undefined}
+        >
           <article className="lesson-pane" ref={lessonPaneRef}>
             <div className="eyebrow">{(activeImportedExercise?.type ?? "lesson").toUpperCase()} · {(activeCourse?.summary.language ?? language).toUpperCase()} {activeCourse?.summary.languageVersion ?? ""}</div>
             <h1>{activeImportedExercise?.title ?? activeLesson?.title ?? "Choose a lesson"}</h1>
@@ -726,6 +818,18 @@ export default function App() {
             {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && <button className="ghost-button reveal-hint" type="button" onClick={() => void revealNextHint()}>Reveal hint {activeImportedExercise.hints.length + 1}</button>}
             {!activeImportedExercise && lessonNavigation("bottom")}
           </article>
+
+          {activeImportedExercise && (
+            <div
+              className="pane-resizer"
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize the lesson and workspace panes"
+              onMouseDown={(event) => { event.preventDefault(); setResizingPanes(true); }}
+              onDoubleClick={() => setLessonPaneWidth(DEFAULT_LESSON_PANE_WIDTH)}
+              title="Drag to resize, double-click to reset"
+            />
+          )}
 
           {activeImportedExercise && (activeImportedExercise.type === "multipleChoice" ? (
             <section className="quiz-pane">
@@ -786,6 +890,7 @@ export default function App() {
             </section>
           </section>
           ))}
+        </div>
         </div>
       </section>
 
