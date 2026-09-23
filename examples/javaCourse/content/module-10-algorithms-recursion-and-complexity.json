@@ -1,0 +1,334 @@
+{
+  "id": "module-10-algorithms-recursion-and-complexity",
+  "title": "Chapter 10: Algorithms, Recursion, and Complexity",
+  "description": "Build transferable problem-solving skill through invariants and measured complexity. Learners implement and test linear and binary search, compare sorting strategies, trace recursive and backtracking call trees, apply two-pointer, window, frequency-map, BFS, and DFS patterns, and optimize only after proving the direct solution and locating its actual bottleneck.",
+  "lessons": [
+    {
+      "id": "m10-l01-big-o-best-average-worst-case-and-practical-costs",
+      "title": "Big-O, best/average/worst case, and practical costs",
+      "theoryFile": "lessons/module-10/m10-l01-big-o-best-average-worst-case-and-practical-costs.md",
+      "exercises": [
+        {
+          "id": "m10-l1-check",
+          "type": "multipleChoice",
+          "title": "Big-O, best/average/worst case, and practical costs: concept check",
+          "instructionMarkdown": "Two nested loops visit every distinct pair. What is their growth?",
+          "choices": [
+            "O(n squared)",
+            "O(log n)",
+            "O(1)"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that nested loops visiting every distinct pair perform on the order of n(n-1)/2 comparisons, which grows quadratically as n increases."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m10-l02-linear-search-binary-search-and-insertion-points",
+      "title": "Linear search, binary search, and insertion points",
+      "theoryFile": "lessons/module-10/m10-l02-linear-search-binary-search-and-insertion-points.md",
+      "exercises": [
+        {
+          "id": "m10-l2-check",
+          "type": "multipleChoice",
+          "title": "Linear search, binary search, and insertion points: concept check",
+          "instructionMarkdown": "What can lowerBound return when every element is below target?",
+          "choices": [
+            "Only a valid element index",
+            "Always -1",
+            "The array length"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that lowerBound's half-open interval [low, high) shrinks to low == high == length when every element is below target, since that is the correct insertion point past the end."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m10-l03-sorting-algorithms-stability-and-comparator-correctness",
+      "title": "Sorting algorithms, stability, and comparator correctness",
+      "theoryFile": "lessons/module-10/m10-l03-sorting-algorithms-stability-and-comparator-correctness.md",
+      "exercises": [
+        {
+          "id": "m10-l3-check",
+          "type": "multipleChoice",
+          "title": "Sorting algorithms, stability, and comparator correctness: concept check",
+          "instructionMarkdown": "What does stable sorting preserve?",
+          "choices": [
+            "A fixed number of comparisons",
+            "Original relative order of equal-key elements",
+            "Original order of all elements"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall that insertion sort's strict-greater-than comparison (values[j] > current) never swaps two equal elements past each other, which is what keeps their original relative order."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m10-l04-recursion-call-stacks-divide-and-conquer-and-backtracking",
+      "title": "Recursion, call stacks, divide-and-conquer, and backtracking",
+      "theoryFile": "lessons/module-10/m10-l04-recursion-call-stacks-divide-and-conquer-and-backtracking.md",
+      "exercises": [
+        {
+          "id": "m10-l4-check",
+          "type": "multipleChoice",
+          "title": "Recursion, call stacks, divide-and-conquer, and backtracking: concept check",
+          "instructionMarkdown": "Why must a backtracking algorithm restore its working list?",
+          "choices": [
+            "Sibling branches must start from the correct prior state",
+            "Restoration forces garbage collection",
+            "Every branch should share all prior choices"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that backtracking reuses one mutable working list across branches; undoing the last choice after exploring it is what lets a sibling branch start from the correct prior state instead of an accumulated one."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m10-l05-two-pointers-sliding-windows-maps-bfs-and-dfs",
+      "title": "Two pointers, sliding windows, maps, BFS, and DFS",
+      "theoryFile": "lessons/module-10/m10-l05-two-pointers-sliding-windows-maps-bfs-and-dfs.md",
+      "exercises": [
+        {
+          "id": "m10-l5-check",
+          "type": "multipleChoice",
+          "title": "Two pointers, sliding windows, maps, BFS, and DFS: concept check",
+          "instructionMarkdown": "When does BFS give shortest paths by edge count?",
+          "choices": [
+            "For arbitrary weighted edges without modification",
+            "Only for graphs with no cycles",
+            "For an unweighted graph"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that BFS expands the frontier one edge at a time, so the first time it reaches a node is guaranteed shortest only when every edge counts the same, i.e. the graph is unweighted."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m10-assessment",
+      "title": "Chapter 10 assessment and deliberate practice",
+      "theoryFile": "lessons/module-10/m10-assessment.md",
+      "exercises": [
+        {
+          "id": "m10-judgment",
+          "type": "multipleChoice",
+          "title": "Algorithms, Recursion, and Complexity: professional judgment",
+          "instructionMarkdown": "An optimization changes O(n squared) to O(n) but uses more memory. What should be documented?",
+          "choices": [
+            "Input assumptions and the time-space tradeoff",
+            "Only the shorter syntax",
+            "Only test count"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m10-coding-lab",
+          "type": "function",
+          "title": "Chapter 10 implementation lab: lowerBound",
+          "instructionMarkdown": "Implement `lowerBound`. In a sorted array return the first index whose value is at least target, or length when none exists. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInput is sorted ascending, non-null, and may contain duplicates.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int lowerBound(int[] value1, int value2) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "lowerBound",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int[]"
+              },
+              {
+                "name": "value2",
+                "type": "int"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m10-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  1,
+                  3,
+                  8
+                ],
+                3
+              ],
+              "expected": 1
+            },
+            {
+              "id": "m10-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  1,
+                  3,
+                  8
+                ],
+                5
+              ],
+              "expected": 2
+            },
+            {
+              "id": "m10-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [],
+                3
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m10-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  1,
+                  3,
+                  3,
+                  8
+                ],
+                3
+              ],
+              "expected": 1
+            },
+            {
+              "id": "m10-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  1,
+                  3
+                ],
+                9
+              ],
+              "expected": 2
+            }
+          ],
+          "hints": [
+            "Find the first index whose value is at least target (>=), not the first index strictly greater than target.",
+            "Trace the public example plus a boundary where target exceeds every element and one where duplicates surround the target value."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m10-debug-lab",
+          "type": "debug",
+          "title": "Lower-bound duplicate handling",
+          "instructionMarkdown": "The loop advances `lo` whenever `a[mid] <= 3`, which computes the index past the last matching duplicate (an upper bound) instead of the first index at least 3, so it prints `3` instead of `1` on `{1,3,3,8}`. Repair the comparison so the search narrows toward the first value at least target, keeping the demonstrated array and target, and explain why the corrected comparison lands on the earlier index; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended operation requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        int[] a={1,3,3,8}; int lo=0,hi=a.length; while(lo<hi){int mid=lo+(hi-lo)/2;if(a[mid]<=3)lo=mid+1;else hi=mid;} System.out.print(lo);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m10-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "1",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The required index is the first value at least 3, not the first value above 3."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m10-phase-project",
+          "type": "project",
+          "title": "Priority issue index",
+          "instructionMarkdown": "Implement IssueIndex.run(String input). Each nonblank line is id|priority|title. Trim tokens. id is a positive int, priority is 1..3, title is nonempty and contains no pipe. Reject malformed lines and repeated IDs (keep the first accepted record); each rejection increments ERRORS. Sort accepted records by descending priority then ascending id. Output id|priority|title lines followed by ERRORS=<count>. Empty input returns ERRORS=0. Distinct tasks with the same priority must all survive. Return \\n-separated text without trailing newline. Use a record for a task and a collection with an explicit uniqueness policy.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(IssueIndex.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "IssueIndex.java",
+              "content": "public final class IssueIndex {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m10-phase-project-case-1",
+              "visibility": "public",
+              "input": "2|1|Low\n1|3|High",
+              "expected": "1|3|High\n2|1|Low\nERRORS=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m10-phase-project-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "ERRORS=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m10-phase-project-case-3",
+              "visibility": "hidden",
+              "input": "2|2|B\n1|2|A",
+              "expected": "1|2|A\n2|2|B\nERRORS=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m10-phase-project-case-4",
+              "visibility": "hidden",
+              "input": "1|1|First\n1|3|Second\n0|1|Bad",
+              "expected": "1|1|First\nERRORS=2",
+              "comparison": "exact"
+            },
+            {
+              "id": "m10-phase-project-case-5",
+              "visibility": "hidden",
+              "input": "1|4|Bad\n2|2|\n3|2|Good",
+              "expected": "3|2|Good\nERRORS=2",
+              "comparison": "exact"
+            },
+            {
+              "id": "m10-phase-project-case-6",
+              "visibility": "hidden",
+              "input": "3|1|A|B\n 4 | 3 | Valid ",
+              "expected": "4|3|Valid\nERRORS=1",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Parse and validate all fields before mutating state. Split with a negative limit when empty fields must be preserved.",
+            "Choose collections according to identity and ordering requirements. Build output lines and join them with a newline."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

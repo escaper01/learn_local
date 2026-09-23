@@ -1,0 +1,284 @@
+{
+  "id": "module-01-developer-orientation-and-the-java-toolchain",
+  "title": "Chapter 1: Developer Orientation and the Java Toolchain",
+  "description": "Establish the workflow used throughout the academy: write source, compile it with a pinned Java 21 JDK, inspect diagnostics and bytecode, launch with an explicit classpath, package a JAR, navigate documentation, and debug from evidence. Extend that workflow to the operating system underneath it (the shell, command syntax, PATH resolution) and to working responsibly with AI coding assistants. Completion means the learner can reproduce the same program from an IDE and terminal, explain every stage between Main.java and a running JVM process, and verify any suggestion before trusting it.",
+  "lessons": [
+    {
+      "id": "m01-l01-what-a-java-developer-actually-does",
+      "title": "What a Java developer actually does",
+      "theoryFile": "lessons/module-01/m01-l01-what-a-java-developer-actually-does.md",
+      "exercises": [
+        {
+          "id": "m01-l1-check",
+          "type": "multipleChoice",
+          "title": "What a Java developer actually does: concept check",
+          "instructionMarkdown": "Main.java compiles and prints a wrong total. What has compilation established?",
+          "choices": [
+            "The source satisfies compile-time rules; the arithmetic still needs testing",
+            "The receipt requirement is correct",
+            "The output matches all possible inputs"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Compilation only enforces syntax and type rules; it says nothing about whether the printed total matches the required arithmetic, so trace the calculation separately."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m01-l02-jdk-jvm-jre-bytecode-and-portability",
+      "title": "JDK, JVM, JRE, bytecode, and portability",
+      "theoryFile": "lessons/module-01/m01-l02-jdk-jvm-jre-bytecode-and-portability.md",
+      "exercises": [
+        {
+          "id": "m01-l2-check",
+          "type": "multipleChoice",
+          "title": "JDK, JVM, JRE, bytecode, and portability: concept check",
+          "instructionMarkdown": "Which tool translates Java source into class-file bytecode?",
+          "choices": [
+            "java",
+            "jar",
+            "javac"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "javac is the compilation stage that turns source into class-file bytecode; java and jar both operate on class files that already exist."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m01-l03-compile-launch-classpath-and-jar-files",
+      "title": "Compile, launch, classpath, and JAR files",
+      "theoryFile": "lessons/module-01/m01-l03-compile-launch-classpath-and-jar-files.md",
+      "exercises": [
+        {
+          "id": "m01-l3-check",
+          "type": "multipleChoice",
+          "title": "Compile, launch, classpath, and JAR files: concept check",
+          "instructionMarkdown": "out/academy/Main.class exists. Which launch command matches its package?",
+          "choices": [
+            "java academy/Main.java.class",
+            "java -cp out academy.Main",
+            "java -cp out/academy Main.class"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "The classpath root must be the directory that contains the package folder, and the launcher needs the fully qualified name academy.Main, not a file path."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m01-l04-ide-terminal-jshell-and-api-documentation",
+      "title": "IDE, terminal, JShell, and API documentation",
+      "theoryFile": "lessons/module-01/m01-l04-ide-terminal-jshell-and-api-documentation.md",
+      "exercises": [
+        {
+          "id": "m01-l4-check",
+          "type": "multipleChoice",
+          "title": "IDE, terminal, JShell, and API documentation: concept check",
+          "instructionMarkdown": "What does the end index in substring(1, 3) mean?",
+          "choices": [
+            "Index 3 is excluded",
+            "Index 3 is included",
+            "Three characters are always returned"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "substring's end index is exclusive: the returned text runs from the start index up to, but not including, that position."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m01-l05-the-edit-compile-test-debug-loop",
+      "title": "The edit-compile-test-debug loop",
+      "theoryFile": "lessons/module-01/m01-l05-the-edit-compile-test-debug-loop.md",
+      "exercises": [
+        {
+          "id": "m01-l5-check",
+          "type": "multipleChoice",
+          "title": "The edit-compile-test-debug loop: concept check",
+          "instructionMarkdown": "A loop visits 1 and 2 when the requirement includes 3. What evidence identifies the defect?",
+          "choices": [
+            "The absence of a compiler error",
+            "The installed IDE theme",
+            "The trace and continuation condition"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "A clean compile only proves the syntax was legal; trace the loop variable through each iteration and compare it against the intended continuation condition to find the logic error."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m01-l06-operating-systems-the-shell-and-the-command-line",
+      "title": "Operating systems, the shell, and the command line",
+      "theoryFile": "lessons/module-01/m01-l06-operating-systems-the-shell-and-the-command-line.md",
+      "exercises": [
+        {
+          "id": "m01-l6-check",
+          "type": "multipleChoice",
+          "title": "Operating systems, the shell, and the command line: concept check",
+          "instructionMarkdown": "Typing `java` in a fresh terminal reports \"command not found\", but the file `java.exe` definitely exists on disk. What is the most likely cause?",
+          "choices": [
+            "The JDK's bin directory is not listed on the PATH environment variable",
+            "The Main.class file is corrupted",
+            "The source code has a syntax error"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "A shell only finds bare command names by searching the directories listed in one specific environment variable."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m01-l07-working-with-ai-coding-assistants",
+      "title": "Working with AI coding assistants",
+      "theoryFile": "lessons/module-01/m01-l07-working-with-ai-coding-assistants.md",
+      "exercises": [
+        {
+          "id": "m01-l7-check",
+          "type": "multipleChoice",
+          "title": "Working with AI coding assistants: concept check",
+          "instructionMarkdown": "An AI assistant generates a method body that looks reasonable. What establishes whether it is actually correct?",
+          "choices": [
+            "Compiling it and running it against real test cases, the same as any other code",
+            "The fact that the assistant is confident in its answer",
+            "The suggestion being accepted without changes"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Nothing about the source of a suggestion changes how you would normally verify unfamiliar code."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m01-assessment",
+      "title": "Chapter 1 assessment and deliberate practice",
+      "theoryFile": "lessons/module-01/m01-assessment.md",
+      "exercises": [
+        {
+          "id": "m01-judgment",
+          "type": "multipleChoice",
+          "title": "Developer Orientation and the Java Toolchain: professional judgment",
+          "instructionMarkdown": "An IDE run works but terminal launch fails. What should you compare first?",
+          "choices": [
+            "SDK version, classpath, main class, and working directory",
+            "Only code formatting",
+            "Only the IDE icon"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m01-coding-lab",
+          "type": "function",
+          "title": "Chapter 1 implementation lab: classFile",
+          "instructionMarkdown": "Implement `classFile`. Return true only when the file name ends with the case-sensitive suffix .class. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nGuided setup: endsWith is a case-sensitive String suffix operation. This small helper is not a substitute for compiling and launching the first program.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static boolean classFile(String value1) {\n        return false;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "classFile",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "boolean"
+          },
+          "tests": [
+            {
+              "id": "m01-code-1",
+              "visibility": "public",
+              "arguments": [
+                "Main.class"
+              ],
+              "expected": true
+            },
+            {
+              "id": "m01-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                "Main.java"
+              ],
+              "expected": false
+            },
+            {
+              "id": "m01-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": false
+            },
+            {
+              "id": "m01-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                ".class"
+              ],
+              "expected": true
+            },
+            {
+              "id": "m01-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                "Main.class.bak"
+              ],
+              "expected": false
+            }
+          ],
+          "hints": [
+            "Translate \"ends with the case-sensitive suffix .class\" into a single String.endsWith(\".class\") check.",
+            "Trace the public \"Main.class\" example plus an empty string and a name like \"Main.class.bak\" that merely contains the suffix before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m01-debug-lab",
+          "type": "debug",
+          "title": "A launcher entry point",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `Hello, Java`. The launcher requires the entry point to be declared `public static void main(String[] args)`; the missing `public` modifier means the class compiles but `java` cannot recognize it as a runnable entry point. Preserve the demonstrated `System.out.print` call and explain why restoring the exact signature, rather than hard-coding a print elsewhere, is what makes the class launchable.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    static void main(String[] args) {\n        System.out.print(\"Hello, Java\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m01-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "Hello, Java",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The Java launcher needs the public main signature shown in the toolchain lessons."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

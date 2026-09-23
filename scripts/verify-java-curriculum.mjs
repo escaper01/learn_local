@@ -5,7 +5,7 @@ import { execFileSync } from "node:child_process";
 import { functionBodies, projectBodies, debugRepairs } from "./java-curriculum-reference-solutions.mjs";
 
 // Only creates disposable Java verification fixtures, never curriculum content.
-const root = resolve(import.meta.dirname, "../examples");
+const root = resolve(import.meta.dirname, "../examples/javaCourse");
 const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8"));
 const modules = await Promise.all(manifest.modules.map(async path =>
   JSON.parse(await readFile(resolve(root, path), "utf8"))));

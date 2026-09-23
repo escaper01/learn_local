@@ -1,0 +1,300 @@
+{
+  "id": "module-15-testing-debugging-and-logging",
+  "title": "Chapter 15: Testing, Debugging, and Logging",
+  "description": "Create layered evidence for correctness and diagnosis. Learners design deterministic unit, integration, and journey tests; use JUnit assertions and parameterized cases; choose fakes or mocks at genuine boundaries; debug from a minimal reproduction and explicit hypothesis; and design logs, metrics, and traces that distinguish failures without duplicating noise or leaking secrets.",
+  "lessons": [
+    {
+      "id": "m15-l01-test-pyramid-boundaries-determinism-and-test-naming",
+      "title": "Test pyramid, boundaries, determinism, and test naming",
+      "theoryFile": "lessons/module-15/m15-l01-test-pyramid-boundaries-determinism-and-test-naming.md",
+      "exercises": [
+        {
+          "id": "m15-l1-check",
+          "type": "multipleChoice",
+          "title": "Test pyramid, boundaries, determinism, and test naming: concept check",
+          "instructionMarkdown": "What does line coverage fail to prove?",
+          "choices": [
+            "That instrumentation recorded execution",
+            "That assertions test the right behavior",
+            "That a line executed"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Coverage tools only record that a line executed; they cannot tell you whether the assertions that ran actually validate the right behavior."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m15-l02-junit-lifecycle-assertions-parameterized-tests-and-exception",
+      "title": "JUnit lifecycle, assertions, parameterized tests, and exceptions",
+      "theoryFile": "lessons/module-15/m15-l02-junit-lifecycle-assertions-parameterized-tests-and-exception.md",
+      "exercises": [
+        {
+          "id": "m15-l2-check",
+          "type": "multipleChoice",
+          "title": "JUnit lifecycle, assertions, parameterized tests, and exceptions: concept check",
+          "instructionMarkdown": "Why use assertThrows?",
+          "choices": [
+            "To fail the test if the expected failure does not occur",
+            "To swallow all exceptions",
+            "To retry the operation until no exception is thrown"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "assertThrows runs the lambda and fails the test automatically if the expected exception type is never thrown, unlike a manual try/catch that can silently pass."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m15-l03-fakes-stubs-spies-mocks-and-mockito-judgment",
+      "title": "Fakes, stubs, spies, mocks, and Mockito judgment",
+      "theoryFile": "lessons/module-15/m15-l03-fakes-stubs-spies-mocks-and-mockito-judgment.md",
+      "exercises": [
+        {
+          "id": "m15-l3-check",
+          "type": "multipleChoice",
+          "title": "Fakes, stubs, spies, mocks, and Mockito judgment: concept check",
+          "instructionMarkdown": "Does a mock JDBC connection prove SQL correctness?",
+          "choices": [
+            "Yes; mocks parse SQL automatically",
+            "Yes; verification checks database constraints",
+            "No; a real database integration test is needed"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "A mocked Connection only returns whatever stubbed answers you configure; it never actually parses or executes SQL against a real schema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m15-l04-reproduction-hypotheses-breakpoints-stepping-and-thread-dump",
+      "title": "Reproduction, hypotheses, breakpoints, stepping, and thread dumps",
+      "theoryFile": "lessons/module-15/m15-l04-reproduction-hypotheses-breakpoints-stepping-and-thread-dump.md",
+      "exercises": [
+        {
+          "id": "m15-l4-check",
+          "type": "multipleChoice",
+          "title": "Reproduction, hypotheses, breakpoints, stepping, and thread dumps: concept check",
+          "instructionMarkdown": "What is a useful debugging hypothesis?",
+          "choices": [
+            "A conclusion based only on compilation",
+            "A specific explanation that an observation can disprove",
+            "A random edit that might help"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "A useful hypothesis names a specific mechanism, such as an off-by-one loop bound, that a single targeted observation could prove false."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m15-l05-structured-logging-levels-correlation-metrics-and-traces",
+      "title": "Structured logging, levels, correlation, metrics, and traces",
+      "theoryFile": "lessons/module-15/m15-l05-structured-logging-levels-correlation-metrics-and-traces.md",
+      "exercises": [
+        {
+          "id": "m15-l5-check",
+          "type": "multipleChoice",
+          "title": "Structured logging, levels, correlation, metrics, and traces: concept check",
+          "instructionMarkdown": "Why avoid user IDs as metric labels?",
+          "choices": [
+            "Unbounded cardinality can overload metric storage",
+            "Metric labels are limited to a single fixed value at compile time",
+            "High-cardinality labels only affect log file size, not the metrics backend"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Each distinct label value creates a new time series in most metrics backends, so unbounded values like user IDs can multiply storage and query cost."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m15-assessment",
+      "title": "Chapter 15 assessment and deliberate practice",
+      "theoryFile": "lessons/module-15/m15-assessment.md",
+      "exercises": [
+        {
+          "id": "m15-judgment",
+          "type": "multipleChoice",
+          "title": "Testing, Debugging, and Logging: professional judgment",
+          "instructionMarkdown": "A mock-heavy suite passes while real SQL fails. What evidence is missing?",
+          "choices": [
+            "Integration tests against the chosen database",
+            "More mock verifications of the same calls",
+            "A longer sleep in unit tests"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m15-coding-lab",
+          "type": "function",
+          "title": "Chapter 15 implementation lab: diagnostic",
+          "instructionMarkdown": "Implement `diagnostic`. Return exactly expected=<expected>, actual=<actual> using the two integer values. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nUse the exact punctuation shown; no extra whitespace or line endings.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String diagnostic(int value1, int value2) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "diagnostic",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              },
+              {
+                "name": "value2",
+                "type": "int"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m15-code-1",
+              "visibility": "public",
+              "arguments": [
+                5,
+                3
+              ],
+              "expected": "expected=5, actual=3"
+            },
+            {
+              "id": "m15-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                0,
+                0
+              ],
+              "expected": "expected=0, actual=0"
+            },
+            {
+              "id": "m15-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                -1,
+                2
+              ],
+              "expected": "expected=-1, actual=2"
+            }
+          ],
+          "hints": [
+            "Match the exact literal text 'expected=' and ', actual=' with no extra spaces or punctuation.",
+            "Check zero and negative values for both parameters before submitting, since the format must hold for every integer."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m15-debug-lab",
+          "type": "debug",
+          "title": "An assertion must execute without JVM flags",
+          "instructionMarkdown": "Repair the check so it does not rely on Java's disabled-by-default assert statement, and the program writes exactly `true`. Keep the same failed-flag pattern and explain why assert silently does nothing without the -ea flag while an explicit throw does not, rather than hard-coding the print statement. Output tests verify the printed result; confirming the check truly executes requires reading the source.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        boolean failed=false;try{assert 2+2==5;}catch(AssertionError e){failed=true;}System.out.print(failed);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m15-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "true",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Replace the disabled-by-default assert statement with an explicit check that throws AssertionError."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m15-phase-project",
+          "type": "project",
+          "title": "Validated monthly expense report",
+          "instructionMarkdown": "Implement MonthlyReport.run(String input). Each nonblank line contains date|cents. Trim fields. Date must have ASCII yyyy-MM-dd shape and be a valid LocalDate in years 0001..9999; cents must be a positive int. Reject bad records and count ERRORS. Group accepted amounts by YearMonth and sum into long. Output months in ascending order as yyyy-MM=total, followed by ERRORS=<count>. Empty input returns ERRORS=0. Use explicit parsing, preserve valid records after errors, and do not use the real current date. At most 10000 input lines are supplied; this bounds total amounts.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(MonthlyReport.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "MonthlyReport.java",
+              "content": "public final class MonthlyReport {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m15-phase-project-case-1",
+              "visibility": "public",
+              "input": "2024-02-29|10\n2024-01-01|20\n2024-02-01|5",
+              "expected": "2024-01=20\n2024-02=15\nERRORS=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m15-phase-project-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "ERRORS=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m15-phase-project-case-3",
+              "visibility": "hidden",
+              "input": "2023-02-29|1\n2024-13-01|2\n2024-01-01|-1",
+              "expected": "ERRORS=3",
+              "comparison": "exact"
+            },
+            {
+              "id": "m15-phase-project-case-4",
+              "visibility": "hidden",
+              "input": "2024-01-01|2147483647\n2024-01-02|2147483647",
+              "expected": "2024-01=4294967294\nERRORS=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m15-phase-project-case-5",
+              "visibility": "hidden",
+              "input": "2024-1-1|2\n2024-01-01|x\n2024-01-01|5",
+              "expected": "2024-01=5\nERRORS=2",
+              "comparison": "exact"
+            },
+            {
+              "id": "m15-phase-project-case-6",
+              "visibility": "hidden",
+              "input": "0000-01-01|2\n2024-01-01|2|extra",
+              "expected": "ERRORS=2",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Parse and validate all fields before mutating state. Split with a negative limit when empty fields must be preserved.",
+            "Choose collections according to identity and ordering requirements. Build output lines and join them with a newline."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

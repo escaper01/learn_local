@@ -26,19 +26,19 @@ my-course/
 
 Compress the **contents** of the course folder, not the course folder itself. `manifest.json` must be at the archive root.
 
-On Windows, select `manifest.json`, `content`, and `projects` in File Explorer, choose **Compress to ZIP file**, then rename `my-course.zip` to `my-course.learnpack`. If Windows hides extensions, enable **View > Show > File name extensions** first.
+On Windows, select `manifest.json`, `content`, and `projects` (plus `lessons`, if your lessons use Markdown files) in File Explorer, choose **Compress to ZIP file**, then rename `my-course.zip` to `my-course.learnpack`. If Windows hides extensions, enable **View > Show > File name extensions** first.
 
-PowerShell can do the same from inside the course folder:
+PowerShell can do the same from inside the course folder (drop `lessons` if your course keeps all theory inline):
 
 ```powershell
-Compress-Archive -Path manifest.json,content,projects -DestinationPath ..\my-course.zip
+Compress-Archive -Path manifest.json,content,projects,lessons -DestinationPath ..\my-course.zip
 Move-Item ..\my-course.zip ..\my-course.learnpack
 ```
 
 On macOS or Linux, run this from inside the course folder:
 
 ```bash
-zip -r ../my-course.learnpack manifest.json content projects
+zip -r ../my-course.learnpack manifest.json content projects lessons
 ```
 
 Import the resulting file from **My courses > Import LearnPack**. LearnLocal validates the archive, paths, schema, language metadata, exercises, and tests before installing it.
@@ -47,6 +47,8 @@ Any valid language can be imported and followed through the dedicated curriculum
 
 ## Curriculum depth
 
-A course should teach before it tests. Divide each chapter into multiple narrowly focused reading lessons with detailed explanations, worked examples, tradeoffs, common mistakes, and recaps. A reading lesson may have an empty `exercises` array. Place questions, coding tasks, debugging work, or project checkpoints after the related theory sequence, and make each task assess a contract that the preceding lessons actually taught. The comprehensive Java source course under `examples/` demonstrates this structure.
+A course should teach before it tests. Divide each chapter into multiple narrowly focused reading lessons with detailed explanations, worked examples, tradeoffs, common mistakes, and recaps. A reading lesson may have an empty `exercises` array. Place questions, coding tasks, debugging work, or project checkpoints after the related theory sequence, and make each task assess a contract that the preceding lessons actually taught. The comprehensive Java course under `examples/javaCourse/` demonstrates this structure.
+
+Long lessons are easier to write and review as Markdown files. Replace a lesson's `theoryMarkdown` with `"theoryFile": "lessons/module-01/first-program.md"` and save the text at that path inside the course folder. A lesson uses one field or the other, never both. Supported Markdown: `#` to `####` headings, paragraphs, `**bold**`, `*italic*`, inline code, fenced code blocks, `-` and `1.` lists (one line per item), pipe tables, `> **Note:**`/`> **Tip:**`/`> **Warning:**` callouts, and `---` rules. HTML, images, and links are shown as plain text.
 
 If the import fails, correct the named JSON file or path, rebuild the archive, and import it again. Keep the original JSON folder as the editable source; the `.learnpack` is its distributable copy.

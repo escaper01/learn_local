@@ -9,12 +9,22 @@ course.learnpack
 ├── manifest.json
 ├── content/
 │   └── module.json
+├── lessons/        optional Markdown lesson theory referenced by modules
 ├── projects/       optional referenced project JSON
 ├── assets/         optional images
 └── checksums.json  reserved for signed distribution workflows
 ```
 
 `manifest.json` must conform to `packages/learnpack/schema/manifest.schema.json`. Every module referenced by the manifest must conform to `packages/learnpack/schema/module.schema.json`. Every project referenced by the manifest must conform to `packages/learnpack/schema/project.schema.json`; its ordered `checkpointExerciseIds` must reference exercises of type `project` in the course modules.
+
+## Lesson theory
+
+Each lesson provides its theory in exactly one of two ways:
+
+- `theoryMarkdown`: the Markdown text inline in the module JSON.
+- `theoryFile`: an archive-root-relative path to a UTF-8 `.md` file, such as `lessons/module-01/first-program.md`. Long lessons should use this form so they can be edited as ordinary Markdown.
+
+A `theoryFile` must be a safe relative path ending in `.md`, must exist in the archive, must not be empty, and must not exceed 200,000 characters. The importer resolves it into `theoryMarkdown` before storing the course, so an imported course never depends on the original archive layout. Lesson Markdown is rendered as untrusted text: headings, paragraphs, emphasis, inline code, fenced code blocks, bullet and numbered lists, pipe tables, blockquote callouts, and horizontal rules. HTML, images, and links are displayed as plain text.
 
 ## Trust model
 

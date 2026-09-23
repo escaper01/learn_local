@@ -1,0 +1,249 @@
+{
+  "id": "module-07-inheritance-interfaces-and-object-contracts",
+  "title": "Chapter 7: Inheritance, Interfaces, and Object Contracts",
+  "description": "Design abstractions whose implementations remain safe substitutes. Learners contrast interfaces, abstract classes, inheritance, and composition; trace dynamic dispatch; implement equality and hashing for stable keys; construct total orderings; and test contracts against multiple implementations instead of trusting an inheritance diagram.",
+  "lessons": [
+    {
+      "id": "m07-l01-inheritance-and-the-liskov-substitution-principle",
+      "title": "Inheritance and the Liskov substitution principle",
+      "theoryFile": "lessons/module-07/m07-l01-inheritance-and-the-liskov-substitution-principle.md",
+      "exercises": [
+        {
+          "id": "m07-l1-check",
+          "type": "multipleChoice",
+          "title": "Inheritance and the Liskov substitution principle: concept check",
+          "instructionMarkdown": "A subtype rejects inputs its parent promises to accept. Which principle is at risk?",
+          "choices": [
+            "Behavioral substitution",
+            "Only naming style",
+            "Only heap allocation"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that a subtype must remain a working substitute wherever the supertype's contract is promised; refusing an input the contract accepts breaks that substitutability."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l02-interfaces-abstract-classes-and-default-methods",
+      "title": "Interfaces, abstract classes, and default methods",
+      "theoryFile": "lessons/module-07/m07-l02-interfaces-abstract-classes-and-default-methods.md",
+      "exercises": [
+        {
+          "id": "m07-l2-check",
+          "type": "multipleChoice",
+          "title": "Interfaces, abstract classes, and default methods: concept check",
+          "instructionMarkdown": "What can an abstract class provide that an interface does not provide as ordinary instance storage?",
+          "choices": [
+            "Multiple class inheritance",
+            "Default method bodies for shared behavior",
+            "Constructors and instance fields"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that interfaces can also supply default method bodies; what an abstract class uniquely adds is a constructor and per-instance fields for real state."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l03-overriding-dynamic-dispatch-super-and-final",
+      "title": "Overriding, dynamic dispatch, super, and final",
+      "theoryFile": "lessons/module-07/m07-l03-overriding-dynamic-dispatch-super-and-final.md",
+      "exercises": [
+        {
+          "id": "m07-l3-check",
+          "type": "multipleChoice",
+          "title": "Overriding, dynamic dispatch, super, and final: concept check",
+          "instructionMarkdown": "Animal a = new Dog(); a.sound() calls an overridden instance method. Which implementation runs?",
+          "choices": [
+            "Animal.sound, because the variable's declared type is Animal",
+            "Dog.sound",
+            "Always Animal.sound"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall that dynamic dispatch picks the override based on the object's actual runtime type, not the reference variable's declared compile-time type."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l04-equals-hashcode-identity-and-immutable-keys",
+      "title": "equals, hashCode, identity, and immutable keys",
+      "theoryFile": "lessons/module-07/m07-l04-equals-hashcode-identity-and-immutable-keys.md",
+      "exercises": [
+        {
+          "id": "m07-l4-check",
+          "type": "multipleChoice",
+          "title": "equals, hashCode, identity, and immutable keys: concept check",
+          "instructionMarkdown": "Two values are equal according to equals. What must follow?",
+          "choices": [
+            "Their hash codes are equal",
+            "Their references are identical",
+            "Their hash codes differ"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that the equals/hashCode contract requires equal objects to produce equal hash codes, even though a matching hash code alone never proves equality."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-l05-comparable-comparator-total-ordering-and-composition",
+      "title": "Comparable, Comparator, total ordering, and composition",
+      "theoryFile": "lessons/module-07/m07-l05-comparable-comparator-total-ordering-and-composition.md",
+      "exercises": [
+        {
+          "id": "m07-l5-check",
+          "type": "multipleChoice",
+          "title": "Comparable, Comparator, total ordering, and composition: concept check",
+          "instructionMarkdown": "Why can a TreeSet sorted only by age lose distinct people?",
+          "choices": [
+            "TreeSet uses insertion order",
+            "Every set preserves duplicate values",
+            "Comparator equality determines the same set position"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that a TreeSet treats any pair for which compare(a,b)==0 as occupying the same position, regardless of what equals says about those objects."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m07-assessment",
+      "title": "Chapter 7 assessment and deliberate practice",
+      "theoryFile": "lessons/module-07/m07-assessment.md",
+      "exercises": [
+        {
+          "id": "m07-judgment",
+          "type": "multipleChoice",
+          "title": "Inheritance, Interfaces, and Object Contracts: professional judgment",
+          "instructionMarkdown": "A subtype throws on every operation its interface promises. What should be reconsidered?",
+          "choices": [
+            "The abstraction and substitution contract",
+            "Only sorting speed",
+            "Only the filename"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m07-coding-lab",
+          "type": "function",
+          "title": "Chapter 7 implementation lab: sameKey",
+          "instructionMarkdown": "Implement `sameKey`. Return true when the two strings have equal case-sensitive content after trimming. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nBoth inputs are non-null; use trim on both and case-sensitive content equality.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static boolean sameKey(String value1, String value2) {\n        return false;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "sameKey",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              },
+              {
+                "name": "value2",
+                "type": "string"
+              }
+            ],
+            "returns": "boolean"
+          },
+          "tests": [
+            {
+              "id": "m07-code-1",
+              "visibility": "public",
+              "arguments": [
+                " A ",
+                "A"
+              ],
+              "expected": true
+            },
+            {
+              "id": "m07-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                "A",
+                "a"
+              ],
+              "expected": false
+            },
+            {
+              "id": "m07-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "",
+                ""
+              ],
+              "expected": true
+            },
+            {
+              "id": "m07-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                " A ",
+                " A "
+              ],
+              "expected": true
+            },
+            {
+              "id": "m07-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                "a",
+                "b"
+              ],
+              "expected": false
+            }
+          ],
+          "hints": [
+            "Trim each input first, then compare the trimmed strings with case-sensitive content equality — no case folding.",
+            "Trace the public example plus a boundary where trimming matters, such as two empty strings and two single letters differing only by case."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m07-debug-lab",
+          "type": "debug",
+          "title": "Equality needs consistent hashing",
+          "instructionMarkdown": "`Key` overrides equals to compare `id` but leaves hashCode returning the JVM's identity hash, so two equal keys can land in different HashSet buckets and `contains` reports `false` instead of `true`. Repair hashCode so it is consistent with the existing value-based equals, keeping the demonstrated construction and lookup calls, and explain why consistent hashing restores the lookup; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended operation requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    static class Key { final int id; Key(int id){this.id=id;} public boolean equals(Object o){return o instanceof Key k && k.id==id;} public int hashCode(){return System.identityHashCode(this);} }\n    public static void main(String[] args) throws Exception {\n        var set=new java.util.HashSet<Key>(); set.add(new Key(7)); System.out.print(set.contains(new Key(7)));\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m07-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "true",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Override hashCode consistently with the existing value-based equals."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

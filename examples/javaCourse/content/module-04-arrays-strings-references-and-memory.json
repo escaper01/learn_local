@@ -1,0 +1,252 @@
+{
+  "id": "module-04-arrays-strings-references-and-memory",
+  "title": "Chapter 4: Arrays, Strings, References, and Memory",
+  "description": "Use arrays and text without confusing variables, references, and objects. Learners diagram stack frames and heap identities, expose aliasing bugs, compare shallow and defensive copies, process Unicode deliberately, select StringBuilder for incremental construction, and design null and immutability contracts that callers cannot accidentally violate.",
+  "lessons": [
+    {
+      "id": "m04-l01-arrays-bounds-traversal-copying-and-multidimensional-data",
+      "title": "Arrays, bounds, traversal, copying, and multidimensional data",
+      "theoryFile": "lessons/module-04/m04-l01-arrays-bounds-traversal-copying-and-multidimensional-data.md",
+      "exercises": [
+        {
+          "id": "m04-l1-check",
+          "type": "multipleChoice",
+          "title": "Arrays, bounds, traversal, copying, and multidimensional data: concept check",
+          "instructionMarkdown": "After int[] b = a; b[0] = 9, what does a[0] read?",
+          "choices": [
+            "9",
+            "Its previous value",
+            "A compiler error"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Assigning one array variable to another copies only the reference, not the elements, so both variables observe mutations through the same underlying array."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l02-string-immutability-equality-unicode-and-encodings",
+      "title": "String immutability, equality, Unicode, and encodings",
+      "theoryFile": "lessons/module-04/m04-l02-string-immutability-equality-unicode-and-encodings.md",
+      "exercises": [
+        {
+          "id": "m04-l2-check",
+          "type": "multipleChoice",
+          "title": "String immutability, equality, Unicode, and encodings: concept check",
+          "instructionMarkdown": "Why can String.length exceed the number of Unicode code points?",
+          "choices": [
+            "Every letter uses four chars",
+            "length counts UTF-8 bytes",
+            "A supplementary code point uses two UTF-16 code units"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "length() counts UTF-16 code units, and a supplementary code point (like many emoji) is represented by a surrogate pair of two code units, so length() can exceed codePointCount()."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l03-stringbuilder-and-efficient-text-construction",
+      "title": "StringBuilder and efficient text construction",
+      "theoryFile": "lessons/module-04/m04-l03-stringbuilder-and-efficient-text-construction.md",
+      "exercises": [
+        {
+          "id": "m04-l3-check",
+          "type": "multipleChoice",
+          "title": "StringBuilder and efficient text construction: concept check",
+          "instructionMarkdown": "What does StringBuilder.capacity describe?",
+          "choices": [
+            "The number of completed String objects",
+            "Allocated buffer capacity, possibly larger than content length",
+            "The current visible character count only"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "capacity is the size of the currently allocated internal buffer, which can be larger than length()—the number of characters actually stored right now."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l04-stack-frames-heap-objects-references-and-garbage-collection",
+      "title": "Stack frames, heap objects, references, and garbage collection",
+      "theoryFile": "lessons/module-04/m04-l04-stack-frames-heap-objects-references-and-garbage-collection.md",
+      "exercises": [
+        {
+          "id": "m04-l4-check",
+          "type": "multipleChoice",
+          "title": "Stack frames, heap objects, references, and garbage collection: concept check",
+          "instructionMarkdown": "Why can a returned object survive its creating method?",
+          "choices": [
+            "The caller retains a reachable reference",
+            "Every object lives in the caller's stack frame",
+            "Return automatically makes the object static"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "An object stays reachable, and therefore alive, as long as some GC root—such as the caller's variable holding the returned reference—can reach it, regardless of which method created it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-l05-null-contracts-defensive-copying-and-immutable-design",
+      "title": "Null contracts, defensive copying, and immutable design",
+      "theoryFile": "lessons/module-04/m04-l05-null-contracts-defensive-copying-and-immutable-design.md",
+      "exercises": [
+        {
+          "id": "m04-l5-check",
+          "type": "multipleChoice",
+          "title": "Null contracts, defensive copying, and immutable design: concept check",
+          "instructionMarkdown": "Why copy an internal array both on input and output?",
+          "choices": [
+            "To make references pass by reference",
+            "To disable garbage collection",
+            "To prevent mutation through caller-owned aliases"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Copying on both the way in and the way out breaks the caller's ability to reach the same array object your class stores, which is exactly what prevents mutation through an alias."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m04-assessment",
+      "title": "Chapter 4 assessment and deliberate practice",
+      "theoryFile": "lessons/module-04/m04-assessment.md",
+      "exercises": [
+        {
+          "id": "m04-judgment",
+          "type": "multipleChoice",
+          "title": "Arrays, Strings, References, and Memory: professional judgment",
+          "instructionMarkdown": "A supposedly immutable object changes after construction. What should you inspect?",
+          "choices": [
+            "Aliases to mutable constructor inputs or returned values",
+            "Only its class name",
+            "Only whether a local variable is final"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m04-coding-lab",
+          "type": "function",
+          "title": "Chapter 4 implementation lab: reverse",
+          "instructionMarkdown": "Implement `reverse`. Return a new array in reverse order; do not mutate or alias the input array. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInput is non-null. Review the source and inspect the original array in a manual test to verify non-mutation; result-only tests cannot prove it.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int[] reverse(int[] value1) {\n        return new int[0];\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "reverse",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int[]"
+              }
+            ],
+            "returns": "int[]"
+          },
+          "tests": [
+            {
+              "id": "m04-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  1,
+                  2,
+                  3
+                ]
+              ],
+              "expected": [
+                3,
+                2,
+                1
+              ]
+            },
+            {
+              "id": "m04-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                []
+              ],
+              "expected": []
+            },
+            {
+              "id": "m04-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  5
+                ]
+              ],
+              "expected": [
+                5
+              ]
+            },
+            {
+              "id": "m04-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  2,
+                  2,
+                  -1
+                ]
+              ],
+              "expected": [
+                -1,
+                2,
+                2
+              ]
+            }
+          ],
+          "hints": [
+            "Translate \"return a new array in reverse order\" into allocating a fresh array and copying from source index length-1-i, never writing back into the input.",
+            "Trace the public [1,2,3] example plus an empty array and a single-element array before submitting, and confirm the input reference itself is left untouched."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m04-debug-lab",
+          "type": "debug",
+          "title": "Copy versus alias",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `3:1`. Assigning `sorted = original` makes both names refer to the same array, so sorting `sorted` also reorders `original`; preserve the demonstrated sort call and explain why creating an independent copy before sorting, rather than hard-coding the two printed numbers, keeps the original order intact.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        int[] original={3,1}; int[] sorted=original; java.util.Arrays.sort(sorted); System.out.print(original[0]+\":\"+sorted[0]);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m04-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "3:1",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Create an independent array before sorting; preserve original order."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

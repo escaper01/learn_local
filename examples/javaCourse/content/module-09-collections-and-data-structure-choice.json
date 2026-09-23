@@ -1,0 +1,251 @@
+{
+  "id": "module-09-collections-and-data-structure-choice",
+  "title": "Chapter 9: Collections and Data-Structure Choice",
+  "description": "Choose collections from a workload rather than habit. The learner compares list, set, map, queue, deque, hash, tree, and linked-order contracts; analyzes complexity and memory locality; connects HashMap correctness to equality; distinguishes immutable snapshots from unmodifiable views; and documents every ordering and ownership promise exposed to callers.",
+  "lessons": [
+    {
+      "id": "m09-l01-collection-list-set-map-queue-and-deque-contracts",
+      "title": "Collection, List, Set, Map, Queue, and Deque contracts",
+      "theoryFile": "lessons/module-09/m09-l01-collection-list-set-map-queue-and-deque-contracts.md",
+      "exercises": [
+        {
+          "id": "m09-l1-check",
+          "type": "multipleChoice",
+          "title": "Collection, List, Set, Map, Queue, and Deque contracts: concept check",
+          "instructionMarkdown": "Which abstraction associates one value with each unique key?",
+          "choices": [
+            "Queue",
+            "Map",
+            "List"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall that Map is the abstraction with a one-to-one key-to-value association; List and Queue organize elements by position or processing order instead."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m09-l02-arraylist-linkedlist-arraydeque-and-memory-locality",
+      "title": "ArrayList, LinkedList, ArrayDeque, and memory locality",
+      "theoryFile": "lessons/module-09/m09-l02-arraylist-linkedlist-arraydeque-and-memory-locality.md",
+      "exercises": [
+        {
+          "id": "m09-l2-check",
+          "type": "multipleChoice",
+          "title": "ArrayList, LinkedList, ArrayDeque, and memory locality: concept check",
+          "instructionMarkdown": "Why is repeated indexed traversal expensive for LinkedList?",
+          "choices": [
+            "Each index lookup may traverse nodes",
+            "LinkedList stores its nodes contiguously, so indexing is just as fast as ArrayList",
+            "LinkedList forbids iteration"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that LinkedList has no contiguous backing array; get(i) must walk node-to-node from an end, so an index-based loop over it can become quadratic."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m09-l03-hashmap-and-hashset-internals-equality-and-collisions",
+      "title": "HashMap and HashSet internals, equality, and collisions",
+      "theoryFile": "lessons/module-09/m09-l03-hashmap-and-hashset-internals-equality-and-collisions.md",
+      "exercises": [
+        {
+          "id": "m09-l3-check",
+          "type": "multipleChoice",
+          "title": "HashMap and HashSet internals, equality, and collisions: concept check",
+          "instructionMarkdown": "What resolves a hash collision between candidate keys?",
+          "choices": [
+            "Assuming matching hashes imply identical keys",
+            "Replacing every colliding entry unconditionally",
+            "Equality checking"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that hashing only narrows the search to one bucket of candidates; equality checking among those candidates is what confirms or rejects a true match."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m09-l04-treemap-treeset-linkedhashmap-and-ordering",
+      "title": "TreeMap, TreeSet, LinkedHashMap, and ordering",
+      "theoryFile": "lessons/module-09/m09-l04-treemap-treeset-linkedhashmap-and-ordering.md",
+      "exercises": [
+        {
+          "id": "m09-l4-check",
+          "type": "multipleChoice",
+          "title": "TreeMap, TreeSet, LinkedHashMap, and ordering: concept check",
+          "instructionMarkdown": "Which structure preserves insertion order?",
+          "choices": [
+            "TreeMap regardless of comparator",
+            "LinkedHashMap",
+            "HashMap by contract"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall that LinkedHashMap augments hashing with an internal linked list that records insertion order, unlike plain HashMap whose iteration order is unspecified."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m09-l05-unmodifiable-views-immutable-snapshots-and-defensive-copies",
+      "title": "Unmodifiable views, immutable snapshots, and defensive copies",
+      "theoryFile": "lessons/module-09/m09-l05-unmodifiable-views-immutable-snapshots-and-defensive-copies.md",
+      "exercises": [
+        {
+          "id": "m09-l5-check",
+          "type": "multipleChoice",
+          "title": "Unmodifiable views, immutable snapshots, and defensive copies: concept check",
+          "instructionMarkdown": "After changing the source list, which result reflects it?",
+          "choices": [
+            "An unmodifiable view backed by that list",
+            "An independent List.copyOf snapshot",
+            "Neither can ever reflect element changes"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that Collections.unmodifiableList wraps the original list rather than copying it, so mutations made through the original reference are still visible through the view."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m09-assessment",
+      "title": "Chapter 9 assessment and deliberate practice",
+      "theoryFile": "lessons/module-09/m09-assessment.md",
+      "exercises": [
+        {
+          "id": "m09-judgment",
+          "type": "multipleChoice",
+          "title": "Collections and Data-Structure Choice: professional judgment",
+          "instructionMarkdown": "A report must have deterministic insertion order. What is appropriate?",
+          "choices": [
+            "An explicitly insertion-ordered structure",
+            "Rely on the current HashMap order",
+            "Sort by identity hash"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m09-coding-lab",
+          "type": "function",
+          "title": "Chapter 9 implementation lab: frequency",
+          "instructionMarkdown": "Implement `frequency`. Count how many strings equal target using case-sensitive content equality. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nArray and its elements and target are non-null.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int frequency(String[] value1, String value2) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "frequency",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string[]"
+              },
+              {
+                "name": "value2",
+                "type": "string"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m09-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  "a",
+                  "b",
+                  "a"
+                ],
+                "a"
+              ],
+              "expected": 2
+            },
+            {
+              "id": "m09-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                [],
+                "x"
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m09-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  "A",
+                  "a"
+                ],
+                "a"
+              ],
+              "expected": 1
+            },
+            {
+              "id": "m09-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  "x",
+                  "x",
+                  "x"
+                ],
+                "x"
+              ],
+              "expected": 3
+            }
+          ],
+          "hints": [
+            "Compare each array element against the target string with case-sensitive content equality and increment a counter only on an exact match.",
+            "Trace the public example plus a boundary such as an empty array and an entry that differs from the target only by letter case."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m09-debug-lab",
+          "type": "debug",
+          "title": "Comparator ties",
+          "instructionMarkdown": "The `TreeSet` is ordered by a comparator that compares only `age`, so \"Ada\" and \"Lin\" — both 30 — are treated as the same set position and the second insert is silently dropped, leaving a size of `1` instead of `2`. Repair the comparator with a tie-breaker (for example, on name) so both distinct people are retained, keeping the demonstrated inserts, and explain why the tie-breaker fixes the count; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended operation requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    record Person(String name,int age){}\n    public static void main(String[] args) throws Exception {\n        var set=new java.util.TreeSet<Person>(java.util.Comparator.comparingInt(Person::age)); set.add(new Person(\"Ada\",30)); set.add(new Person(\"Lin\",30)); System.out.print(set.size());\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m09-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "2",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Preserve distinct names when ages tie by adding a comparator tie-breaker."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

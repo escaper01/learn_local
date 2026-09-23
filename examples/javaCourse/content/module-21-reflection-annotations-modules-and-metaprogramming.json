@@ -1,0 +1,232 @@
+{
+  "id": "module-21-reflection-annotations-modules-and-metaprogramming",
+  "title": "Chapter 21: Reflection, Annotations, Modules, and Metaprogramming",
+  "description": "Understand and contain the runtime mechanisms used by frameworks. Learners inspect Class metadata, invoke members with validated types, design annotation retention and processing, explain method handles and bridge methods, diagnose class-loader identity and leaks, and declare JPMS exports, opens, services, and runtime images without weakening boundaries casually.",
+  "lessons": [
+    {
+      "id": "m21-l01-class-objects-and-reflective-type-inspection",
+      "title": "Class objects and reflective type inspection",
+      "theoryFile": "lessons/module-21/m21-l01-class-objects-and-reflective-type-inspection.md",
+      "exercises": [
+        {
+          "id": "m21-l1-check",
+          "type": "multipleChoice",
+          "title": "Class objects and reflective type inspection: concept check",
+          "instructionMarkdown": "Does getDeclaredMethods include only public inherited methods?",
+          "choices": [
+            "Yes; private methods are erased",
+            "No; it reports methods declared on that type",
+            "Yes; it is identical to getMethods"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Compare what getDeclaredMethods reports for a type itself against what getMethods collects by walking public inherited members."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l02-constructors-fields-methods-method-handles-and-access-contro",
+      "title": "Constructors, fields, methods, method handles, and access control",
+      "theoryFile": "lessons/module-21/m21-l02-constructors-fields-methods-method-handles-and-access-contro.md",
+      "exercises": [
+        {
+          "id": "m21-l2-check",
+          "type": "multipleChoice",
+          "title": "Constructors, fields, methods, method handles, and access control: concept check",
+          "instructionMarkdown": "What wraps an exception thrown by a reflectively invoked target?",
+          "choices": [
+            "InvocationTargetException",
+            "ClassNotFoundException always",
+            "NoSuchMethodException always"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Distinguish a failure inside the invoked method itself from a failure to even locate or access that method."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l03-annotation-targets-retention-processing-and-generated-code",
+      "title": "Annotation targets, retention, processing, and generated code",
+      "theoryFile": "lessons/module-21/m21-l03-annotation-targets-retention-processing-and-generated-code.md",
+      "exercises": [
+        {
+          "id": "m21-l3-check",
+          "type": "multipleChoice",
+          "title": "Annotation targets, retention, processing, and generated code: concept check",
+          "instructionMarkdown": "Does a custom runtime annotation execute behavior by itself?",
+          "choices": [
+            "Yes; its name selects a JVM action",
+            "It depends on retention: SOURCE runs at compile time and RUNTIME runs automatically at startup",
+            "No; a consumer or framework must interpret it"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "An annotation is metadata attached to program elements; retention only controls how long that metadata survives, not whether anything reads or acts on it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l04-class-loaders-delegation-plugins-identity-and-loader-leaks",
+      "title": "Class loaders, delegation, plugins, identity, and loader leaks",
+      "theoryFile": "lessons/module-21/m21-l04-class-loaders-delegation-plugins-identity-and-loader-leaks.md",
+      "exercises": [
+        {
+          "id": "m21-l4-check",
+          "type": "multipleChoice",
+          "title": "Class loaders, delegation, plugins, identity, and loader leaks: concept check",
+          "instructionMarkdown": "What forms runtime class identity?",
+          "choices": [
+            "Package name alone",
+            "Binary name plus defining class loader",
+            "Source filename alone"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Think about why two plugins that each define a class with the same name and bytes can still fail an instanceof check against one another."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-l05-jpms-descriptors-requires-exports-opens-services-and-jlink",
+      "title": "JPMS descriptors, requires, exports, opens, services, and jlink",
+      "theoryFile": "lessons/module-21/m21-l05-jpms-descriptors-requires-exports-opens-services-and-jlink.md",
+      "exercises": [
+        {
+          "id": "m21-l5-check",
+          "type": "multipleChoice",
+          "title": "JPMS descriptors, requires, exports, opens, services, and jlink: concept check",
+          "instructionMarkdown": "What is opens for in JPMS?",
+          "choices": [
+            "Deliberate reflective access",
+            "Automatically exporting every API",
+            "Disabling dependency resolution"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall the difference between making a package's public types usable at compile time and permitting deep reflective access to its members at runtime."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m21-assessment",
+      "title": "Chapter 21 assessment and deliberate practice",
+      "theoryFile": "lessons/module-21/m21-assessment.md",
+      "exercises": [
+        {
+          "id": "m21-judgment",
+          "type": "multipleChoice",
+          "title": "Reflection, Annotations, Modules, and Metaprogramming: professional judgment",
+          "instructionMarkdown": "Untrusted text selects arbitrary reflection targets. What boundary is needed?",
+          "choices": [
+            "A narrowly validated allowed set of types and operations",
+            "setAccessible everywhere",
+            "Broad catches around all calls"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m21-coding-lab",
+          "type": "function",
+          "title": "Inspect a record's runtime components",
+          "instructionMarkdown": "Implement componentNames(String selector). Use Class.getRecordComponents to report component names in declaration order for the provided nested Task and Owner records. selector Task -> id,title; Owner -> name; any other text -> empty string. Keep the nested records and inspect their metadata rather than hard-coding the outputs. Tests verify results; source review checks actual reflection.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    record Task(long id, String title) {}\n    record Owner(String name) {}\n    public static String componentNames(String selector) {\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "componentNames",
+            "parameters": [
+              {
+                "name": "selector",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m21-components-1",
+              "visibility": "public",
+              "arguments": [
+                "Task"
+              ],
+              "expected": "id,title"
+            },
+            {
+              "id": "m21-components-2",
+              "visibility": "public",
+              "arguments": [
+                "Owner"
+              ],
+              "expected": "name"
+            },
+            {
+              "id": "m21-components-3",
+              "visibility": "hidden",
+              "arguments": [
+                "task"
+              ],
+              "expected": ""
+            },
+            {
+              "id": "m21-components-4",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": ""
+            }
+          ],
+          "hints": [
+            "Call getRecordComponents() on the Class object for the matched record and read each component's name in declaration order, rather than hard-coding the two known selectors.",
+            "Make sure an unmatched or case-mismatched selector (such as lowercase \"task\") falls through to the empty-string result instead of throwing or matching accidentally."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m21-debug-lab",
+          "type": "debug",
+          "title": "Reflective primitive parameter type",
+          "instructionMarkdown": "The supplied program looks up `substring` with `Integer.class` as the parameter type, but `String.substring` is declared with the primitive `int` parameter, so the reflective lookup fails before it can run. Repair the lookup so it matches the declared signature and the program writes exactly `ava`. Preserve the reflective invocation and explain why the parameter type mismatch changes the result; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended reflective operation requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        var method=String.class.getMethod(\"substring\",Integer.class);System.out.print(method.invoke(\"Java\",1));\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m21-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "ava",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The declared parameter is primitive int; reflective lookup requires that Class."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

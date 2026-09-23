@@ -1,0 +1,249 @@
+{
+  "id": "module-02-values-types-variables-and-expressions",
+  "title": "Chapter 2: Values, Types, Variables, and Expressions",
+  "description": "Develop a precise value model for Java's primitives and references. The learner traces promotion, overflow, floating-point approximation, BigDecimal use, casts, equality, short-circuit evaluation, parsing, validation, and formatted output, then chooses representations that preserve a stated business rule rather than merely compiling.",
+  "lessons": [
+    {
+      "id": "m02-l01-primitive-types-ranges-literals-and-overflow",
+      "title": "Primitive types, ranges, literals, and overflow",
+      "theoryFile": "lessons/module-02/m02-l01-primitive-types-ranges-literals-and-overflow.md",
+      "exercises": [
+        {
+          "id": "m02-l1-check",
+          "type": "multipleChoice",
+          "title": "Primitive types, ranges, literals, and overflow: concept check",
+          "instructionMarkdown": "What does Integer.MAX_VALUE + 1 produce with ordinary int arithmetic?",
+          "choices": [
+            "An automatic ArithmeticException",
+            "A long value",
+            "Integer.MIN_VALUE"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "int arithmetic wraps silently instead of throwing on overflow: adding one to the largest representable int wraps around to the smallest one."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l02-variables-final-scope-and-definite-assignment",
+      "title": "Variables, final, scope, and definite assignment",
+      "theoryFile": "lessons/module-02/m02-l02-variables-final-scope-and-definite-assignment.md",
+      "exercises": [
+        {
+          "id": "m02-l2-check",
+          "type": "multipleChoice",
+          "title": "Variables, final, scope, and definite assignment: concept check",
+          "instructionMarkdown": "A final int[] is assigned once. Which change remains legal?",
+          "choices": [
+            "Changing the variable's declared type",
+            "Changing an element",
+            "Assigning a second array to the variable"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "final only fixes what the variable itself refers to; it does not freeze the array object, so elements reached through that reference are still mutable."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l03-numeric-promotion-casting-bigdecimal-and-precision",
+      "title": "Numeric promotion, casting, BigDecimal, and precision",
+      "theoryFile": "lessons/module-02/m02-l03-numeric-promotion-casting-bigdecimal-and-precision.md",
+      "exercises": [
+        {
+          "id": "m02-l3-check",
+          "type": "multipleChoice",
+          "title": "Numeric promotion, casting, BigDecimal, and precision: concept check",
+          "instructionMarkdown": "Why does double result = 7 / 2 produce 3.0?",
+          "choices": [
+            "Integer division happens before conversion",
+            "double cannot represent 3.5",
+            "Assignment rounds every result down"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Both operands are int, so the division truncates toward zero before the result is ever converted to double; widen an operand first if you need the fraction."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l04-operators-precedence-equality-and-short-circuiting",
+      "title": "Operators, precedence, equality, and short-circuiting",
+      "theoryFile": "lessons/module-02/m02-l04-operators-precedence-equality-and-short-circuiting.md",
+      "exercises": [
+        {
+          "id": "m02-l4-check",
+          "type": "multipleChoice",
+          "title": "Operators, precedence, equality, and short-circuiting: concept check",
+          "instructionMarkdown": "Why is x != null && x.isEmpty() safe from a null dereference?",
+          "choices": [
+            "&& catches NullPointerException",
+            "isEmpty accepts a null receiver",
+            "The right operand is skipped when x is null"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "&& short-circuits: once the left operand is false, the right operand is never evaluated, so isEmpty() is never invoked on a null reference."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-l05-console-input-parsing-validation-and-formatted-output",
+      "title": "Console input, parsing, validation, and formatted output",
+      "theoryFile": "lessons/module-02/m02-l05-console-input-parsing-validation-and-formatted-output.md",
+      "exercises": [
+        {
+          "id": "m02-l5-check",
+          "type": "multipleChoice",
+          "title": "Console input, parsing, validation, and formatted output: concept check",
+          "instructionMarkdown": "A line parses as -3 but the accepted range is 1..10. Which check fails?",
+          "choices": [
+            "Character decoding necessarily",
+            "Semantic range validation",
+            "Integer syntax parsing"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "parseInt already succeeded, so the syntax was valid; the failure comes from a separate range check comparing the parsed value against the accepted domain."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m02-assessment",
+      "title": "Chapter 2 assessment and deliberate practice",
+      "theoryFile": "lessons/module-02/m02-assessment.md",
+      "exercises": [
+        {
+          "id": "m02-judgment",
+          "type": "multipleChoice",
+          "title": "Values, Types, Variables, and Expressions: professional judgment",
+          "instructionMarkdown": "A money calculation compiles but loses cents. What should be reviewed?",
+          "choices": [
+            "Numeric representation and rounding rules",
+            "Only whether variables are final",
+            "Only method visibility"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m02-coding-lab",
+          "type": "function",
+          "title": "Chapter 2 implementation lab: safeAverage",
+          "instructionMarkdown": "Implement `safeAverage`. Return the arithmetic mean as a double without overflowing an intermediate integer sum. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInputs may be any int values. Cast before adding or divide each operand as double to avoid overflow.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static double safeAverage(int value1, int value2) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "safeAverage",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              },
+              {
+                "name": "value2",
+                "type": "int"
+              }
+            ],
+            "returns": "double"
+          },
+          "tests": [
+            {
+              "id": "m02-code-1",
+              "visibility": "public",
+              "arguments": [
+                2,
+                4
+              ],
+              "expected": 3
+            },
+            {
+              "id": "m02-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                1,
+                2
+              ],
+              "expected": 1.5
+            },
+            {
+              "id": "m02-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                2147483647,
+                2147483647
+              ],
+              "expected": 2147483647
+            },
+            {
+              "id": "m02-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                -2147483648,
+                2147483647
+              ],
+              "expected": -0.5
+            },
+            {
+              "id": "m02-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                0,
+                0
+              ],
+              "expected": 0
+            }
+          ],
+          "hints": [
+            "Translate \"without overflowing an intermediate sum\" into casting an operand to double, or summing as long, before dividing by two.",
+            "Trace the public (2, 4) example plus a boundary pair such as two Integer.MAX_VALUE values and one negative/positive extreme before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m02-debug-lab",
+          "type": "debug",
+          "title": "Promotion before division",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `2.5`. The expression `(2 + 3) / 2` currently runs entirely in int arithmetic and truncates to 2 before that result is ever widened to double; preserve the demonstrated addition and explain why converting an operand before dividing, rather than hard-coding the printed value, is what restores the fractional result.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        double average = (2 + 3) / 2; System.out.print(average);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m02-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "2.5",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Convert an operand before the division; widening the result is too late."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

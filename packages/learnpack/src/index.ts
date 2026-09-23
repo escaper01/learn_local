@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, rmdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
@@ -65,6 +65,9 @@ export interface LearnPackModule {
   lessons: LearnPackLesson[];
 }
 
+type LearnPackLessonSource = Omit<LearnPackLesson, "theoryMarkdown"> & ({ theoryMarkdown: string; theoryFile?: undefined } | { theoryFile: string; theoryMarkdown?: undefined });
+type LearnPackModuleSource = Omit<LearnPackModule, "lessons"> & { lessons: LearnPackLessonSource[] };
+
 export interface LearnPackProject {
   id: string;
   title: string;
@@ -91,7 +94,8 @@ export interface LearnPackScaffoldResult {
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
 const validateManifest = ajv.compile<LearnPackManifest>(manifestSchema);
-const validateModule = ajv.compile<LearnPackModule>(moduleSchema);
+const validateModule = ajv.compile<LearnPackModuleSource>(moduleSchema);
+const MAX_THEORY_CHARACTERS = 200_000;
 const validateProject = ajv.compile<LearnPackProject>(projectSchema);
 
 function schemaIssues(errors: ErrorObject[] | null | undefined, file: string): ValidationIssue[] {
@@ -212,7 +216,8 @@ function readEntry(zip: ZipFile, entry: Entry): Promise<Buffer> {
   });
 }
 
-async function readJsonEntries(path: string): Promise<Map<string, unknown>> {
+// JSON entries are parsed; Markdown entries are kept as text for lessons that reference them.
+async function readArchiveEntries(path: string): Promise<Map<string, unknown>> {
   const archive = await stat(path);
   if (!archive.isFile() || archive.size > MAX_ARCHIVE_BYTES) {
     throw new AppError("PACK_ARCHIVE_SIZE_LIMIT", "validation", "LearnPack must be a file no larger than 50 MB.");
@@ -253,6 +258,8 @@ async function readJsonEntries(path: string): Promise<Map<string, unknown>> {
             } catch {
               throw new AppError("PACK_INVALID_JSON", "validation", `Invalid JSON in ${normalizedPath}.`, { file: normalizedPath });
             }
+          } else if (extension(normalizedPath) === ".md") {
+            values.set(normalizedPath, (await readEntry(zip, entry)).toString("utf8").replace(/^﻿/, ""));
           }
           zip.readEntry();
         } catch (error) {
@@ -307,9 +314,28 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
       issues.push(...schemaIssues(validateModule.errors, modulePath));
       continue;
     }
-    modules.push(value);
-    registerId(value.id, modulePath);
-    for (const lesson of value.lessons) {
+    const module: LearnPackModule = {
+      id: value.id,
+      title: value.title,
+      ...(value.description !== undefined ? { description: value.description } : {}),
+      lessons: value.lessons.map((lesson, lessonIndex) => {
+        let theoryMarkdown = lesson.theoryMarkdown ?? "";
+        if (lesson.theoryFile !== undefined) {
+          const reference = lesson.theoryFile;
+          const location = `/lessons/${lessonIndex}/theoryFile`;
+          const text = isSafeArchivePath(reference) ? entries.get(reference) : undefined;
+          if (!isSafeArchivePath(reference)) issues.push({ code: "PACK_PATH_TRAVERSAL", severity: "error", file: modulePath, path: location, message: `Lesson '${lesson.id}' references an unsafe Markdown path: ${reference}` });
+          else if (typeof text !== "string") issues.push({ code: "PACK_REFERENCE_MISSING", severity: "error", file: modulePath, path: location, message: `Lesson '${lesson.id}' references a Markdown file that does not exist: ${reference}` });
+          else if (!text.trim()) issues.push({ code: "PACK_THEORY_EMPTY", severity: "error", file: reference, message: `Lesson '${lesson.id}' theory file is empty.` });
+          else if (text.length > MAX_THEORY_CHARACTERS) issues.push({ code: "PACK_THEORY_TOO_LARGE", severity: "error", file: reference, message: `Lesson '${lesson.id}' theory exceeds ${MAX_THEORY_CHARACTERS} characters.` });
+          else theoryMarkdown = text;
+        }
+        return { id: lesson.id, title: lesson.title, theoryMarkdown, exercises: lesson.exercises };
+      })
+    };
+    modules.push(module);
+    registerId(module.id, modulePath);
+    for (const lesson of module.lessons) {
       registerId(lesson.id, modulePath);
       for (const exercise of lesson.exercises) {
         registerId(exercise.id, modulePath);
@@ -400,7 +426,7 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
 
 export async function inspectLearnPack(path: string): Promise<ValidatedLearnPack> {
   if (!path.toLowerCase().endsWith(".learnpack")) throw new AppError("PACK_EXTENSION_INVALID", "validation", "Select a .learnpack file.");
-  return validateLearnPackContent(await readJsonEntries(path));
+  return validateLearnPackContent(await readArchiveEntries(path));
 }
 
 export async function importLearnPack(path: string, libraryDirectory: string): Promise<ValidatedLearnPack> {
@@ -413,6 +439,28 @@ export async function importLearnPack(path: string, libraryDirectory: string): P
     writeFile(join(courseDirectory, `${baseName}.course.json`), JSON.stringify(validated, null, 2), "utf8")
   ]);
   return validated;
+}
+
+export async function removeImportedCourse(libraryDirectory: string, courseId: string, version: string): Promise<void> {
+  if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(courseId) || !/^[0-9]+\.[0-9]+\.[0-9]+$/.test(version)) {
+    throw new AppError("COURSE_NOT_FOUND", "validation", "The requested imported course version is unavailable.");
+  }
+  const library = resolve(libraryDirectory);
+  const courseDirectory = resolve(library, courseId);
+  if (relative(library, courseDirectory) !== courseId) throw new AppError("PACK_PATH_TRAVERSAL", "validation", "Unsafe course location.");
+  const record = join(courseDirectory, `${version}.course.json`);
+  try {
+    await stat(record);
+  } catch {
+    throw new AppError("COURSE_NOT_FOUND", "validation", "The requested imported course version is unavailable.");
+  }
+  await rm(join(courseDirectory, `${version}.learnpack`), { force: true });
+  await rm(record, { force: true });
+  try {
+    await rmdir(courseDirectory);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOTEMPTY" && (error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+  }
 }
 
 export async function listImportedCourses(libraryDirectory: string): Promise<ImportedCourseSummary[]> {

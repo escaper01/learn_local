@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { join, resolve } from "node:path";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { importLearnPack, inspectLearnPack, loadImportedCourse, normalizeArchivePath, scaffoldLearnPackFromManifest, toCourseView, validateLearnPackContent } from "./index";
+import { importLearnPack, inspectLearnPack, listImportedCourses, loadImportedCourse, normalizeArchivePath, removeImportedCourse, scaffoldLearnPackFromManifest, toCourseView, validateLearnPackContent } from "./index";
 
 function validEntries(): Map<string, unknown> {
   return new Map([
@@ -47,23 +47,25 @@ function validEntries(): Map<string, unknown> {
 
 describe("LearnPack semantic validation", () => {
   it("validates the complete Java developer academy", async () => {
-    const root = resolve(import.meta.dirname, "../../../examples");
+    const root = resolve(import.meta.dirname, "../../../examples/javaCourse");
     const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8")) as { modules: string[]; projects: string[] };
     const entries = new Map<string, unknown>([["manifest.json", manifest]]);
     for (const path of [...manifest.modules, ...manifest.projects]) {
       entries.set(path, JSON.parse(await readFile(join(root, ...path.split("/")), "utf8")));
     }
-    expect(validateLearnPackContent(entries).summary).toMatchObject({
+    const rawLessons = manifest.modules.flatMap((path) => (entries.get(path) as { lessons: Array<{ theoryFile?: string; theoryMarkdown?: string }> }).lessons);
+    expect(rawLessons.every((lesson) => typeof lesson.theoryFile === "string" && lesson.theoryMarkdown === undefined)).toBe(true);
+    for (const lesson of rawLessons) entries.set(lesson.theoryFile!, await readFile(join(root, ...lesson.theoryFile!.split("/")), "utf8"));
+
+    const source = validateLearnPackContent(entries);
+    expect(source.summary).toMatchObject({
       id: "java-developer-academy-21",
       moduleCount: 25,
       lessonCount: 152,
       exerciseCount: 208
     });
 
-    const modules = manifest.modules.map((path) => entries.get(path)) as Array<{
-      description: string;
-      lessons: Array<{ title: string; theoryMarkdown: string; exercises: unknown[] }>;
-    }>;
+    const modules = source.modules.map((module, index) => ({ ...module, description: (entries.get(manifest.modules[index]!) as { description: string }).description }));
     const teachingLessons = modules.flatMap((module) => module.lessons.slice(0, -1));
     expect(teachingLessons).toHaveLength(127);
     expect(modules.every((module) => module.description.length > 250)).toBe(true);
@@ -85,8 +87,7 @@ describe("LearnPack semantic validation", () => {
       expect(new Set(project.tests?.map((test) => test.expected)).size).toBeGreaterThanOrEqual(4);
     }
 
-    const archive = await inspectLearnPack(resolve(root, "../my-course.learnpack"));
-    const source = validateLearnPackContent(entries);
+    const archive = await inspectLearnPack(resolve(root, "../../javaCourse.learnpack"));
     expect(archive.manifest).toEqual(source.manifest);
     expect(archive.modules).toEqual(source.modules);
     expect(archive.projects).toEqual(source.projects);
@@ -96,6 +97,37 @@ describe("LearnPack semantic validation", () => {
       lessonCount: 152,
       exerciseCount: 208
     });
+  });
+
+  it("resolves lesson theory from referenced Markdown files", () => {
+    const entries = validEntries();
+    const module = entries.get("content/01-basics.json") as { lessons: Array<Record<string, unknown>> };
+    delete module.lessons[0]!.theoryMarkdown;
+    module.lessons[0]!.theoryFile = "lessons/arrays.md";
+    entries.set("lessons/arrays.md", "# Arrays\n\nArrays hold a fixed number of values.\n");
+    const pack = validateLearnPackContent(entries);
+    expect(pack.modules[0]!.lessons[0]).toEqual(expect.objectContaining({ theoryMarkdown: "# Arrays\n\nArrays hold a fixed number of values.\n" }));
+    expect(pack.modules[0]!.lessons[0]).not.toHaveProperty("theoryFile");
+  });
+
+  it("rejects missing, unsafe, empty, or ambiguous lesson theory references", () => {
+    const withLesson = (lesson: Record<string, unknown>, extra: Array<[string, string]> = []) => {
+      const entries = validEntries();
+      const module = entries.get("content/01-basics.json") as { lessons: Array<Record<string, unknown>> };
+      delete module.lessons[0]!.theoryMarkdown;
+      Object.assign(module.lessons[0]!, lesson);
+      for (const [path, text] of extra) entries.set(path, text);
+      return entries;
+    };
+    const codes = (entries: Map<string, unknown>) => {
+      try { validateLearnPackContent(entries); return []; }
+      catch (error) { return ((error as { details?: { issues?: Array<{ code: string }> } }).details?.issues ?? []).map((issue) => issue.code); }
+    };
+    expect(codes(withLesson({ theoryFile: "lessons/missing.md" }))).toContain("PACK_REFERENCE_MISSING");
+    expect(codes(withLesson({ theoryFile: "lessons/../secrets.md" }, [["secrets.md", "# Secret"]]))).toContain("PACK_PATH_TRAVERSAL");
+    expect(codes(withLesson({ theoryFile: "lessons/empty.md" }, [["lessons/empty.md", "  \n"]]))).toContain("PACK_THEORY_EMPTY");
+    expect(codes(withLesson({ theoryFile: "lessons/a.md", theoryMarkdown: "inline" }, [["lessons/a.md", "# A"]]))).toContain("PACK_SCHEMA_INVALID");
+    expect(codes(withLesson({ theoryFile: "lessons/a.json" }))).toContain("PACK_SCHEMA_INVALID");
   });
 
   it("normalizes Windows ZIP separators before validating paths", () => {
@@ -149,6 +181,24 @@ describe("LearnPack semantic validation", () => {
     const path = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
     const pack = await inspectLearnPack(path);
     expect(pack.summary).toMatchObject({ id: "java-foundations", exerciseCount: 1 });
+  });
+
+  it("removes one imported course version without touching other library content", async () => {
+    const library = await mkdtemp(resolve(tmpdir(), "learnlocal-remove-"));
+    const path = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
+    try {
+      await importLearnPack(path, library);
+      await writeFile(join(library, "unrelated.txt"), "keep me", "utf8");
+      expect(await listImportedCourses(library)).toHaveLength(1);
+      await removeImportedCourse(library, "java-foundations", "1.0.0");
+      expect(await listImportedCourses(library)).toEqual([]);
+      await expect(loadImportedCourse(library, "java-foundations", "1.0.0")).rejects.toMatchObject({ code: "COURSE_NOT_FOUND" });
+      expect(await readFile(join(library, "unrelated.txt"), "utf8")).toBe("keep me");
+      await expect(removeImportedCourse(library, "java-foundations", "1.0.0")).rejects.toMatchObject({ code: "COURSE_NOT_FOUND" });
+      await expect(removeImportedCourse(library, "../outside", "1.0.0")).rejects.toMatchObject({ code: "COURSE_NOT_FOUND" });
+    } finally {
+      await rm(library, { recursive: true, force: true });
+    }
   });
 
   it("revalidates stored courses and redacts all test definitions from the renderer view", async () => {

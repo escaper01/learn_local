@@ -1,0 +1,240 @@
+{
+  "id": "module-13-lambdas-functional-interfaces-and-optional",
+  "title": "Chapter 13: Lambdas, Functional Interfaces, and Optional",
+  "description": "Use behavior values to simplify decisions without hiding side effects. Learners identify target functional interfaces, reason about captured state, use primitive specializations, compose method references and functions, restrict Optional to meaningful absence-return contracts, and separate a deterministic decision-making core from I/O and mutation boundaries.",
+  "lessons": [
+    {
+      "id": "m13-l01-lambda-target-typing-and-effectively-final-capture",
+      "title": "Lambda target typing and effectively-final capture",
+      "theoryFile": "lessons/module-13/m13-l01-lambda-target-typing-and-effectively-final-capture.md",
+      "exercises": [
+        {
+          "id": "m13-l1-check",
+          "type": "multipleChoice",
+          "title": "Lambda target typing and effectively-final capture: concept check",
+          "instructionMarkdown": "What does effectively final constrain?",
+          "choices": [
+            "Reassignment of captured local variables",
+            "All mutation of captured objects",
+            "Reassignment of any variable declared inside the lambda body"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Effectively-final only forbids reassigning the captured local variable itself; it says nothing about mutating an object that the variable refers to."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m13-l02-predicate-function-consumer-supplier-and-primitive-variants",
+      "title": "Predicate, Function, Consumer, Supplier, and primitive variants",
+      "theoryFile": "lessons/module-13/m13-l02-predicate-function-consumer-supplier-and-primitive-variants.md",
+      "exercises": [
+        {
+          "id": "m13-l2-check",
+          "type": "multipleChoice",
+          "title": "Predicate, Function, Consumer, Supplier, and primitive variants: concept check",
+          "instructionMarkdown": "Which interface describes an input-to-result transformation?",
+          "choices": [
+            "Consumer",
+            "Runnable",
+            "Function"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Function<T,R>'s single abstract method takes an input and produces a transformed result, unlike Consumer (no result) or Runnable (no input or result)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m13-l03-method-references-function-composition-and-readability",
+      "title": "Method references, function composition, and readability",
+      "theoryFile": "lessons/module-13/m13-l03-method-references-function-composition-and-readability.md",
+      "exercises": [
+        {
+          "id": "m13-l3-check",
+          "type": "multipleChoice",
+          "title": "Method references, function composition, and readability: concept check",
+          "instructionMarkdown": "In trim.andThen(length), which operation runs first?",
+          "choices": [
+            "An unspecified choice",
+            "trim",
+            "length"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "andThen runs the function it is called on first, then feeds that result into the argument function, so trim executes before length."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m13-l04-optional-map-flatmap-fallback-and-api-design",
+      "title": "Optional map, flatMap, fallback, and API design",
+      "theoryFile": "lessons/module-13/m13-l04-optional-map-flatmap-fallback-and-api-design.md",
+      "exercises": [
+        {
+          "id": "m13-l4-check",
+          "type": "multipleChoice",
+          "title": "Optional map, flatMap, fallback, and API design: concept check",
+          "instructionMarkdown": "Why use orElseGet for an expensive fallback?",
+          "choices": [
+            "Its supplier runs only when the value is absent",
+            "It always runs sooner",
+            "It prevents every exception"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "orElseGet takes a Supplier that is only invoked when the Optional is empty, while orElse's argument is evaluated eagerly whether or not a value is present."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m13-l05-purity-side-effects-higher-order-functions-and-testability",
+      "title": "Purity, side effects, higher-order functions, and testability",
+      "theoryFile": "lessons/module-13/m13-l05-purity-side-effects-higher-order-functions-and-testability.md",
+      "exercises": [
+        {
+          "id": "m13-l5-check",
+          "type": "multipleChoice",
+          "title": "Purity, side effects, higher-order functions, and testability: concept check",
+          "instructionMarkdown": "What makes a calculation pure?",
+          "choices": [
+            "It uses a lambda",
+            "It calls a static method",
+            "Its result depends on inputs and it has no external mutation"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "A pure function's output depends only on its arguments and it performs no observable mutation or I/O, regardless of whether a lambda or a static method implements it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m13-assessment",
+      "title": "Chapter 13 assessment and deliberate practice",
+      "theoryFile": "lessons/module-13/m13-assessment.md",
+      "exercises": [
+        {
+          "id": "m13-judgment",
+          "type": "multipleChoice",
+          "title": "Lambdas, Functional Interfaces, and Optional: professional judgment",
+          "instructionMarkdown": "A lambda captures a mutable collection. What remains possible?",
+          "choices": [
+            "Mutation and races despite effectively-final capture",
+            "Guaranteed purity",
+            "Guaranteed thread confinement"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m13-coding-lab",
+          "type": "function",
+          "title": "Chapter 13 implementation lab: normalize",
+          "instructionMarkdown": "Implement `normalize`. Return trimmed lowercase text, or UNKNOWN when the trimmed result is empty. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nUse trim and toLowerCase(Locale.ROOT). Input is non-null.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String normalize(String value1) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "normalize",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m13-code-1",
+              "visibility": "public",
+              "arguments": [
+                " Java "
+              ],
+              "expected": "java"
+            },
+            {
+              "id": "m13-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                "   "
+              ],
+              "expected": "UNKNOWN"
+            },
+            {
+              "id": "m13-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "I"
+              ],
+              "expected": "i"
+            },
+            {
+              "id": "m13-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": "UNKNOWN"
+            },
+            {
+              "id": "m13-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                " SQL "
+              ],
+              "expected": "sql"
+            }
+          ],
+          "hints": [
+            "Trim first, then lowercase with Locale.ROOT so the emptiness check reflects the trimmed text rather than the original input.",
+            "Check an all-whitespace string, a single character, and an already-empty string before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m13-debug-lab",
+          "type": "debug",
+          "title": "Lazy optional fallback",
+          "instructionMarkdown": "Repair the fallback call so the side-effecting fallback() supplier runs only when the Optional is actually empty, and the program writes exactly `ready:0`. Keep the same call counter and explain why orElse's eager evaluation caused the extra call, rather than hard-coding the print statement. Output tests verify the printed result; confirming the supplier truly stayed lazy requires reading the source.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    static int calls=0; static String fallback(){calls++;return \"fallback\";}\n    public static void main(String[] args) throws Exception {\n        String result=java.util.Optional.of(\"ready\").orElse(fallback()); System.out.print(result+\":\"+calls);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m13-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "ready:0",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Use a lazy supplier when the fallback has work or side effects."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

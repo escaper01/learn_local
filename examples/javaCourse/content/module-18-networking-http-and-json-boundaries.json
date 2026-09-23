@@ -1,0 +1,248 @@
+{
+  "id": "module-18-networking-http-and-json-boundaries",
+  "title": "Chapter 18: Networking, HTTP, and JSON Boundaries",
+  "description": "Specify process boundaries that remain correct under partial reads, malformed data, slow peers, and dependency failure. Learners frame TCP messages, apply HTTP method and status semantics, use Java HttpClient with deadlines, validate bounded JSON DTOs, and combine idempotency, retry classification, exponential backoff, jitter, circuit breaking, and concurrency isolation responsibly.",
+  "lessons": [
+    {
+      "id": "m18-l01-tcp-sockets-byte-stream-framing-timeouts-limits-and-cleanup",
+      "title": "TCP sockets, byte-stream framing, timeouts, limits, and cleanup",
+      "theoryFile": "lessons/module-18/m18-l01-tcp-sockets-byte-stream-framing-timeouts-limits-and-cleanup.md",
+      "exercises": [
+        {
+          "id": "m18-l1-check",
+          "type": "multipleChoice",
+          "title": "TCP sockets, byte-stream framing, timeouts, limits, and cleanup: concept check",
+          "instructionMarkdown": "Can one TCP read be assumed to contain one complete application message?",
+          "choices": [
+            "Only if UTF-8 is used",
+            "No; framing and partial-read handling are required",
+            "Yes; every write is preserved as a read"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Consider what happens when a peer's single write is larger than a network buffer, and why one socket read is not guaranteed to match one application write."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m18-l02-http-methods-status-codes-headers-media-types-and-idempotenc",
+      "title": "HTTP methods, status codes, headers, media types, and idempotency",
+      "theoryFile": "lessons/module-18/m18-l02-http-methods-status-codes-headers-media-types-and-idempotenc.md",
+      "exercises": [
+        {
+          "id": "m18-l2-check",
+          "type": "multipleChoice",
+          "title": "HTTP methods, status codes, headers, media types, and idempotency: concept check",
+          "instructionMarkdown": "What does an idempotent HTTP operation promise?",
+          "choices": [
+            "Repeating its intended effect is safe",
+            "Every response byte is identical",
+            "It cannot fail"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Idempotency promises the resource's end state after repetition, not that every response body or status looks identical."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m18-l03-java-httpclient-synchronous-and-asynchronous-workflows",
+      "title": "Java HttpClient synchronous and asynchronous workflows",
+      "theoryFile": "lessons/module-18/m18-l03-java-httpclient-synchronous-and-asynchronous-workflows.md",
+      "exercises": [
+        {
+          "id": "m18-l3-check",
+          "type": "multipleChoice",
+          "title": "Java HttpClient synchronous and asynchronous workflows: concept check",
+          "instructionMarkdown": "Is an HTTP 404 necessarily a transport exception in HttpClient?",
+          "choices": [
+            "Yes; send always throws for 4xx",
+            "Yes; only 200 responses have bodies",
+            "No; it is a received response whose status needs handling"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Check what HttpClient.send actually throws versus what it returns, and where a non-2xx status code fits in that distinction."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m18-l04-json-types-schemas-parsing-limits-dtos-and-compatibility",
+      "title": "JSON types, schemas, parsing limits, DTOs, and compatibility",
+      "theoryFile": "lessons/module-18/m18-l04-json-types-schemas-parsing-limits-dtos-and-compatibility.md",
+      "exercises": [
+        {
+          "id": "m18-l4-check",
+          "type": "multipleChoice",
+          "title": "JSON types, schemas, parsing limits, DTOs, and compatibility: concept check",
+          "instructionMarkdown": "Does Java 21's standard library provide a general JSON object mapper?",
+          "choices": [
+            "Yes; Serializable is JSON",
+            "No; use an appropriate declared library",
+            "Yes; String.replace is the object mapper"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall what java.util ships for tokenizing text versus what a declared Jackson or Gson dependency provides for schema-aware object mapping."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m18-l05-retries-deadlines-backoff-jitter-circuit-breakers-and-bulkhe",
+      "title": "Retries, deadlines, backoff, jitter, circuit breakers, and bulkheads",
+      "theoryFile": "lessons/module-18/m18-l05-retries-deadlines-backoff-jitter-circuit-breakers-and-bulkhe.md",
+      "exercises": [
+        {
+          "id": "m18-l5-check",
+          "type": "multipleChoice",
+          "title": "Retries, deadlines, backoff, jitter, circuit breakers, and bulkheads: concept check",
+          "instructionMarkdown": "What can a timeout after a payment request mean?",
+          "choices": [
+            "The server may have committed but the response was lost",
+            "The server definitely did nothing",
+            "The payment definitely succeeded"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "A timeout tells you the response was lost, not what the server actually did with the request before the connection dropped."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m18-assessment",
+      "title": "Chapter 18 assessment and deliberate practice",
+      "theoryFile": "lessons/module-18/m18-assessment.md",
+      "exercises": [
+        {
+          "id": "m18-judgment",
+          "type": "multipleChoice",
+          "title": "Networking, HTTP, and JSON Boundaries: professional judgment",
+          "instructionMarkdown": "A remote write times out. What must a retry policy consider?",
+          "choices": [
+            "The write may already have committed",
+            "Timeout proves no effect",
+            "Retry is always safe"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m18-coding-lab",
+          "type": "function",
+          "title": "Chapter 18 implementation lab: retryDelay",
+          "instructionMarkdown": "Implement `retryDelay`. Return exponential delay min(1000 * 2^attempt, 30000); treat negative attempts as zero. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nClamp negative attempts to zero and cap at 30000 before a shift could overflow. All int attempts are permitted.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int retryDelay(int value1) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "retryDelay",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m18-code-1",
+              "visibility": "public",
+              "arguments": [
+                0
+              ],
+              "expected": 1000
+            },
+            {
+              "id": "m18-code-2",
+              "visibility": "public",
+              "arguments": [
+                1
+              ],
+              "expected": 2000
+            },
+            {
+              "id": "m18-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                5
+              ],
+              "expected": 30000
+            },
+            {
+              "id": "m18-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                -1
+              ],
+              "expected": 1000
+            },
+            {
+              "id": "m18-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                30
+              ],
+              "expected": 30000
+            },
+            {
+              "id": "m18-code-6",
+              "visibility": "hidden",
+              "arguments": [
+                2147483647
+              ],
+              "expected": 30000
+            }
+          ],
+          "hints": [
+            "Clamp the attempt count itself (for example to 5) before shifting, so the shift amount cannot overflow before the min() cap applies.",
+            "Treat negative attempts as zero before computing 1000 << attempt, then cap the result at 30000."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m18-debug-lab",
+          "type": "debug",
+          "title": "Inspect status before treating a response as success",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `ERROR`. The status check currently treats any code under 500 as success, which misclassifies a client error like 404; preserve the branching structure while correcting which status range counts as success, and explain why your fix changes the result instead of hard-coding the print. Output tests verify the printed result; preserving the intended status classification requires reading the source, not just matching output.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        int status=404; System.out.print(status<500 ? \"SUCCESS\" : \"ERROR\");\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m18-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "ERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "This contract recognizes only 2xx as success, not every non-5xx response."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

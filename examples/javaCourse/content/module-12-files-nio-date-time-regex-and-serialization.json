@@ -1,0 +1,240 @@
+{
+  "id": "module-12-files-nio-date-time-regex-and-serialization",
+  "title": "Chapter 12: Files, NIO, Date-Time, Regex, and Serialization",
+  "description": "Cross file, text, time, and serialization boundaries explicitly. Learners constrain resolved paths to an approved root, stream bytes and characters with declared UTF-8 encoding, select correct java.time types and inject Clock, design and test bounded regular expressions, and version serialization schemas without exposing implementation objects or enabling native-deserialization attacks.",
+  "lessons": [
+    {
+      "id": "m12-l01-path-files-traversal-defense-metadata-and-atomic-moves",
+      "title": "Path, Files, traversal defense, metadata, and atomic moves",
+      "theoryFile": "lessons/module-12/m12-l01-path-files-traversal-defense-metadata-and-atomic-moves.md",
+      "exercises": [
+        {
+          "id": "m12-l1-check",
+          "type": "multipleChoice",
+          "title": "Path, Files, traversal defense, metadata, and atomic moves: concept check",
+          "instructionMarkdown": "Does normalize plus startsWith alone handle symlink escapes?",
+          "choices": [
+            "Yes; Path objects cannot name links",
+            "No; filesystem link and race policies remain necessary",
+            "Yes; normalization resolves every symlink securely"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "normalize() and startsWith() only reason about the lexical path text; they cannot detect that a component resolves through a symbolic link to a location outside the root."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m12-l02-byte-versus-character-streams-buffering-and-utf-8",
+      "title": "Byte versus character streams, buffering, and UTF-8",
+      "theoryFile": "lessons/module-12/m12-l02-byte-versus-character-streams-buffering-and-utf-8.md",
+      "exercises": [
+        {
+          "id": "m12-l2-check",
+          "type": "multipleChoice",
+          "title": "Byte versus character streams, buffering, and UTF-8: concept check",
+          "instructionMarkdown": "What does readLine return at EOF?",
+          "choices": [
+            "null",
+            "Always an empty string",
+            "Throws an exception once no lines remain"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "readLine() returns null only once the stream is exhausted; a blank line in the middle of the file returns an empty string instead."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m12-l03-instant-local-types-zones-duration-period-and-clock",
+      "title": "Instant, local types, zones, duration, period, and Clock",
+      "theoryFile": "lessons/module-12/m12-l03-instant-local-types-zones-duration-period-and-clock.md",
+      "exercises": [
+        {
+          "id": "m12-l3-check",
+          "type": "multipleChoice",
+          "title": "Instant, local types, zones, duration, period, and Clock: concept check",
+          "instructionMarkdown": "Which type represents a global timestamp?",
+          "choices": [
+            "LocalTime alone",
+            "LocalDate alone",
+            "Instant"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Instant marks a single point on the global timeline independent of any calendar or zone; LocalDate and LocalTime each omit that global anchor."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m12-l04-pattern-matcher-groups-escaping-and-regex-safety",
+      "title": "Pattern, Matcher, groups, escaping, and regex safety",
+      "theoryFile": "lessons/module-12/m12-l04-pattern-matcher-groups-escaping-and-regex-safety.md",
+      "exercises": [
+        {
+          "id": "m12-l4-check",
+          "type": "multipleChoice",
+          "title": "Pattern, Matcher, groups, escaping, and regex safety: concept check",
+          "instructionMarkdown": "What differs between matches and find?",
+          "choices": [
+            "Case-sensitive versus always case-insensitive",
+            "Whole-region matching versus subsequence searching",
+            "UTF-8 versus UTF-16 decoding"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "matches() requires the pattern to consume the entire input region, while find() searches for the next matching subsequence and can succeed on only part of the input."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m12-l05-explicit-serialization-schemas-compatibility-and-native-seri",
+      "title": "Explicit serialization schemas, compatibility, and native serialization risks",
+      "theoryFile": "lessons/module-12/m12-l05-explicit-serialization-schemas-compatibility-and-native-seri.md",
+      "exercises": [
+        {
+          "id": "m12-l5-check",
+          "type": "multipleChoice",
+          "title": "Explicit serialization schemas, compatibility, and native serialization risks: concept check",
+          "instructionMarkdown": "Why use explicit transport schemas?",
+          "choices": [
+            "To control fields, compatibility, and validation",
+            "To instantiate arbitrary input-named classes",
+            "To avoid all future migration work"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "An explicit schema lets you name a version, field types, and validation rules, instead of trusting embedded class metadata that could be used to construct arbitrary objects."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m12-assessment",
+      "title": "Chapter 12 assessment and deliberate practice",
+      "theoryFile": "lessons/module-12/m12-assessment.md",
+      "exercises": [
+        {
+          "id": "m12-judgment",
+          "type": "multipleChoice",
+          "title": "Files, NIO, Date-Time, Regex, and Serialization: professional judgment",
+          "instructionMarkdown": "A normalized path points through a symlink outside the allowed root. What failed?",
+          "choices": [
+            "The policy considered lexical paths but not actual filesystem resolution",
+            "The normalized path already matched the allowed root string",
+            "The traversal check ran only once during application startup"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m12-coding-lab",
+          "type": "function",
+          "title": "Chapter 12 implementation lab: courseCode",
+          "instructionMarkdown": "Implement `courseCode`. Accept exactly two uppercase ASCII letters, a hyphen, and four digits. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nUse whole-input matching and ASCII letters/digits, not a substring search.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static boolean courseCode(String value1) {\n        return false;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "courseCode",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "boolean"
+          },
+          "tests": [
+            {
+              "id": "m12-code-1",
+              "visibility": "public",
+              "arguments": [
+                "JV-0021"
+              ],
+              "expected": true
+            },
+            {
+              "id": "m12-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                "jv-21"
+              ],
+              "expected": false
+            },
+            {
+              "id": "m12-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "AB-12345"
+              ],
+              "expected": false
+            },
+            {
+              "id": "m12-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                "XAB-1234"
+              ],
+              "expected": false
+            },
+            {
+              "id": "m12-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                "AZ-0000"
+              ],
+              "expected": true
+            }
+          ],
+          "hints": [
+            "Require the pattern to match the whole string, not merely be contained in it: two uppercase ASCII letters, a hyphen, then exactly four digits.",
+            "Test a lowercase code, an extra prefix or suffix, the wrong digit count, and the exact minimum-length boundary before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m12-debug-lab",
+          "type": "debug",
+          "title": "Whole-region grammar",
+          "instructionMarkdown": "Repair the regex check so it validates the entire input region instead of finding a matching substring inside `prefix JV-0021`, and the program writes exactly `false`. Keep the same compiled pattern and explain why matches() versus find() changes the outcome, rather than hard-coding the print statement. Output tests verify the printed result; confirming whole-input validation actually happens requires reading the source.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        var m=java.util.regex.Pattern.compile(\"[A-Z]{2}-[0-9]{4}\").matcher(\"prefix JV-0021\"); System.out.print(m.find());\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m12-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "false",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The requirement validates the entire input, not a matching substring."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "id": "module-06-enums-records-and-sealed-types",
+  "title": "Chapter 6: Enums, Records, and Sealed Types",
+  "description": "Represent closed choices and transparent values with Java 21 language features. The learner builds behavior-bearing enums, validates and defensively copies record components, constrains extension with sealed hierarchies, writes exhaustive pattern switches, and defends when an ordinary class is a more honest model.",
+  "lessons": [
+    {
+      "id": "m06-l01-enums-as-type-safe-objects-with-state-and-behavior",
+      "title": "Enums as type-safe objects with state and behavior",
+      "theoryFile": "lessons/module-06/m06-l01-enums-as-type-safe-objects-with-state-and-behavior.md",
+      "exercises": [
+        {
+          "id": "m06-l1-check",
+          "type": "multipleChoice",
+          "title": "Enums as type-safe objects with state and behavior: concept check",
+          "instructionMarkdown": "Why is persisting an enum ordinal fragile?",
+          "choices": [
+            "Ordinal values are derived from alphabetical order of the constant names",
+            "Reordering constants changes its meaning",
+            "Ordinal values change automatically whenever the class is recompiled, even without edits"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall that ordinal() reflects declaration position, not a stable identity: inserting or reordering constants shifts the ordinal of every constant after the change."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m06-l02-records-canonical-constructors-and-shallow-immutability",
+      "title": "Records, canonical constructors, and shallow immutability",
+      "theoryFile": "lessons/module-06/m06-l02-records-canonical-constructors-and-shallow-immutability.md",
+      "exercises": [
+        {
+          "id": "m06-l2-check",
+          "type": "multipleChoice",
+          "title": "Records, canonical constructors, and shallow immutability: concept check",
+          "instructionMarkdown": "A record contains a mutable List. What does the record guarantee by itself?",
+          "choices": [
+            "The component reference cannot be reassigned after construction",
+            "Every element is deeply immutable",
+            "The original list cannot change"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall that the compact constructor validates and assigns the final component reference; it does not by itself copy the mutable list an argument points to."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m06-l03-sealed-classes-and-controlled-extension",
+      "title": "Sealed classes and controlled extension",
+      "theoryFile": "lessons/module-06/m06-l03-sealed-classes-and-controlled-extension.md",
+      "exercises": [
+        {
+          "id": "m06-l3-check",
+          "type": "multipleChoice",
+          "title": "Sealed classes and controlled extension: concept check",
+          "instructionMarkdown": "What does sealed restrict?",
+          "choices": [
+            "All callers of public methods",
+            "Every object instance count",
+            "Allowed direct subtypes"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Recall that a sealed type's permits clause enumerates its allowed direct subtypes; it says nothing about caller access or how many instances exist."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m06-l04-pattern-matching-with-instanceof-and-switch",
+      "title": "Pattern matching with instanceof and switch",
+      "theoryFile": "lessons/module-06/m06-l04-pattern-matching-with-instanceof-and-switch.md",
+      "exercises": [
+        {
+          "id": "m06-l4-check",
+          "type": "multipleChoice",
+          "title": "Pattern matching with instanceof and switch: concept check",
+          "instructionMarkdown": "Does an exhaustive subtype switch automatically accept null?",
+          "choices": [
+            "Yes; null means the default subtype",
+            "No; null needs its own policy",
+            "Yes; null matches the first subtype"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Recall that instanceof and pattern switch treat null as its own case; matching every listed subtype does not implicitly cover a null selector."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m06-l05-choosing-among-class-record-enum-and-sealed-hierarchy",
+      "title": "Choosing among class, record, enum, and sealed hierarchy",
+      "theoryFile": "lessons/module-06/m06-l05-choosing-among-class-record-enum-and-sealed-hierarchy.md",
+      "exercises": [
+        {
+          "id": "m06-l5-check",
+          "type": "multipleChoice",
+          "title": "Choosing among class, record, enum, and sealed hierarchy: concept check",
+          "instructionMarkdown": "Which model naturally fits a transparent coordinate value?",
+          "choices": [
+            "A record with coordinate components",
+            "A mutable global singleton",
+            "An enum constant for every runtime coordinate"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Recall the identity-versus-value distinction: a record with components fits something defined by its data, not something tracked as the same instance as its data changes over time."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m06-assessment",
+      "title": "Chapter 6 assessment and deliberate practice",
+      "theoryFile": "lessons/module-06/m06-assessment.md",
+      "exercises": [
+        {
+          "id": "m06-judgment",
+          "type": "multipleChoice",
+          "title": "Enums, Records, and Sealed Types: professional judgment",
+          "instructionMarkdown": "A record holds a mutable list. What additional decision is required?",
+          "choices": [
+            "Whether and how to copy and protect its contents",
+            "Whether the record keyword is capitalized",
+            "Whether to persist enum ordinal"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m06-coding-lab",
+          "type": "function",
+          "title": "Chapter 6 implementation lab: status",
+          "instructionMarkdown": "Implement `status`. Map NEW to queued and DONE to completed; return unknown for every other case. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nOnly NEW and DONE have mappings in this exercise; all other text, including ACTIVE, returns unknown.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String status(String value1) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "status",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m06-code-1",
+              "visibility": "public",
+              "arguments": [
+                "NEW"
+              ],
+              "expected": "queued"
+            },
+            {
+              "id": "m06-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                "DONE"
+              ],
+              "expected": "completed"
+            },
+            {
+              "id": "m06-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "ACTIVE"
+              ],
+              "expected": "unknown"
+            },
+            {
+              "id": "m06-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                "done"
+              ],
+              "expected": "unknown"
+            },
+            {
+              "id": "m06-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": "unknown"
+            }
+          ],
+          "hints": [
+            "Map exactly the two named inputs, NEW and DONE, to their outputs; every other text, including a valid-looking state like ACTIVE, falls through to unknown.",
+            "Trace both public-style examples plus a case-sensitivity boundary such as \"done\" and the empty string before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m06-debug-lab",
+          "type": "debug",
+          "title": "Defensive record components",
+          "instructionMarkdown": "The `Team` record stores the caller's mutable list reference directly instead of snapshotting it, so clearing the input list after construction empties the record's view too and the program no longer writes `1`. Repair the constructor so it defensively copies the list, keeping the demonstrated construction call, and explain why copying restores the expected size; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended operation requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    record Team(java.util.List<String> names) {}\n    public static void main(String[] args) throws Exception {\n        var input=new java.util.ArrayList<>(java.util.List.of(\"Ada\")); Team team=new Team(input); input.clear(); System.out.print(team.names().size());\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m06-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "1",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The record must snapshot its mutable input."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

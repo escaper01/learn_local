@@ -1,0 +1,256 @@
+{
+  "id": "module-11-exceptions-validation-and-failure-design",
+  "title": "Chapter 11: Exceptions, Validation, and Failure Design",
+  "description": "Treat failures as API behavior rather than afterthoughts. Learners choose checked or unchecked semantics from caller recovery, translate infrastructure errors without losing causes, read cause and suppressed chains, establish resource ownership with try-with-resources, and design validation and user messages that aid correction without exposing sensitive internals.",
+  "lessons": [
+    {
+      "id": "m11-l01-throwable-hierarchy-and-checked-versus-unchecked-exceptions",
+      "title": "Throwable hierarchy and checked versus unchecked exceptions",
+      "theoryFile": "lessons/module-11/m11-l01-throwable-hierarchy-and-checked-versus-unchecked-exceptions.md",
+      "exercises": [
+        {
+          "id": "m11-l1-check",
+          "type": "multipleChoice",
+          "title": "Throwable hierarchy and checked versus unchecked exceptions: concept check",
+          "instructionMarkdown": "Which failure must generally be caught or declared by a caller?",
+          "choices": [
+            "Every RuntimeException",
+            "Every Error",
+            "A checked IOException"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Checked exceptions declared with throws must be caught or declared by the caller; RuntimeException and Error carry no such compiler-enforced obligation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l02-throwing-domain-specific-failures-and-preserving-causes",
+      "title": "Throwing domain-specific failures and preserving causes",
+      "theoryFile": "lessons/module-11/m11-l02-throwing-domain-specific-failures-and-preserving-causes.md",
+      "exercises": [
+        {
+          "id": "m11-l2-check",
+          "type": "multipleChoice",
+          "title": "Throwing domain-specific failures and preserving causes: concept check",
+          "instructionMarkdown": "Why retain the original exception as a cause?",
+          "choices": [
+            "To hide its stack trace",
+            "To preserve diagnostic evidence across abstraction translation",
+            "To force automatic retry"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "The cause constructor parameter links the new exception to the original one so its message and stack trace remain reachable through getCause() after translation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l03-catching-propagation-multi-catch-and-reading-stack-traces",
+      "title": "Catching, propagation, multi-catch, and reading stack traces",
+      "theoryFile": "lessons/module-11/m11-l03-catching-propagation-multi-catch-and-reading-stack-traces.md",
+      "exercises": [
+        {
+          "id": "m11-l3-check",
+          "type": "multipleChoice",
+          "title": "Catching, propagation, multi-catch, and reading stack traces: concept check",
+          "instructionMarkdown": "Why narrow a try block around parsing?",
+          "choices": [
+            "Unrelated failures should not be mislabeled as invalid text",
+            "A broader catch(Exception) block runs measurably slower than catching NumberFormatException directly",
+            "Exceptions disappear outside a try block"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "A try block scoped to just the parsing call keeps a defect in process() from being caught and mislabeled as a parsing failure."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l04-try-with-resources-ownership-and-suppressed-exceptions",
+      "title": "try-with-resources, ownership, and suppressed exceptions",
+      "theoryFile": "lessons/module-11/m11-l04-try-with-resources-ownership-and-suppressed-exceptions.md",
+      "exercises": [
+        {
+          "id": "m11-l4-check",
+          "type": "multipleChoice",
+          "title": "try-with-resources, ownership, and suppressed exceptions: concept check",
+          "instructionMarkdown": "If both the body and close fail in try-with-resources, which failure is primary?",
+          "choices": [
+            "The close failure always replaces the body",
+            "Both are discarded",
+            "The body's failure, with close failure suppressed"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "try-with-resources keeps the body's failure as primary and attaches any exception thrown by close() as a suppressed exception, retrievable via getSuppressed()."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-l05-boundary-validation-and-safe-user-facing-error-reporting",
+      "title": "Boundary validation and safe user-facing error reporting",
+      "theoryFile": "lessons/module-11/m11-l05-boundary-validation-and-safe-user-facing-error-reporting.md",
+      "exercises": [
+        {
+          "id": "m11-l5-check",
+          "type": "multipleChoice",
+          "title": "Boundary validation and safe user-facing error reporting: concept check",
+          "instructionMarkdown": "Does valid input prove that the caller is authorized?",
+          "choices": [
+            "Yes; parsing performs authentication",
+            "No; authorization is a separate check",
+            "Yes; valid data implies ownership"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Passing syntactic and semantic validation says nothing about who the caller is; authorization is a separate check performed independently of the parsed value."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m11-assessment",
+      "title": "Chapter 11 assessment and deliberate practice",
+      "theoryFile": "lessons/module-11/m11-assessment.md",
+      "exercises": [
+        {
+          "id": "m11-judgment",
+          "type": "multipleChoice",
+          "title": "Exceptions, Validation, and Failure Design: professional judgment",
+          "instructionMarkdown": "A storage outage is converted to an empty result. What is lost?",
+          "choices": [
+            "The distinction between absence and failure",
+            "The specific exception type that caused the outage",
+            "The retry count already attempted"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m11-coding-lab",
+          "type": "function",
+          "title": "Chapter 11 implementation lab: parsePort",
+          "instructionMarkdown": "Implement `parsePort`. Parse a decimal port from 1 through 65535; return -1 for malformed or out-of-range text. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nUse Integer.parseInt spelling rules with no whitespace trimming, then require 1..65535. Malformed and out-of-range values return -1.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int parsePort(String value1) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "parsePort",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m11-code-1",
+              "visibility": "public",
+              "arguments": [
+                "8080"
+              ],
+              "expected": 8080
+            },
+            {
+              "id": "m11-code-2",
+              "visibility": "public",
+              "arguments": [
+                "0"
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "bad"
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                "65535"
+              ],
+              "expected": 65535
+            },
+            {
+              "id": "m11-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                "65536"
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-6",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": -1
+            },
+            {
+              "id": "m11-code-7",
+              "visibility": "hidden",
+              "arguments": [
+                " 80 "
+              ],
+              "expected": -1
+            }
+          ],
+          "hints": [
+            "Decide separately whether the text is a syntactically valid decimal integer (Integer.parseInt, no trimming) and whether the parsed value falls within 1..65535.",
+            "Check the boundaries 0, 1, 65535, and 65536, plus malformed and whitespace-padded text, before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m11-debug-lab",
+          "type": "debug",
+          "title": "Preserve the original cause",
+          "instructionMarkdown": "Repair the exception translation so the caught NumberFormatException is passed as the cause of the thrown IllegalArgumentException, and the program writes exactly `true`. Keep the two-exception structure and explain why forwarding the cause makes the getCause() check pass, rather than hard-coding the print statement. Output tests verify the printed result; confirming the cause is genuinely preserved requires reading the source.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        try { try {Integer.parseInt(\"bad\");} catch(NumberFormatException e){throw new IllegalArgumentException(\"quantity\");} } catch(IllegalArgumentException e){System.out.print(e.getCause() instanceof NumberFormatException);}\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m11-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "true",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Pass the caught exception as the translated exception's cause."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

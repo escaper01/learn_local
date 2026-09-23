@@ -1,0 +1,232 @@
+{
+  "id": "module-23-secure-and-robust-java-development",
+  "title": "Chapter 23: Secure and Robust Java Development",
+  "description": "Integrate security into ordinary design and review. Learners threat-model assets and entry points, prevent injection with structured APIs, constrain paths and parsers, handle secrets and passwords with approved facilities, enforce CPU, memory, time, queue, and output limits, and maintain dependency, configuration, patch, and audit evidence suitable for production ownership.",
+  "lessons": [
+    {
+      "id": "m23-l01-threat-modeling-assets-actors-authentication-and-authorizati",
+      "title": "Threat modeling, assets, actors, authentication, and authorization",
+      "theoryFile": "lessons/module-23/m23-l01-threat-modeling-assets-actors-authentication-and-authorizati.md",
+      "exercises": [
+        {
+          "id": "m23-l1-check",
+          "type": "multipleChoice",
+          "title": "Threat modeling, assets, actors, authentication, and authorization: concept check",
+          "instructionMarkdown": "Is an authenticated user necessarily allowed to read any task ID?",
+          "choices": [
+            "Yes; login grants all ownership",
+            "Only if the ID parses",
+            "No; object-level authorization remains required"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Separate proving who the caller is from deciding whether that specific caller owns or may act on this particular task ID."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m23-l02-sql-command-log-injection-traversal-xxe-ssrf-and-deserializa",
+      "title": "SQL/command/log injection, traversal, XXE, SSRF, and deserialization",
+      "theoryFile": "lessons/module-23/m23-l02-sql-command-log-injection-traversal-xxe-ssrf-and-deserializa.md",
+      "exercises": [
+        {
+          "id": "m23-l2-check",
+          "type": "multipleChoice",
+          "title": "SQL/command/log injection, traversal, XXE, SSRF, and deserialization: concept check",
+          "instructionMarkdown": "Why bind SQL parameters?",
+          "choices": [
+            "It proves every caller is authorized",
+            "Values remain separate from SQL control syntax",
+            "It permits arbitrary table names safely"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Consider what changes when a value is passed through setLong/setString versus concatenated directly into the SQL text."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m23-l03-secrets-cryptography-password-storage-tls-and-sensitive-data",
+      "title": "Secrets, cryptography, password storage, TLS, and sensitive data",
+      "theoryFile": "lessons/module-23/m23-l03-secrets-cryptography-password-storage-tls-and-sensitive-data.md",
+      "exercises": [
+        {
+          "id": "m23-l3-check",
+          "type": "multipleChoice",
+          "title": "Secrets, cryptography, password storage, TLS, and sensitive data: concept check",
+          "instructionMarkdown": "Why is plain SHA-256 unsuitable for password storage?",
+          "choices": [
+            "It is a fast general hash rather than a dedicated slow password hash",
+            "It is fine as long as a random salt is added",
+            "It automatically reveals plaintext"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Think about how many hashes per second a fast general-purpose digest lets an attacker try against stolen hashes, salted or not, compared to a deliberately slow password-hashing algorithm."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m23-l04-resource-exhaustion-request-limits-timeouts-queues-and-cance",
+      "title": "Resource exhaustion, request limits, timeouts, queues, and cancellation",
+      "theoryFile": "lessons/module-23/m23-l04-resource-exhaustion-request-limits-timeouts-queues-and-cance.md",
+      "exercises": [
+        {
+          "id": "m23-l4-check",
+          "type": "multipleChoice",
+          "title": "Resource exhaustion, request limits, timeouts, queues, and cancellation: concept check",
+          "instructionMarkdown": "Why does an unbounded queue not solve overload?",
+          "choices": [
+            "It creates infinite processing capacity",
+            "It discards all requests safely",
+            "It converts overload into growing memory use and latency"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Ask what happens to queued work and the memory it occupies when arrival rate keeps exceeding processing rate indefinitely."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m23-l05-dependency-scanning-secure-configuration-patching-and-audit-",
+      "title": "Dependency scanning, secure configuration, patching, and audit evidence",
+      "theoryFile": "lessons/module-23/m23-l05-dependency-scanning-secure-configuration-patching-and-audit-.md",
+      "exercises": [
+        {
+          "id": "m23-l5-check",
+          "type": "multipleChoice",
+          "title": "Dependency scanning, secure configuration, patching, and audit evidence: concept check",
+          "instructionMarkdown": "What does an SBOM provide?",
+          "choices": [
+            "Automatic credential rotation",
+            "An inventory of components",
+            "Proof of zero vulnerabilities"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Distinguish knowing exactly what components and versions ship in the build from having verified that none of them carry a known or future flaw."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m23-assessment",
+      "title": "Chapter 23 assessment and deliberate practice",
+      "theoryFile": "lessons/module-23/m23-assessment.md",
+      "exercises": [
+        {
+          "id": "m23-judgment",
+          "type": "multipleChoice",
+          "title": "Secure and Robust Java Development: professional judgment",
+          "instructionMarkdown": "A valid task ID belongs to another user. What decision is required?",
+          "choices": [
+            "Object-level authorization",
+            "Only integer parsing",
+            "Only SQL escaping"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m23-coding-lab",
+          "type": "function",
+          "title": "Chapter 23 implementation lab: redact",
+          "instructionMarkdown": "Implement `redact`. For secrets longer than four characters return *** plus the final four; otherwise return ***. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInput is non-null. This masking rule is a practice contract; real logs should usually omit credentials entirely.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String redact(String value1) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "redact",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m23-code-1",
+              "visibility": "public",
+              "arguments": [
+                "abcdefgh"
+              ],
+              "expected": "***efgh"
+            },
+            {
+              "id": "m23-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                "1234"
+              ],
+              "expected": "***"
+            },
+            {
+              "id": "m23-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                ""
+              ],
+              "expected": "***"
+            },
+            {
+              "id": "m23-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                "12345"
+              ],
+              "expected": "***2345"
+            }
+          ],
+          "hints": [
+            "Decide the length boundary first: secrets of four characters or fewer must be fully masked, and only longer secrets reveal a trailing slice.",
+            "Check both an empty string and a secret exactly at the four-character boundary before trusting the substring math for longer inputs."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m23-debug-lab",
+          "type": "debug",
+          "title": "Redact the entire short secret",
+          "instructionMarkdown": "The supplied condition treats a secret up to and including four characters as safe to print unmasked, but a short secret must be fully redacted like any other. Repair the comparison so the program writes exactly `***`. Preserve the demonstrated redaction logic and explain why your fix changes the result; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended redaction behavior requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        String secret=\"abc\";System.out.print(secret.length()<=4 ? secret : \"***\"+secret.substring(secret.length()-4));\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m23-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "***",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Short secrets must never be logged in full."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

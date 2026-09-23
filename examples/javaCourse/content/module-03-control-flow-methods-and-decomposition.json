@@ -1,0 +1,240 @@
+{
+  "id": "module-03-control-flow-methods-and-decomposition",
+  "title": "Chapter 3: Control Flow, Methods, and Decomposition",
+  "description": "Turn examples and constraints into executable control flow. The chapter requires decision tables, exhaustive switch expressions, loop invariants, termination arguments, method preconditions and postconditions, overload analysis, recursion traces, and decomposition that keeps each rule testable in isolation.",
+  "lessons": [
+    {
+      "id": "m03-l01-conditions-switch-expressions-and-exhaustive-decisions",
+      "title": "Conditions, switch expressions, and exhaustive decisions",
+      "theoryFile": "lessons/module-03/m03-l01-conditions-switch-expressions-and-exhaustive-decisions.md",
+      "exercises": [
+        {
+          "id": "m03-l1-check",
+          "type": "multipleChoice",
+          "title": "Conditions, switch expressions, and exhaustive decisions: concept check",
+          "instructionMarkdown": "A shipping threshold includes exactly 10 kg. Which boundary must be tested?",
+          "choices": [
+            "Only positive values not equal to 10",
+            "Values below, equal to, and above 10",
+            "Only 1 and 100"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "An inclusive threshold needs three checks, not one: test a value just below, exactly at, and just above the cutoff to see which comparison operator the rule actually uses."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m03-l02-loops-invariants-termination-break-and-continue",
+      "title": "Loops, invariants, termination, break, and continue",
+      "theoryFile": "lessons/module-03/m03-l02-loops-invariants-termination-break-and-continue.md",
+      "exercises": [
+        {
+          "id": "m03-l2-check",
+          "type": "multipleChoice",
+          "title": "Loops, invariants, termination, break, and continue: concept check",
+          "instructionMarkdown": "What is true before iteration i in an array-prefix sum?",
+          "choices": [
+            "The accumulator equals the sum of the values before index i",
+            "The whole array is already summed",
+            "i is always a valid index after termination"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The invariant describes what has already been accumulated before index i runs, up to but not including it; trace total by hand for the first couple of iterations to see this."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m03-l03-method-contracts-parameters-return-values-and-side-effects",
+      "title": "Method contracts, parameters, return values, and side effects",
+      "theoryFile": "lessons/module-03/m03-l03-method-contracts-parameters-return-values-and-side-effects.md",
+      "exercises": [
+        {
+          "id": "m03-l3-check",
+          "type": "multipleChoice",
+          "title": "Method contracts, parameters, return values, and side effects: concept check",
+          "instructionMarkdown": "A method reassigns its int[] parameter to a new array. What changes in the caller?",
+          "choices": [
+            "The caller's reference is reassigned",
+            "All original elements become zero",
+            "The caller's variable still refers to its previous array"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Reassigning a parameter changes only that parameter's local copy of the reference; the caller's variable still points at whatever array it referenced before the call."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m03-l04-overloading-varargs-argument-passing-and-recursion",
+      "title": "Overloading, varargs, argument passing, and recursion",
+      "theoryFile": "lessons/module-03/m03-l04-overloading-varargs-argument-passing-and-recursion.md",
+      "exercises": [
+        {
+          "id": "m03-l4-check",
+          "type": "multipleChoice",
+          "title": "Overloading, varargs, argument passing, and recursion: concept check",
+          "instructionMarkdown": "When are overloaded method signatures selected?",
+          "choices": [
+            "By return value desired by the user",
+            "At compile time from argument types",
+            "Only after inspecting runtime object fields"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Overload resolution happens at compile time from the argument's declared types; runtime object fields never enter into which method gets selected."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m03-l05-from-examples-and-constraints-to-a-decomposed-algorithm",
+      "title": "From examples and constraints to a decomposed algorithm",
+      "theoryFile": "lessons/module-03/m03-l05-from-examples-and-constraints-to-a-decomposed-algorithm.md",
+      "exercises": [
+        {
+          "id": "m03-l5-check",
+          "type": "multipleChoice",
+          "title": "From examples and constraints to a decomposed algorithm: concept check",
+          "instructionMarkdown": "Why keep positiveTotal separate from console reading?",
+          "choices": [
+            "The rule can be tested and reused with other input sources",
+            "It makes integer overflow impossible",
+            "It eliminates the need for validation"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "A method that only takes an array and returns a value, with no I/O inside it, can be called from a console, a file, or a test without any changes to the rule itself."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m03-assessment",
+      "title": "Chapter 3 assessment and deliberate practice",
+      "theoryFile": "lessons/module-03/m03-assessment.md",
+      "exercises": [
+        {
+          "id": "m03-judgment",
+          "type": "multipleChoice",
+          "title": "Control Flow, Methods, and Decomposition: professional judgment",
+          "instructionMarkdown": "A loop sometimes never finishes. What must be established?",
+          "choices": [
+            "Progress toward a terminating condition on every repeating path",
+            "A longer sleep",
+            "More console output"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m03-coding-lab",
+          "type": "function",
+          "title": "Chapter 3 implementation lab: classify",
+          "instructionMarkdown": "Implement `classify`. Return negative, zero, or positive according to the supplied integer. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nHandle every int; compare with zero without negating the value.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static String classify(int value1) {\n        return \"TODO\";\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "classify",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              }
+            ],
+            "returns": "string"
+          },
+          "tests": [
+            {
+              "id": "m03-code-1",
+              "visibility": "public",
+              "arguments": [
+                -1
+              ],
+              "expected": "negative"
+            },
+            {
+              "id": "m03-code-2",
+              "visibility": "public",
+              "arguments": [
+                0
+              ],
+              "expected": "zero"
+            },
+            {
+              "id": "m03-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                2
+              ],
+              "expected": "positive"
+            },
+            {
+              "id": "m03-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                -2147483648
+              ],
+              "expected": "negative"
+            },
+            {
+              "id": "m03-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                2147483647
+              ],
+              "expected": "positive"
+            }
+          ],
+          "hints": [
+            "Translate \"negative, zero, or positive\" into two comparisons against 0, ordered so every int falls into exactly one branch.",
+            "Trace the two public examples plus the extreme boundaries Integer.MIN_VALUE and Integer.MAX_VALUE before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m03-debug-lab",
+          "type": "debug",
+          "title": "Inclusive loop boundary",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `10`. The loop's continuation condition `i<4` stops one iteration early and excludes 4 from the running sum, which is why the total comes out short of 1+2+3+4; preserve the demonstrated accumulation and explain why adjusting the loop's boundary, rather than hard-coding the total, restores the required sum.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        int sum=0; for(int i=1;i<4;i++) sum+=i; System.out.print(sum);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m03-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "10",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The requirement is the sum of 1 through 4 inclusive."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

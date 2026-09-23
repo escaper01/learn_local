@@ -1,0 +1,245 @@
+{
+  "id": "module-14-stream-pipelines-and-data-processing",
+  "title": "Chapter 14: Stream Pipelines and Data Processing",
+  "description": "Design lazy, single-use data pipelines whose types and costs remain understandable. Learners trace source-to-terminal execution, distinguish map from flatMap, prove reduction associativity, build collision-aware and downstream collectors, close resource-backed streams, and reject parallelism when ordering, interference, blocking, or small workloads erase its value.",
+  "lessons": [
+    {
+      "id": "m14-l01-stream-sources-single-use-lifecycle-laziness-and-terminal-op",
+      "title": "Stream sources, single-use lifecycle, laziness, and terminal operations",
+      "theoryFile": "lessons/module-14/m14-l01-stream-sources-single-use-lifecycle-laziness-and-terminal-op.md",
+      "exercises": [
+        {
+          "id": "m14-l1-check",
+          "type": "multipleChoice",
+          "title": "Stream sources, single-use lifecycle, laziness, and terminal operations: concept check",
+          "instructionMarkdown": "What starts ordinary lazy stream traversal?",
+          "choices": [
+            "Creating the stream variable",
+            "Declaring a filter alone",
+            "A terminal operation"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Intermediate operations such as filter are only recorded lazily; traversal starts when a terminal operation such as count is invoked."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m14-l02-filter-map-flatmap-distinct-sorted-and-peek",
+      "title": "filter, map, flatMap, distinct, sorted, and peek",
+      "theoryFile": "lessons/module-14/m14-l02-filter-map-flatmap-distinct-sorted-and-peek.md",
+      "exercises": [
+        {
+          "id": "m14-l2-check",
+          "type": "multipleChoice",
+          "title": "filter, map, flatMap, distinct, sorted, and peek: concept check",
+          "instructionMarkdown": "Which operation flattens nested element streams?",
+          "choices": [
+            "peek",
+            "flatMap",
+            "map without flattening"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "flatMap maps each element to its own stream and flattens all of those streams into one, unlike map which would leave nested streams or arrays."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m14-l03-reduction-associativity-identity-and-primitive-streams",
+      "title": "Reduction, associativity, identity, and primitive streams",
+      "theoryFile": "lessons/module-14/m14-l03-reduction-associativity-identity-and-primitive-streams.md",
+      "exercises": [
+        {
+          "id": "m14-l3-check",
+          "type": "multipleChoice",
+          "title": "Reduction, associativity, identity, and primitive streams: concept check",
+          "instructionMarkdown": "Why is subtraction unsafe as an associative parallel reduction?",
+          "choices": [
+            "Regrouping changes its result",
+            "Subtraction needs an explicit synchronized block to run safely in parallel",
+            "The identity value must be nonzero for reduce to compile"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Associativity requires that regrouping operands produce the same result; (a-b)-c differs from a-(b-c) in general, so parallel regrouping is unsafe."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m14-l04-collectors-grouping-partitioning-mapping-and-merge-policies",
+      "title": "Collectors, grouping, partitioning, mapping, and merge policies",
+      "theoryFile": "lessons/module-14/m14-l04-collectors-grouping-partitioning-mapping-and-merge-policies.md",
+      "exercises": [
+        {
+          "id": "m14-l4-check",
+          "type": "multipleChoice",
+          "title": "Collectors, grouping, partitioning, mapping, and merge policies: concept check",
+          "instructionMarkdown": "What must a toMap collector specify when duplicate keys are allowed?",
+          "choices": [
+            "A random key order",
+            "A custom hashCode override on the key type",
+            "A merge policy"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Collectors.toMap throws on a duplicate key unless a merge function is supplied to decide how the colliding values combine."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m14-l05-infinite-streams-resource-streams-parallelism-and-interferen",
+      "title": "Infinite streams, resource streams, parallelism, and interference",
+      "theoryFile": "lessons/module-14/m14-l05-infinite-streams-resource-streams-parallelism-and-interferen.md",
+      "exercises": [
+        {
+          "id": "m14-l5-check",
+          "type": "multipleChoice",
+          "title": "Infinite streams, resource streams, parallelism, and interference: concept check",
+          "instructionMarkdown": "Why must Files.lines be closed?",
+          "choices": [
+            "Closing is needed to start filtering",
+            "Its stream owns an external file resource",
+            "Buffered readers close automatically when the JVM exits"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Files.lines opens a file handle behind the returned stream, so it must be closed (ideally via try-with-resources) even if the pipeline never fully consumes it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m14-assessment",
+      "title": "Chapter 14 assessment and deliberate practice",
+      "theoryFile": "lessons/module-14/m14-assessment.md",
+      "exercises": [
+        {
+          "id": "m14-judgment",
+          "type": "multipleChoice",
+          "title": "Stream Pipelines and Data Processing: professional judgment",
+          "instructionMarkdown": "A parallel reduction gives inconsistent results. What should be checked?",
+          "choices": [
+            "Associativity and shared mutable state",
+            "Only the terminal method's spelling",
+            "Only whether the stream was created with parallel() or parallelStream()"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m14-coding-lab",
+          "type": "function",
+          "title": "Chapter 14 implementation lab: evenSquares",
+          "instructionMarkdown": "Implement `evenSquares`. Return the sum of the squares of all even integers in the input. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInput is non-null; all squared values and their sum in supplied tests fit int.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int evenSquares(int[] value1) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "evenSquares",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int[]"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m14-code-1",
+              "visibility": "public",
+              "arguments": [
+                [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              ],
+              "expected": 20
+            },
+            {
+              "id": "m14-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                []
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m14-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  -2,
+                  0,
+                  3
+                ]
+              ],
+              "expected": 4
+            },
+            {
+              "id": "m14-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                [
+                  1,
+                  3,
+                  5
+                ]
+              ],
+              "expected": 0
+            }
+          ],
+          "hints": [
+            "Filter for evenness, including negative even numbers and zero, before squaring and accumulating the sum.",
+            "Check an empty array, an array with no even numbers, and an array containing a negative even number before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m14-debug-lab",
+          "type": "debug",
+          "title": "Flatten words before counting",
+          "instructionMarkdown": "Repair the pipeline so per-line word streams are flattened into one stream of words instead of being counted as nested stream objects, and the program writes exactly `3`. Keep the same split-and-count structure and explain why flatMap versus map changes what count() measures, rather than hard-coding the print statement. Output tests verify the printed result; confirming the words are genuinely flattened requires reading the source.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        long n=java.util.List.of(\"java sql\",\"java\").stream().map(s->java.util.Arrays.stream(s.split(\" \"))).count(); System.out.print(n);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m14-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "3",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "map counts nested streams; flatten them to count words."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

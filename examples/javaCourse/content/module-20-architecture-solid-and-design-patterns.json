@@ -1,0 +1,318 @@
+{
+  "id": "module-20-architecture-solid-and-design-patterns",
+  "title": "Chapter 20: Architecture, SOLID, and Design Patterns",
+  "description": "Organize a growing application around policy and change rather than framework folders. Learners measure cohesion and coupling, apply SOLID as review questions, build a domain use case behind ports and adapters, compare layered and hexagonal boundaries, and implement creational, structural, behavioral, and event patterns only when a named design pressure justifies their indirection.",
+  "lessons": [
+    {
+      "id": "m20-l01-cohesion-coupling-dependency-direction-and-boundaries",
+      "title": "Cohesion, coupling, dependency direction, and boundaries",
+      "theoryFile": "lessons/module-20/m20-l01-cohesion-coupling-dependency-direction-and-boundaries.md",
+      "exercises": [
+        {
+          "id": "m20-l1-check",
+          "type": "multipleChoice",
+          "title": "Cohesion, coupling, dependency direction, and boundaries: concept check",
+          "instructionMarkdown": "What does a TaskStore port allow?",
+          "choices": [
+            "The domain must import ResultSet",
+            "All implementations are automatically correct",
+            "Policy can depend on needed storage behavior rather than JDBC details"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Ask which direction the source-code import points versus which direction the runtime call travels, and what the port hides from the domain."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m20-l02-solid-principles-as-tradeoffs-rather-than-slogans",
+      "title": "SOLID principles as tradeoffs rather than slogans",
+      "theoryFile": "lessons/module-20/m20-l02-solid-principles-as-tradeoffs-rather-than-slogans.md",
+      "exercises": [
+        {
+          "id": "m20-l2-check",
+          "type": "multipleChoice",
+          "title": "SOLID principles as tradeoffs rather than slogans: concept check",
+          "instructionMarkdown": "When is a new abstraction justified?",
+          "choices": [
+            "Only when it increases file count",
+            "When a concrete change or ownership pressure earns its cost",
+            "Whenever a pattern name exists"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Weigh the added names and indirection against a concrete future change, and ask whether that change is actually likely here."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m20-l03-layered-hexagonal-clean-and-modular-monolith-architecture",
+      "title": "Layered, hexagonal, clean, and modular-monolith architecture",
+      "theoryFile": "lessons/module-20/m20-l03-layered-hexagonal-clean-and-modular-monolith-architecture.md",
+      "exercises": [
+        {
+          "id": "m20-l3-check",
+          "type": "multipleChoice",
+          "title": "Layered, hexagonal, clean, and modular-monolith architecture: concept check",
+          "instructionMarkdown": "What should be possible with a well-separated use case?",
+          "choices": [
+            "Run its decision logic with an in-memory adapter",
+            "Require HTTP startup for every unit test",
+            "Serialize database entities directly everywhere"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Consider what a unit test needs to construct if the use case only depends on a port interface rather than a concrete JDBC class."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m20-l04-factory-builder-adapter-decorator-and-proxy",
+      "title": "Factory, Builder, Adapter, Decorator, and Proxy",
+      "theoryFile": "lessons/module-20/m20-l04-factory-builder-adapter-decorator-and-proxy.md",
+      "exercises": [
+        {
+          "id": "m20-l4-check",
+          "type": "multipleChoice",
+          "title": "Factory, Builder, Adapter, Decorator, and Proxy: concept check",
+          "instructionMarkdown": "A team needs to wrap a legacy SMS sender so it satisfies a new Sender interface without changing its behavior, and separately wants to add call metrics on top of the new interface. Which patterns fit those two needs respectively?",
+          "choices": [
+            "Adapter for the interface translation, Decorator for adding the metrics behavior",
+            "Singleton for both, since only one instance should ever send messages",
+            "Builder for the interface translation, Proxy for the metrics"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Adapter changes what interface an existing object satisfies; Decorator keeps the interface the same and layers behavior around calls to it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m20-l05-strategy-command-state-template-method-observer-and-events",
+      "title": "Strategy, Command, State, Template Method, Observer, and events",
+      "theoryFile": "lessons/module-20/m20-l05-strategy-command-state-template-method-observer-and-events.md",
+      "exercises": [
+        {
+          "id": "m20-l5-check",
+          "type": "multipleChoice",
+          "title": "Strategy, Command, State, Template Method, Observer, and events: concept check",
+          "instructionMarkdown": "Does a Command interface automatically make repeated execution safe?",
+          "choices": [
+            "Yes; commands undo themselves",
+            "No; idempotency is an additional contract",
+            "Yes; execute can only run once"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Ask what happens if execute() runs twice for the same logical action, and whether the Command interface itself prevents that."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m20-assessment",
+      "title": "Chapter 20 assessment and deliberate practice",
+      "theoryFile": "lessons/module-20/m20-assessment.md",
+      "exercises": [
+        {
+          "id": "m20-judgment",
+          "type": "multipleChoice",
+          "title": "Architecture, SOLID, and Design Patterns: professional judgment",
+          "instructionMarkdown": "A pattern adds five interfaces without an identified change pressure. What should happen?",
+          "choices": [
+            "Reassess whether its complexity is justified",
+            "Keep it because patterns always help",
+            "Add another factory"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m20-coding-lab",
+          "type": "function",
+          "title": "Chapter 20 implementation lab: discount",
+          "instructionMarkdown": "Implement `discount`. Clamp percent to 0..100 and subtract that integer percentage from price. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nprice is nonnegative and at most 1000000. Apply price - (price * clampedPercent / 100) using integer truncation of the discount.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int discount(int value1, int value2) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "discount",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              },
+              {
+                "name": "value2",
+                "type": "int"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m20-code-1",
+              "visibility": "public",
+              "arguments": [
+                100,
+                20
+              ],
+              "expected": 80
+            },
+            {
+              "id": "m20-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                90,
+                120
+              ],
+              "expected": 0
+            },
+            {
+              "id": "m20-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                100,
+                -1
+              ],
+              "expected": 100
+            },
+            {
+              "id": "m20-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                75,
+                10
+              ],
+              "expected": 68
+            },
+            {
+              "id": "m20-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                0,
+                90
+              ],
+              "expected": 0
+            }
+          ],
+          "hints": [
+            "Clamp percent into the 0..100 range before computing price times the clamped percent divided by 100.",
+            "Subtract that clamped discount amount from price, relying on integer division to truncate toward zero."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m20-debug-lab",
+          "type": "debug",
+          "title": "Use the injected strategy",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `50`. The quote method currently ignores the injected Pricing strategy and returns the raw amount unchanged; preserve the method's signature while routing the calculation through the supplied policy, and explain why your fix changes the result instead of hard-coding the print. Output tests verify the printed result; preserving the intended dependency-inversion contract requires reading the source, not just matching output.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    interface Pricing{int apply(int n);} static int quote(int n,Pricing p){return n;}\n    public static void main(String[] args) throws Exception {\n        System.out.print(quote(100, n->n/2));\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m20-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "50",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The quoted amount must come from the supplied policy."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m20-phase-project",
+          "type": "project",
+          "title": "Idempotent event application",
+          "instructionMarkdown": "Implement EventLedger.run(String input). Each nonblank line is eventId|positiveAmount. Trim tokens; eventId must match [A-Za-z0-9_-]{1,40}, amount is a positive long. First application of an event adds its amount to the total and emits APPLIED. Repeating an ID with the same numeric amount emits DUPLICATE without changing total. Repeating it with a different amount emits CONFLICT. Malformed input or total overflow emits ERROR without recording the event ID. End with TOTAL=<total>. Output is newline-separated without trailing newline. This models the pure decision core of an idempotent consumer; database atomicity and concurrent delivery remain external integration requirements.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(EventLedger.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "EventLedger.java",
+              "content": "public final class EventLedger {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m20-phase-project-case-1",
+              "visibility": "public",
+              "input": "a|10\na|10\nb|5",
+              "expected": "APPLIED\nDUPLICATE\nAPPLIED\nTOTAL=15",
+              "comparison": "exact"
+            },
+            {
+              "id": "m20-phase-project-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "TOTAL=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m20-phase-project-case-3",
+              "visibility": "hidden",
+              "input": "a|10\na|11",
+              "expected": "APPLIED\nCONFLICT\nTOTAL=10",
+              "comparison": "exact"
+            },
+            {
+              "id": "m20-phase-project-case-4",
+              "visibility": "hidden",
+              "input": "x|-1\nx|4",
+              "expected": "ERROR\nAPPLIED\nTOTAL=4",
+              "comparison": "exact"
+            },
+            {
+              "id": "m20-phase-project-case-5",
+              "visibility": "hidden",
+              "input": "a|9223372036854775807\nb|1\nb|2",
+              "expected": "APPLIED\nERROR\nERROR\nTOTAL=9223372036854775807",
+              "comparison": "exact"
+            },
+            {
+              "id": "m20-phase-project-case-6",
+              "visibility": "hidden",
+              "input": "bad id|1\nok|01\nok|1",
+              "expected": "ERROR\nAPPLIED\nDUPLICATE\nTOTAL=1",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Parse and validate all fields before mutating state. Split with a negative limit when empty fields must be preserved.",
+            "Choose collections according to identity and ordering requirements. Build output lines and join them with a newline."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

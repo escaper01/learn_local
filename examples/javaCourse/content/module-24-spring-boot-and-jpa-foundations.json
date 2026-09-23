@@ -1,0 +1,240 @@
+{
+  "id": "module-24-spring-boot-and-jpa-foundations",
+  "title": "Chapter 24: Spring Boot and JPA Foundations",
+  "description": "Build a Spring Boot vertical slice without surrendering core Java and SQL reasoning. Learners wire required beans through constructors, explain conditional auto-configuration and property precedence, translate validated HTTP DTOs, define service and transaction boundaries, choose focused test slices, and predict JPA entity state, generated SQL, fetching behavior, optimistic locking, and migration compatibility.",
+  "lessons": [
+    {
+      "id": "m24-l01-spring-container-beans-scopes-lifecycle-proxies-and-construc",
+      "title": "Spring container, beans, scopes, lifecycle, proxies, and constructor injection",
+      "theoryFile": "lessons/module-24/m24-l01-spring-container-beans-scopes-lifecycle-proxies-and-construc.md",
+      "exercises": [
+        {
+          "id": "m24-l1-check",
+          "type": "multipleChoice",
+          "title": "Spring container, beans, scopes, lifecycle, proxies, and constructor injection: concept check",
+          "instructionMarkdown": "What does Spring's default singleton scope mean?",
+          "choices": [
+            "A fresh instance for every method call",
+            "One bean instance per container",
+            "One instance across all processes"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Scope this to a single application context: singleton describes how many instances that one container creates, not how many JVMs share it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m24-l02-boot-auto-configuration-properties-profiles-validation-and-s",
+      "title": "Boot auto-configuration, properties, profiles, validation, and startup",
+      "theoryFile": "lessons/module-24/m24-l02-boot-auto-configuration-properties-profiles-validation-and-s.md",
+      "exercises": [
+        {
+          "id": "m24-l2-check",
+          "type": "multipleChoice",
+          "title": "Boot auto-configuration, properties, profiles, validation, and startup: concept check",
+          "instructionMarkdown": "Why validate bound configuration at startup?",
+          "choices": [
+            "Bad required values should fail before serving requests",
+            "It eliminates all runtime errors",
+            "It makes profiles identical"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Compare a service that fails fast during startup on a zero or negative timeout against one that only discovers the bad value the first time it is used mid-request."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m24-l03-rest-controllers-dtos-bean-validation-and-exception-response",
+      "title": "REST controllers, DTOs, Bean Validation, and exception responses",
+      "theoryFile": "lessons/module-24/m24-l03-rest-controllers-dtos-bean-validation-and-exception-response.md",
+      "exercises": [
+        {
+          "id": "m24-l3-check",
+          "type": "multipleChoice",
+          "title": "REST controllers, DTOs, Bean Validation, and exception responses: concept check",
+          "instructionMarkdown": "Does Bean Validation authorize the caller?",
+          "choices": [
+            "Yes; @Valid implies ownership",
+            "Yes; it logs in the user",
+            "No; it checks declared validation constraints"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Separate what @Valid checks about the shape of a request body from who the caller is and what that caller is permitted to do."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m24-l04-services-repositories-transaction-proxy-boundaries-and-testi",
+      "title": "Services, repositories, transaction proxy boundaries, and testing slices",
+      "theoryFile": "lessons/module-24/m24-l04-services-repositories-transaction-proxy-boundaries-and-testi.md",
+      "exercises": [
+        {
+          "id": "m24-l4-check",
+          "type": "multipleChoice",
+          "title": "Services, repositories, transaction proxy boundaries, and testing slices: concept check",
+          "instructionMarkdown": "Does this.complete() necessarily trigger default Spring transaction interception?",
+          "choices": [
+            "Only if the method returns void",
+            "No; self-invocation bypasses the proxy",
+            "Yes; the annotation changes every JVM call"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "Trace the call path: a self-invocation through this never passes through the surrounding proxy that default Spring AOP relies on to add transaction behavior."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m24-l05-jpa-entity-states-mappings-fetching-n-1-locking-and-migratio",
+      "title": "JPA entity states, mappings, fetching, N+1, locking, and migrations",
+      "theoryFile": "lessons/module-24/m24-l05-jpa-entity-states-mappings-fetching-n-1-locking-and-migratio.md",
+      "exercises": [
+        {
+          "id": "m24-l5-check",
+          "type": "multipleChoice",
+          "title": "JPA entity states, mappings, fetching, N+1, locking, and migrations: concept check",
+          "instructionMarkdown": "What does an entity @Version field support?",
+          "choices": [
+            "Optimistic conflict detection",
+            "Automatic elimination of all queries",
+            "HTTP API version selection"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Think about how comparing the version value read at load time against the row's current version at update time reveals a concurrent conflicting write."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m24-assessment",
+      "title": "Chapter 24 assessment and deliberate practice",
+      "theoryFile": "lessons/module-24/m24-assessment.md",
+      "exercises": [
+        {
+          "id": "m24-judgment",
+          "type": "multipleChoice",
+          "title": "Spring Boot and JPA Foundations: professional judgment",
+          "instructionMarkdown": "A transactional method is called through this. What should be tested?",
+          "choices": [
+            "Whether the call crosses the configured proxy and transaction boundary",
+            "Only whether the annotation text exists",
+            "Only whether the method is short"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m24-coding-lab",
+          "type": "function",
+          "title": "Chapter 24 implementation lab: httpStatus",
+          "instructionMarkdown": "Implement `httpStatus`. Map CREATED to 201 and MISSING to 404; every other result maps to 500. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nThis pure mapping helper does not test Spring controllers. Complete the external web validation and transaction labs before considering the chapter complete.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int httpStatus(String value1) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "httpStatus",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "string"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m24-code-1",
+              "visibility": "public",
+              "arguments": [
+                "CREATED"
+              ],
+              "expected": 201
+            },
+            {
+              "id": "m24-code-2",
+              "visibility": "public",
+              "arguments": [
+                "MISSING"
+              ],
+              "expected": 404
+            },
+            {
+              "id": "m24-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                "x"
+              ],
+              "expected": 500
+            },
+            {
+              "id": "m24-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                "CONFLICT"
+              ],
+              "expected": 500
+            },
+            {
+              "id": "m24-code-5",
+              "visibility": "hidden",
+              "arguments": [
+                "created"
+              ],
+              "expected": 500
+            }
+          ],
+          "hints": [
+            "Map each named result string to its status code individually, and let any string that is not exactly \"CREATED\" or \"MISSING\" fall through to the 500 default.",
+            "Check that comparison is case-sensitive, since a lowercase \"created\" is a distinct string from \"CREATED\" and must also map to 500."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m24-debug-lab",
+          "type": "debug",
+          "title": "Optimistic update must use the expected version",
+          "instructionMarkdown": "The supplied SQL increments the version column but never checks it in the WHERE clause, so a concurrent conflicting write would be silently overwritten instead of detected. Repair the statement so the program writes exactly `UPDATE task SET title = ?, version = version + 1 WHERE id = ? AND version = ?`. Preserve the demonstrated optimistic-locking predicate and explain why your fix changes the result; do not replace it with a hard-coded print. Output tests verify the result; preserving the intended optimistic-locking behavior requires source review.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    \n    public static void main(String[] args) throws Exception {\n        String sql=\"UPDATE task SET title = ?, version = version + 1 WHERE id = ?\";System.out.print(sql);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m24-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "UPDATE task SET title = ?, version = version + 1 WHERE id = ? AND version = ?",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The expected version belongs in the update predicate; later binding and row-count checks are also required."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

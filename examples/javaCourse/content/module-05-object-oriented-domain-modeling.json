@@ -1,0 +1,309 @@
+{
+  "id": "module-05-object-oriented-domain-modeling",
+  "title": "Chapter 5: Object-Oriented Domain Modeling",
+  "description": "Model a domain with behavior-rich classes instead of public data bags. Learners derive responsibilities from use cases, establish invariants in constructors and factories, choose visibility by ownership, replace hidden global state with explicit collaborators, and expose a small package API that can evolve without breaking its clients.",
+  "lessons": [
+    {
+      "id": "m05-l01-classes-objects-identity-state-and-behavior",
+      "title": "Classes, objects, identity, state, and behavior",
+      "theoryFile": "lessons/module-05/m05-l01-classes-objects-identity-state-and-behavior.md",
+      "exercises": [
+        {
+          "id": "m05-l1-check",
+          "type": "multipleChoice",
+          "title": "Classes, objects, identity, state, and behavior: concept check",
+          "instructionMarkdown": "Which account operation best protects a nonnegative-balance rule?",
+          "choices": [
+            "A public writable balance field",
+            "An unrestricted setBalance",
+            "A validated withdraw operation that owns mutation"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "A method that validates before mutating keeps the nonnegative-balance rule in one place; a public field or unrestricted setter lets any caller bypass that check entirely."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l02-constructors-factories-validation-and-valid-object-state",
+      "title": "Constructors, factories, validation, and valid object state",
+      "theoryFile": "lessons/module-05/m05-l02-constructors-factories-validation-and-valid-object-state.md",
+      "exercises": [
+        {
+          "id": "m05-l2-check",
+          "type": "multipleChoice",
+          "title": "Constructors, factories, validation, and valid object state: concept check",
+          "instructionMarkdown": "Why avoid calling an overridable method during construction?",
+          "choices": [
+            "Overriding is always resolved statically",
+            "Subclass state may not yet be initialized",
+            "Constructors cannot invoke any methods"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "A subclass's own fields are still at their default values while the superclass constructor runs, so a call to an overridden method can observe uninitialized subclass state."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l03-encapsulation-access-modifiers-and-information-hiding",
+      "title": "Encapsulation, access modifiers, and information hiding",
+      "theoryFile": "lessons/module-05/m05-l03-encapsulation-access-modifiers-and-information-hiding.md",
+      "exercises": [
+        {
+          "id": "m05-l3-check",
+          "type": "multipleChoice",
+          "title": "Encapsulation, access modifiers, and information hiding: concept check",
+          "instructionMarkdown": "What is the encapsulation benefit of reserve(quantity)?",
+          "choices": [
+            "It keeps stock validation and mutation together",
+            "It guarantees thread safety without synchronization",
+            "It makes all fields public"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "Combining the availability check and the decrement inside one method is what keeps stock consistent; a separate getter call followed by an outside setter leaves a window where the invariant does not hold."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l04-static-members-dependency-injection-and-object-collaboration",
+      "title": "Static members, dependency injection, and object collaboration",
+      "theoryFile": "lessons/module-05/m05-l04-static-members-dependency-injection-and-object-collaboration.md",
+      "exercises": [
+        {
+          "id": "m05-l4-check",
+          "type": "multipleChoice",
+          "title": "Static members, dependency injection, and object collaboration: concept check",
+          "instructionMarkdown": "What does constructor injection make visible?",
+          "choices": [
+            "All global variables in the JVM",
+            "The complete database schema",
+            "Required object collaborators"
+          ],
+          "correctChoice": 2,
+          "hints": [
+            "Listing collaborators as constructor parameters makes a class's actual dependencies visible at its call site, instead of hiding them behind static lookups or global state."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-l05-packages-naming-cohesion-and-public-api-design",
+      "title": "Packages, naming, cohesion, and public API design",
+      "theoryFile": "lessons/module-05/m05-l05-packages-naming-cohesion-and-public-api-design.md",
+      "exercises": [
+        {
+          "id": "m05-l5-check",
+          "type": "multipleChoice",
+          "title": "Packages, naming, cohesion, and public API design: concept check",
+          "instructionMarkdown": "What does an import declaration do?",
+          "choices": [
+            "Overrides access restrictions",
+            "Shortens type-name references during compilation",
+            "Downloads a library"
+          ],
+          "correctChoice": 1,
+          "hints": [
+            "import is a compile-time convenience for writing a shorter name; it neither changes what a package-private member allows nor fetches any code."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m05-assessment",
+      "title": "Chapter 5 assessment and deliberate practice",
+      "theoryFile": "lessons/module-05/m05-assessment.md",
+      "exercises": [
+        {
+          "id": "m05-judgment",
+          "type": "multipleChoice",
+          "title": "Object-Oriented Domain Modeling: professional judgment",
+          "instructionMarkdown": "A setter bypasses stock validation. Where should the rule live?",
+          "choices": [
+            "Inside the operation that owns stock mutation",
+            "Only in the menu text",
+            "Only in documentation"
+          ],
+          "correctChoice": 0
+        },
+        {
+          "id": "m05-coding-lab",
+          "type": "function",
+          "title": "Chapter 5 implementation lab: deposit",
+          "instructionMarkdown": "Implement `deposit`. Return balance + amount only when amount is positive; otherwise preserve the original balance. Write the precondition and boundary table first, keep the method deterministic, and do not print.\n\nInputs have a nonnegative balance and any amount for which an accepted sum fits int. Nonpositive deposits leave balance unchanged.",
+          "starterFiles": [
+            {
+              "path": "Solution.java",
+              "content": "public final class Solution {\n    public static int deposit(int value1, int value2) {\n        return 0;\n    }\n}\n"
+            }
+          ],
+          "entrypoint": {
+            "kind": "function",
+            "className": "Solution",
+            "name": "deposit",
+            "parameters": [
+              {
+                "name": "value1",
+                "type": "int"
+              },
+              {
+                "name": "value2",
+                "type": "int"
+              }
+            ],
+            "returns": "int"
+          },
+          "tests": [
+            {
+              "id": "m05-code-1",
+              "visibility": "public",
+              "arguments": [
+                100,
+                25
+              ],
+              "expected": 125
+            },
+            {
+              "id": "m05-code-2",
+              "visibility": "hidden",
+              "arguments": [
+                100,
+                -2
+              ],
+              "expected": 100
+            },
+            {
+              "id": "m05-code-3",
+              "visibility": "hidden",
+              "arguments": [
+                100,
+                0
+              ],
+              "expected": 100
+            },
+            {
+              "id": "m05-code-4",
+              "visibility": "hidden",
+              "arguments": [
+                0,
+                5
+              ],
+              "expected": 5
+            }
+          ],
+          "hints": [
+            "Translate \"only when amount is positive\" into a single guard that returns the unchanged balance for zero or negative amounts.",
+            "Trace the public 100+25 example plus a zero amount and a negative amount before submitting."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m05-debug-lab",
+          "type": "debug",
+          "title": "Preserve state on invalid mutation",
+          "instructionMarkdown": "Repair the supplied defect so the program writes exactly `10`. `withdraw` subtracts from `balance` before its `if (n > 10) return;` guard runs, so an oversized withdrawal has already changed the balance by the time it is rejected; preserve the demonstrated method call and explain why validating before mutating, rather than hard-coding the printed balance, keeps the account state intact.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    static class Account { int balance=10; void withdraw(int n){ balance-=n; if(n>10)return; } }\n    public static void main(String[] args) throws Exception {\n        Account a=new Account(); a.withdraw(15); System.out.print(a.balance);\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m05-debug-test",
+              "visibility": "public",
+              "input": "",
+              "expected": "10",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Reject a withdrawal larger than the balance before modifying state."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "m05-phase-project",
+          "type": "project",
+          "title": "Ledger command processor",
+          "instructionMarkdown": "Implement Ledger.run(String input). Process nonblank lines as exactly IN|amount or OUT|amount. Amount must be a positive decimal long; begin at balance zero. IN increases balance with overflow checking; OUT succeeds only up to the current balance. For each accepted line emit OK; for malformed, nonpositive, overflowing, or overdrawn commands emit ERROR and leave balance unchanged. End with BALANCE=<balance>. Join output lines with \\n, without a trailing newline. Tokens are case-sensitive; trim surrounding whitespace on each line and token. Empty input produces BALANCE=0. Use long cents, not floating-point money. Do not hard-code sample outputs.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(Ledger.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "Ledger.java",
+              "content": "public final class Ledger {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "m05-phase-project-case-1",
+              "visibility": "public",
+              "input": "IN|100\nOUT|30",
+              "expected": "OK\nOK\nBALANCE=70",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "BALANCE=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-3",
+              "visibility": "hidden",
+              "input": "OUT|1\nIN|-1\nIN|x",
+              "expected": "ERROR\nERROR\nERROR\nBALANCE=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-4",
+              "visibility": "hidden",
+              "input": "IN|10\nOUT|10\nOUT|1",
+              "expected": "OK\nOK\nERROR\nBALANCE=0",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-5",
+              "visibility": "hidden",
+              "input": "IN|9223372036854775807\nIN|1",
+              "expected": "OK\nERROR\nBALANCE=9223372036854775807",
+              "comparison": "exact"
+            },
+            {
+              "id": "m05-phase-project-case-6",
+              "visibility": "hidden",
+              "input": " IN | 20 \n\nOUT|5|extra\nOUT| 5",
+              "expected": "OK\nERROR\nOK\nBALANCE=15",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Parse and validate all fields before mutating state. Split with a negative limit when empty fields must be preserved.",
+            "Choose collections according to identity and ordering requirements. Build output lines and join them with a newline."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        }
+      ]
+    }
+  ]
+}

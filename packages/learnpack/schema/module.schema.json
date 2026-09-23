@@ -20,11 +20,16 @@
     "lesson": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "theoryMarkdown", "exercises"],
+      "required": ["id", "title", "exercises"],
+      "oneOf": [
+        { "required": ["theoryMarkdown"], "properties": { "theoryMarkdown": true } },
+        { "required": ["theoryFile"], "properties": { "theoryFile": true } }
+      ],
       "properties": {
         "id": { "$ref": "#/$defs/id" },
         "title": { "type": "string", "minLength": 1, "maxLength": 120 },
-        "theoryMarkdown": { "type": "string", "minLength": 1, "maxLength": 100000 },
+        "theoryMarkdown": { "type": "string", "minLength": 1, "maxLength": 200000 },
+        "theoryFile": { "type": "string", "minLength": 4, "maxLength": 240, "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*\\.md$" },
         "exercises": {
           "type": "array",
           "maxItems": 100,
