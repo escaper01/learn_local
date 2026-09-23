@@ -7,6 +7,7 @@ import {
   cancelRequestSchema,
   courseOpenSchema,
   coursePromptRequestSchema,
+  courseRemoveSchema,
   exerciseWorkspaceSchema,
   exerciseWorkspaceWriteSchema,
   hintRevealSchema,
@@ -24,7 +25,7 @@ import {
   type ExecutionFinishedEvent
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
-import { importLearnPack, listImportedCourses, loadImportedCourse, scaffoldLearnPackFromManifest, toCourseView } from "@learnlocal/learnpack";
+import { importLearnPack, listImportedCourses, loadImportedCourse, removeImportedCourse, scaffoldLearnPackFromManifest, toCourseView } from "@learnlocal/learnpack";
 import { EXECUTION_POLICY, type FunctionEntrypoint, type FunctionValue, type OutputTestDefinition } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
@@ -133,6 +134,15 @@ function registerIpc(): void {
       (exerciseId) => attempts?.revealedHintCount(`${courseId}:${exerciseId}`) ?? 0,
       (exerciseId) => attempts?.isExerciseCompleted(`${courseId}:${exerciseId}`) ?? false
     );
+  });
+
+  ipcMain.handle(IPC_CHANNELS.coursesRemove, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { courseId, version, removeLearningData } = courseRemoveSchema.parse(input);
+    const courseRoot = join(app.getPath("userData"), "courses");
+    await removeImportedCourse(courseRoot, courseId, version);
+    if (removeLearningData) attempts?.removeCourseLearningData(courseId);
+    return listImportedCourses(courseRoot);
   });
 
   ipcMain.handle(IPC_CHANNELS.runtimesList, async (event) => {

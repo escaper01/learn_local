@@ -69,4 +69,27 @@ describe("local database", () => {
       await rm(directory, { recursive: true, force: true });
     }
   });
+
+  it("removes only the selected course's learning data", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-course-"));
+    const repository = new AttemptRepository(join(directory, "test.sqlite"));
+    try {
+      repository.record("java-course:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000021"));
+      repository.record("java-course-advanced:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000022"));
+      repository.recordQuizAttempt("quiz_00000000-0000-0000-0000-000000000021", "java-course:quiz", 0, true);
+      expect(repository.revealHint("java-course:exercise", 0)).toBe(1);
+      repository.writeWorkspaceFiles("java-course@1.0.0:exercise", [{ path: "Main.java", content: "class Main {}" }]);
+      repository.writeWorkspaceFiles("java-course-advanced@1.0.0:exercise", [{ path: "Main.java", content: "class Main {}" }]);
+      repository.removeCourseLearningData("java-course");
+      expect(repository.isExerciseCompleted("java-course:exercise")).toBe(false);
+      expect(repository.isExerciseCompleted("java-course:quiz")).toBe(false);
+      expect(repository.revealedHintCount("java-course:exercise")).toBe(0);
+      expect(repository.readWorkspaceFiles("java-course@1.0.0:exercise")).toEqual([]);
+      expect(repository.isExerciseCompleted("java-course-advanced:exercise")).toBe(true);
+      expect(repository.readWorkspaceFiles("java-course-advanced@1.0.0:exercise")).toHaveLength(1);
+    } finally {
+      repository.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
 });

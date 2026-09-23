@@ -3,6 +3,8 @@ import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingScope, SettingValue, SourceFile, ValidationIssue } from "@learnlocal/contracts";
 
+import { SafeMarkdown } from "./SafeMarkdown";
+
 loader.config({ monaco });
 
 type Theme = "dark" | "light";
@@ -112,46 +114,6 @@ function formatBytes(value: number | null): string {
   return `${amount.toFixed(unit > 1 ? 1 : 0)} ${units[unit]}`;
 }
 
-function inlineMarkdown(text: string) {
-  return text.split(/(`[^`]+`)/g).filter(Boolean).map((part, index) => part.startsWith("`") && part.endsWith("`") ? <code key={index}>{part.slice(1, -1)}</code> : part);
-}
-
-function SafeMarkdown({ value, className = "" }: { value: string; className?: string }) {
-  const lines = value.replaceAll("\r\n", "\n").split("\n");
-  const blocks = [];
-  for (let index = 0; index < lines.length;) {
-    const line = lines[index] ?? "";
-    if (!line.trim()) { index += 1; continue; }
-    if (line.trim().startsWith("```")) {
-      const language = line.trim().slice(3);
-      const code: string[] = [];
-      index += 1;
-      while (index < lines.length && !lines[index]!.trim().startsWith("```")) { code.push(lines[index]!); index += 1; }
-      index += index < lines.length ? 1 : 0;
-      blocks.push(<pre key={`code-${index}`}><code data-language={language || undefined}>{code.join("\n")}</code></pre>);
-      continue;
-    }
-    const heading = /^(#{1,3})\s+(.+)$/.exec(line.trim());
-    if (heading) {
-      const content = inlineMarkdown(heading[2]!);
-      blocks.push(heading[1]!.length === 1 ? <h2 key={`heading-${index}`}>{content}</h2> : <h3 key={`heading-${index}`}>{content}</h3>);
-      index += 1;
-      continue;
-    }
-    if (/^[-*]\s+/.test(line.trim())) {
-      const items = [];
-      while (index < lines.length && /^[-*]\s+/.test(lines[index]!.trim())) { items.push(lines[index]!.trim().replace(/^[-*]\s+/, "")); index += 1; }
-      blocks.push(<ul key={`list-${index}`}>{items.map((item, itemIndex) => <li key={itemIndex}>{inlineMarkdown(item)}</li>)}</ul>);
-      continue;
-    }
-    const paragraph = [line.trim()];
-    index += 1;
-    while (index < lines.length && lines[index]!.trim() && !/^(#{1,3})\s+|^[-*]\s+|^```/.test(lines[index]!.trim())) { paragraph.push(lines[index]!.trim()); index += 1; }
-    blocks.push(<p key={`paragraph-${index}`}>{inlineMarkdown(paragraph.join(" "))}</p>);
-  }
-  return <div className={`safe-markdown ${className}`.trim()}>{blocks}</div>;
-}
-
 function StatusDot({ status }: { status: ProviderStatus | undefined }) {
   const className = status?.available ? "status-dot ready" : "status-dot unavailable";
   return (
@@ -241,6 +203,10 @@ export default function App() {
   const [importFailure, setImportFailure] = useState<AppErrorShape | null>(null);
   const [repairCopied, setRepairCopied] = useState(false);
   const [showTopicPanel, setShowTopicPanel] = useState(false);
+  const [removalTarget, setRemovalTarget] = useState<ImportedCourseSummary | null>(null);
+  const [removeLearningData, setRemoveLearningData] = useState(false);
+  const [removingCourse, setRemovingCourse] = useState(false);
+  const [removalError, setRemovalError] = useState<string | null>(null);
   const [showRuntimes, setShowRuntimes] = useState(false);
   const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
@@ -419,6 +385,39 @@ export default function App() {
     } finally {
       setImporting(false);
     }
+  };
+
+  const removeCourse = async () => {
+    if (!removalTarget) return;
+    setRemovingCourse(true);
+    setRemovalError(null);
+    try {
+      const remaining = await window.learnLocal.courses.remove({ courseId: removalTarget.id, version: removalTarget.version, removeLearningData });
+      setCourses(remaining);
+      if (activeCourse?.summary.id === removalTarget.id && activeCourse.summary.version === removalTarget.version) {
+        activeCourseRef.current = null;
+        setActiveCourse(null);
+        setActiveLesson(null);
+        setActiveImportedExercise(null);
+        setSourceFiles([]);
+        setActiveFilePath(null);
+        setResult(null);
+        setShowTopicPanel(false);
+        setView("courses");
+      }
+      if (removeLearningData) setLearningSummary(await window.learnLocal.progress.summary());
+      setRemovalTarget(null);
+    } catch (reason) {
+      setRemovalError(friendlyError(reason).message);
+    } finally {
+      setRemovingCourse(false);
+    }
+  };
+
+  const openCourseRemoval = (course: ImportedCourseSummary) => {
+    setRemoveLearningData(false);
+    setRemovalError(null);
+    setRemovalTarget(course);
   };
 
   const copyRepairPrompt = async () => {
@@ -812,7 +811,7 @@ export default function App() {
             {lessonNavigation("top")}
             <div className="concept-card">
               <span className="concept-icon">∑</span>
-              <div><strong>{activeLesson?.title ?? "Course lesson"}</strong><SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
+              <div>{!activeLesson?.theoryMarkdown.trimStart().startsWith("# ") && <strong>{activeLesson?.title ?? "Course lesson"}</strong>}<SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
             </div>
             {(activeImportedExercise?.hints ?? []).map((hint, index) => <details className="hint" key={`${index}-${hint}`} open><summary>Hint {index + 1} of {activeImportedExercise?.hintCount ?? 0}</summary><p>{hint}</p></details>)}
             {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && <button className="ghost-button reveal-hint" type="button" onClick={() => void revealNextHint()}>Reveal hint {activeImportedExercise.hints.length + 1}</button>}
@@ -938,7 +937,7 @@ export default function App() {
           <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import LearnPack</button></header>
           <div className="course-grid">
             {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Build your first learning path</h2><p>Generate a course prompt for any language, package the JSON files, then import the LearnPack.</p><button className="submit-button" onClick={() => void openPromptGenerator()}>Generate course prompt</button></article>}
-            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><button className="run-button" onClick={() => void openImportedCourse(course)}>Open curriculum</button></article>)}
+            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><div className="course-actions"><button className="run-button" onClick={() => void openImportedCourse(course)}>Open curriculum</button><button type="button" className="course-remove" disabled={Boolean(activeAction)} onClick={() => openCourseRemoval(course)}>Remove</button></div></article>)}
           </div>
         </section>
       )}
@@ -960,6 +959,25 @@ export default function App() {
             <div className="import-meta"><span>{importedCourse.language} {importedCourse.languageVersion}</span><span>{importedCourse.level}</span><span>v{importedCourse.version}</span></div>
             {importWarnings.length > 0 && <div className="import-warnings"><strong>Imported with {importWarnings.length} warning{importWarnings.length === 1 ? "" : "s"}</strong>{importWarnings.map((warning, index) => <p key={`${warning.code}-${index}`}><span>{warning.code}</span>{warning.message}</p>)}</div>}
             <button className="submit-button modal-action" onClick={() => { const course = importedCourse; setImportedCourse(null); void openImportedCourse(course); }}>View curriculum</button>
+          </section>
+        </div>
+      )}
+      {removalTarget && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => !removingCourse && setRemovalTarget(null)}>
+          <section className="import-modal course-removal" role="dialog" aria-modal="true" aria-labelledby="course-removal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Cancel course removal" disabled={removingCourse} onClick={() => setRemovalTarget(null)}>×</button>
+            <div className="eyebrow">REMOVE COURSE</div>
+            <h2 id="course-removal-title">Remove {removalTarget.title}?</h2>
+            <p>Version {removalTarget.version} will be removed from this device. You can import the .learnpack file again at any time.</p>
+            <label className="course-removal-option">
+              <input type="checkbox" checked={removeLearningData} disabled={removingCourse} onChange={(event) => setRemoveLearningData(event.target.checked)} />
+              <span><strong>Also delete my progress and saved code</strong><small>Completed exercises, quiz attempts, revealed hints, and saved workspaces for this course. This cannot be undone. Leave unchecked to restore your progress if you re-import the course.</small></span>
+            </label>
+            {removalError && <div className="course-removal-error" role="alert">{removalError}</div>}
+            <div className="import-failure-actions">
+              <button className="ghost-button" disabled={removingCourse} onClick={() => setRemovalTarget(null)}>Cancel</button>
+              <button className="course-remove-confirm" disabled={removingCourse} onClick={() => void removeCourse()}>{removingCourse ? "Removing…" : removeLearningData ? "Remove course and progress" : "Remove course"}</button>
+            </div>
           </section>
         </div>
       )}

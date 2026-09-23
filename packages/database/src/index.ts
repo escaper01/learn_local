@@ -188,6 +188,21 @@ export class AttemptRepository {
     }
   }
 
+  removeCourseLearningData(courseId: string): void {
+    const exercisePattern = `${courseId}:%`;
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      for (const table of ["hint_reveals", "quiz_attempts", "exercise_progress", "exercise_attempts"]) {
+        this.database.prepare(`DELETE FROM ${table} WHERE exercise_id LIKE ? ESCAPE '\\'`).run(exercisePattern);
+      }
+      this.database.prepare("DELETE FROM workspace_files WHERE workspace_id LIKE ? ESCAPE '\\'").run(`${courseId}@%`);
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   learningSummary(): LearningSummary {
     const totals = this.database.prepare(`
       SELECT COUNT(*) AS total_attempts,

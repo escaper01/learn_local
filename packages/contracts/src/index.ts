@@ -236,6 +236,8 @@ export const courseOpenSchema = z.object({
   version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/)
 }).strict();
 
+export const courseRemoveSchema = courseOpenSchema.extend({ removeLearningData: z.boolean() }).strict();
+
 export const quizSubmitSchema = z.object({
   courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
   version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
@@ -267,6 +269,7 @@ export interface LearnLocalApi {
     importPack(): Promise<CourseImportResult>;
     list(): Promise<ImportedCourseSummary[]>;
     open(courseId: string, version: string): Promise<CourseView>;
+    remove(input: z.infer<typeof courseRemoveSchema>): Promise<ImportedCourseSummary[]>;
   };
   runtimes: {
     list(): Promise<RuntimeSummary[]>;
@@ -325,6 +328,7 @@ export const IPC_CHANNELS = {
   coursesImport: "courses:import",
   coursesList: "courses:list",
   coursesOpen: "courses:open",
+  coursesRemove: "courses:remove",
   runtimesList: "runtimes:list",
   runtimesInstall: "runtimes:install",
   runtimesVerify: "runtimes:verify",
