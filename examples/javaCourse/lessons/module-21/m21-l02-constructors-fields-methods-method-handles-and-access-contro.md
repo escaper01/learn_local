@@ -87,7 +87,7 @@ import java.lang.reflect.Method;
 public class ReflectiveInvocation {
 
     static class Divider {
-        int divide(int a, int b) { return a / b; } // throws ArithmeticException for b == 0
+        public int divide(int a, int b) { return a / b; } // throws ArithmeticException for b == 0
     }
 
     public static void main(String[] args) throws Exception {
@@ -116,7 +116,7 @@ actual cause: ArithmeticException
 
 `Method.invoke` **never** lets an exception thrown inside the invoked method propagate directly — it always wraps it in `InvocationTargetException`, whose `getCause()` holds the actual exception the target method threw. This is structurally identical to `ExecutionException` wrapping a `Future`'s task failure from the concurrency chapter: a distinct failure category (a transport-level or invocation-level problem, like a security manager violation or an illegal argument) is kept separate from the target's own business-logic exception. A `catch (InvocationTargetException e)` block that logs the wrapper's message instead of `e.getCause()` produces exactly the same "useless generic error" problem this course has warned against for every other wrapper exception type covered so far — the caller sees "InvocationTargetException" instead of the actually useful "ArithmeticException: / by zero."
 
-By contrast, failing to even **locate** the method at all — a typo'd name, a wrong parameter type — throws `NoSuchMethodException` at the `getMethod` call itself, before `invoke` is ever reached; these are two entirely separate failure points, and conflating "the method doesn't exist" with "the method exists but threw" produces confusing diagnostics.
+By contrast, failing to even **locate** the method at all — a typo'd name, a wrong parameter type, or (as `divide` requires here) a method that is not actually `public` — throws `NoSuchMethodException` at the `getMethod` call itself, before `invoke` is ever reached; these are two entirely separate failure points, and conflating "the method doesn't exist" with "the method exists but threw" produces confusing diagnostics. `getMethod` specifically only finds **public** methods (including inherited ones); a package-private, protected, or private method must be looked up with `getDeclaredMethod` instead, which finds any method declared directly on the class regardless of its access modifier, but not inherited ones.
 
 ## Access control: what reflection respects, and what setAccessible bypasses
 
@@ -126,10 +126,6 @@ Reflection, by default, still respects Java's ordinary access control: `getDecla
 import java.lang.reflect.Method;
 
 public class AccessControlDemo {
-
-    static class Secretive {
-        private String secret() { return "classified"; }
-    }
 
     public static void main(String[] args) throws Exception {
         Method secretMethod = Secretive.class.getDeclaredMethod("secret");
@@ -144,7 +140,17 @@ public class AccessControlDemo {
         System.out.println("after setAccessible: " + result);
     }
 }
+
+// A separate top-level class, deliberately NOT nested inside AccessControlDemo:
+// classes nested in the same top-level class are "nestmates" (JEP 181, Java 11+)
+// and can reflectively access each other's private members without setAccessible,
+// which would make this demo's IllegalAccessException never actually happen.
+class Secretive {
+    private String secret() { return "classified"; }
+}
 ```
+
+Note that `Secretive` is deliberately declared as its own top-level class here rather than nested inside `AccessControlDemo`: since Java 11 (JEP 181), classes nested inside the same top-level class are **nestmates**, and nestmates can reflectively access each other's `private` members without `setAccessible` at all — if `Secretive` were nested inside `AccessControlDemo` the way earlier examples in this lesson nested their helper classes, the first `invoke` call would succeed immediately and the `IllegalAccessException` branch would never run.
 
 `setAccessible(true)` is a deliberate, explicit override of the language's own access control, and it is exactly the mechanism frameworks use to, for example, inject a value into a `private` field annotated `@Autowired`, or invoke a `private` test method. It is also exactly the mechanism the module system (covered two lessons ahead) restricts by default for code outside your own module — a deliberate limitation, since `setAccessible` bypassing encapsulation entirely is precisely the kind of "reflection defeats your own access-control boundaries" risk that a module boundary is meant to contain. Calling `setAccessible(true)` should always be a conscious decision made by code that has a specific, legitimate reason to reach past encapsulation, never a reflexive fix applied whenever an `IllegalAccessException` is encountered.
 

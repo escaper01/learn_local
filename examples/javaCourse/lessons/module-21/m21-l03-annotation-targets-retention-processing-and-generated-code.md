@@ -151,14 +151,14 @@ import java.lang.reflect.Method;
 
 public class RetryingInvoker {
 
-    public static void invokeWithRetry(Object target, String methodName) throws Exception {
-        Method method = target.getClass().getMethod(methodName);
+    public static void invokeWithRetry(Object target, String methodName, Class<?>[] paramTypes, Object... args) throws Exception {
+        Method method = target.getClass().getMethod(methodName, paramTypes);
         RetryOnFailure retry = method.getAnnotation(RetryOnFailure.class);
         int maxAttempts = (retry != null) ? retry.maxAttempts() : 1; // no annotation = no retry
 
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                method.invoke(target);
+                method.invoke(target, args);
                 return; // success
             } catch (InvocationTargetException e) {
                 System.out.println("attempt " + attempt + " failed: " + e.getCause());
@@ -168,6 +168,8 @@ public class RetryingInvoker {
     }
 }
 ```
+
+Calling it against `charge`, whose single `int` parameter must be matched by both the lookup and the invocation, looks like `invokeWithRetry(gateway, "charge", new Class<?>[]{int.class}, 1999)` — `getMethod` and `invoke` must agree on parameter types and argument values exactly the same way `ReflectiveInvocation` did in the previous lesson.
 
 `RetryingInvoker` is the *entire* reason `@RetryOnFailure` does anything at all — without it, the annotation on `charge` is exactly as inert as no annotation at all would be. This is worth internalizing precisely because it is the opposite of how annotations often feel from the outside, especially to a developer used to a framework already providing the consumer: the annotation looks declarative and magical, but the actual behavior is always, unconditionally, ordinary Java code written by someone, somewhere, reading that metadata and acting on it.
 
