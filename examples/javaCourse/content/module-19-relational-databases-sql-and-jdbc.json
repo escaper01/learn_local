@@ -233,6 +233,68 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "checkout-idempotency-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: idempotent checkout with stock reservation",
+          "instructionMarkdown": "Implement CheckoutCore.run(String input) as the pure decision core behind the E-commerce Backend project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. STOCK|sku|qty registers a new sku (matching [A-Za-z0-9_-]{1,20}, not already registered) with a non-negative starting quantity; prints OK or ERROR. RESTOCK|sku|qty requires the sku to be registered and qty to be a positive integer; adds to the current quantity; prints OK or ERROR. CHECKOUT|orderId|idempotencyKey|sku|qty requires sku to be registered and qty to be a positive integer. An orderId only becomes permanently recorded once it SUCCEEDS. If this orderId has not yet succeeded: when there is enough stock, decrement it, permanently record this orderId's key/sku/qty as its successful result, and print OK; when there is not enough stock, print OUTOFSTOCK without recording anything, leaving the orderId retryable; an unknown sku prints ERROR, also without recording anything. If this orderId already succeeded once: an identical idempotencyKey/sku/qty prints DUPLICATE without changing stock again; a different idempotencyKey, sku, or qty for the same orderId prints CONFLICT without changing stock. STOCKLEVEL|sku prints the current quantity or ERROR if the sku is not registered. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the idempotency-and-stock-safety decision core; genuine concurrent-request safety is verified with a real two-thread test outside this sandbox.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(CheckoutCore.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "CheckoutCore.java",
+              "content": "public final class CheckoutCore {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "checkout-idempotency-checkpoint-case-1",
+              "visibility": "public",
+              "input": "STOCK|S1|5\nCHECKOUT|O1|K1|S1|2\nSTOCKLEVEL|S1",
+              "expected": "OK\nOK\n3",
+              "comparison": "exact"
+            },
+            {
+              "id": "checkout-idempotency-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "checkout-idempotency-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "STOCK|S2|10\nCHECKOUT|O2|K2|S2|3\nCHECKOUT|O2|K2|S2|3\nCHECKOUT|O2|K3|S2|3\nSTOCKLEVEL|S2",
+              "expected": "OK\nOK\nDUPLICATE\nCONFLICT\n7",
+              "comparison": "exact"
+            },
+            {
+              "id": "checkout-idempotency-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "STOCK|S3|2\nCHECKOUT|O3|K4|S3|5\nSTOCKLEVEL|S3\nCHECKOUT|O3|K4|S3|5\nRESTOCK|S3|10\nCHECKOUT|O3|K4|S3|5\nSTOCKLEVEL|S3",
+              "expected": "OK\nOUTOFSTOCK\n2\nOUTOFSTOCK\nOK\nOK\n7",
+              "comparison": "exact"
+            },
+            {
+              "id": "checkout-idempotency-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "CHECKOUT|O4|K5|UNKNOWN|1\nRESTOCK|UNKNOWN|5\nSTOCK|S4|3\nSTOCK|S4|9\nRESTOCK|S4|0\nSTOCKLEVEL|S4",
+              "expected": "ERROR\nERROR\nOK\nERROR\nERROR\n3",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "An OUTOFSTOCK or ERROR result must leave the orderId retryable later — only a SUCCESS permanently locks it in as DUPLICATE/CONFLICT territory.",
+            "Check whether stock is sufficient before decrementing anything, and never decrement on a DUPLICATE or CONFLICT outcome."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

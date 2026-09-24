@@ -247,6 +247,68 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "matchmaking-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: fair-pairing matchmaking queue",
+          "instructionMarkdown": "Implement MatchmakingQueue.run(String input) as the pure decision core behind the Online Multiplayer Game Platform project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. QUEUE|gameType|player requires gameType and player to match [A-Za-z0-9_-]{1,20} and this player to not currently be queued (unmatched) for any gameType; prints ERROR if that condition fails. Otherwise the player is added to that gameType's first-in-first-out queue. If this addition makes that queue reach exactly two waiting players, both are immediately removed and paired into a new match, assigned the next sequential positive integer matchId starting at 1 (a single sequence shared across every gameType), and the command prints MATCHED|<matchId>|<firstQueuedPlayer>|<secondQueuedPlayer>. Otherwise (the queue now has exactly one player) it prints WAITING. LEAVE|gameType|player prints OK and removes the player only if they are currently waiting (queued but not yet matched) in that exact gameType's queue; otherwise ERROR. RESULT|matchId|winner requires matchId to exist and to not already have a recorded result, and winner to be exactly one of that match's two paired players; prints OK and records the result (a win for winner, a loss for the other player), or ERROR otherwise. RECORD|player prints wins:losses as two integers separated by a colon, counting every match with a recorded result involving that player, or 0:0 if they have none. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the pairing-fairness and results core; real network delivery and horizontal scaling are external, self-directed scope this course does not teach.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(MatchmakingQueue.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "MatchmakingQueue.java",
+              "content": "public final class MatchmakingQueue {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "matchmaking-checkpoint-case-1",
+              "visibility": "public",
+              "input": "QUEUE|chess|alice\nQUEUE|chess|bob\nRESULT|1|alice\nRECORD|alice\nRECORD|bob",
+              "expected": "WAITING\nMATCHED|1|alice|bob\nOK\n1:0\n0:1",
+              "comparison": "exact"
+            },
+            {
+              "id": "matchmaking-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "matchmaking-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "QUEUE|chess|carol\nQUEUE|checkers|carol\nLEAVE|chess|carol\nQUEUE|checkers|carol\nQUEUE|chess|carol",
+              "expected": "WAITING\nERROR\nOK\nWAITING\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "matchmaking-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "QUEUE|go|dave\nQUEUE|go|erin\nLEAVE|go|dave\nRESULT|99|dave\nRESULT|1|frank",
+              "expected": "WAITING\nMATCHED|1|dave|erin\nERROR\nERROR\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "matchmaking-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "QUEUE|xo|gina\nQUEUE|xo|harry\nRESULT|1|gina\nRESULT|1|harry\nRECORD|nobody",
+              "expected": "WAITING\nMATCHED|1|gina|harry\nOK\nERROR\n0:0",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A player can only ever be queued for one gameType at a time; check this before checking anything about that specific gameType's queue.",
+            "Once two players are matched and removed from the queue, LEAVE for either of them must fail — they are no longer \"waiting\"."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

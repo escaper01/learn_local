@@ -225,6 +225,130 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "credential-store-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: hashed credential store",
+          "instructionMarkdown": "Implement CredentialStore.run(String input) as the pure decision core behind the Authentication & User Management System project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. REGISTER|username|password requires username to match [A-Za-z0-9_]{3,20} and not already be registered, and password to be at least 8 characters; on success it must store the password hashed with a real, salted algorithm (for example PBKDF2WithHmacSHA256 via javax.crypto.SecretKeyFactory, with a random salt per user) and never the plaintext, then print OK; otherwise ERROR. LOGIN|username|password prints OK only if the username exists and the password verifies against its stored hash, otherwise ERROR; never compare against a stored plaintext value. CHANGE|username|oldPassword|newPassword requires the username to exist, oldPassword to verify against the current stored hash, and newPassword to be at least 8 characters; on success it replaces the stored hash (with a fresh salt) and prints OK; otherwise ERROR, leaving the stored credential unchanged. Output is one line per nonblank input line, joined with \\n, no trailing newline. Grading checks only this observable OK/ERROR behavior; source review separately confirms a real salted hash algorithm was actually used and that no plaintext password or hash ever appears in an exception message or log line.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(CredentialStore.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "CredentialStore.java",
+              "content": "public final class CredentialStore {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "credential-store-checkpoint-case-1",
+              "visibility": "public",
+              "input": "REGISTER|alice|Secret123\nLOGIN|alice|Secret123\nLOGIN|alice|wrongpass",
+              "expected": "OK\nOK\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "credential-store-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "credential-store-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "REGISTER|bob|short\nREGISTER|bob|LongEnough1\nREGISTER|bob|AnotherPass1\nLOGIN|unknown|whatever",
+              "expected": "ERROR\nOK\nERROR\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "credential-store-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "REGISTER|carol|InitialPass1\nCHANGE|carol|InitialPass1|NewPass1234\nLOGIN|carol|InitialPass1\nLOGIN|carol|NewPass1234",
+              "expected": "OK\nOK\nERROR\nOK",
+              "comparison": "exact"
+            },
+            {
+              "id": "credential-store-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "REGISTER|dave|GoodPass123\nCHANGE|dave|WrongOld|NewPass123456\nCHANGE|dave|GoodPass123|short\nLOGIN|dave|GoodPass123",
+              "expected": "OK\nERROR\nERROR\nOK",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Two REGISTER calls with the identical password should still store two different-looking hashes if you inspect them directly (different random salts) — the grader only checks LOGIN behavior, but a source reviewer will check this.",
+            "A wrong oldPassword in CHANGE must reject the whole call, even if newPassword would otherwise be valid."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "role-gated-task-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: role-gated task board",
+          "instructionMarkdown": "Implement TaskBoard.run(String input) as the pure decision core behind the Project Management App project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. TEAM|teamId|owner requires teamId to match [A-Za-z0-9_-]{1,20} and not already exist; creates the team with owner as its first member holding role OWNER; prints OK or ERROR. JOIN|teamId|member|role requires teamId to exist, role to be exactly OWNER or MEMBER, and member to not already belong to teamId; prints OK or ERROR. TASK|teamId|taskId|creator requires teamId to exist, creator to already be a member of teamId, and taskId to match the id pattern and not already exist (globally); creates the task with its assignee set to creator; prints OK or ERROR. ASSIGN|taskId|actor|assignee requires taskId to exist, assignee to be a member of the task's team, and actor to be either an OWNER of that team or the task's current assignee; on success sets the new assignee and prints OK, otherwise ERROR without changing the assignment. REMOVEMEMBER|teamId|actor|target requires teamId to exist, actor to be an OWNER of teamId, and target to currently be a member of teamId; prints OK and removes target, or ERROR otherwise. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the per-resource, role-dependent authorization core; a real app's notifications and due-date events are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(TaskBoard.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "TaskBoard.java",
+              "content": "public final class TaskBoard {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "role-gated-task-checkpoint-case-1",
+              "visibility": "public",
+              "input": "TEAM|T1|alice\nJOIN|T1|bob|MEMBER\nTASK|T1|task1|bob\nASSIGN|task1|bob|alice",
+              "expected": "OK\nOK\nOK\nOK",
+              "comparison": "exact"
+            },
+            {
+              "id": "role-gated-task-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "role-gated-task-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "TEAM|T2|alice\nJOIN|T2|bob|MEMBER\nJOIN|T2|carol|MEMBER\nTASK|T2|task2|bob\nASSIGN|task2|carol|bob\nASSIGN|task2|alice|carol",
+              "expected": "OK\nOK\nOK\nOK\nERROR\nOK",
+              "comparison": "exact"
+            },
+            {
+              "id": "role-gated-task-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "TEAM|T3|alice\nJOIN|T3|bob|MEMBER\nTASK|T3|task3|dave\nREMOVEMEMBER|T3|bob|alice\nREMOVEMEMBER|T3|alice|bob\nREMOVEMEMBER|T3|alice|erin",
+              "expected": "OK\nOK\nERROR\nERROR\nOK\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "role-gated-task-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "TEAM|T4|alice\nTEAM|T4|bob\nJOIN|T4|alice|MEMBER\nJOIN|UNKNOWNTEAM|carol|MEMBER\nTASK|UNKNOWNTEAM|t|carol",
+              "expected": "OK\nERROR\nERROR\nERROR\nERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A task's current assignee may always reassign it themselves, even if they are not an OWNER — that is a second, independent way ASSIGN can succeed.",
+            "Creating a task requires the creator to already be a member of that specific team, not just a member of any team."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

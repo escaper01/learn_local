@@ -293,6 +293,68 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "stock-movement-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: stock movement ledger",
+          "instructionMarkdown": "Implement StockLedger.run(String input) as the pure decision core behind the Inventory/Stock Management System project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. REGISTER|sku|threshold registers a new sku (matching [A-Za-z0-9_-]{1,20}) with a non-negative integer reorder threshold and an initial quantity of zero; the sku must not already be registered; prints OK or ERROR. RECEIVE|sku|qty requires the sku to be registered and qty to be a positive integer; increases quantity on hand; prints OK or ERROR. SHIP|sku|qty requires the sku to be registered, qty to be a positive integer, and enough quantity on hand that shipping would not drive it negative; prints OK (and decrements quantity) or ERROR, leaving quantity unchanged on any rejection. REPORT lists every registered sku whose current quantity is at or below its own reorder threshold, in ascending lexicographic order by sku, as sku:qty separated by semicolons, or EMPTY if none qualify. Any malformed line prints ERROR without changing any state. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the reorder-and-non-negative-stock invariant; a real inventory system's supplier data and valuation reports are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(StockLedger.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "StockLedger.java",
+              "content": "public final class StockLedger {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "stock-movement-checkpoint-case-1",
+              "visibility": "public",
+              "input": "REGISTER|SKU1|5\nRECEIVE|SKU1|10\nSHIP|SKU1|3\nREPORT",
+              "expected": "OK\nOK\nOK\nEMPTY",
+              "comparison": "exact"
+            },
+            {
+              "id": "stock-movement-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "stock-movement-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "REGISTER|SKU2|2\nRECEIVE|SKU2|5\nSHIP|SKU2|10\nSHIP|UNK|1\nREPORT",
+              "expected": "OK\nOK\nERROR\nERROR\nEMPTY",
+              "comparison": "exact"
+            },
+            {
+              "id": "stock-movement-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "REGISTER|B|5\nREGISTER|A|5\nREGISTER|B|1\nRECEIVE|A|3\nRECEIVE|B|10\nSHIP|B|9\nREPORT",
+              "expected": "OK\nOK\nERROR\nOK\nOK\nOK\nA:3;B:1",
+              "comparison": "exact"
+            },
+            {
+              "id": "stock-movement-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "REGISTER|X|-1\nREGISTER|Y|0\nRECEIVE|Y|0\nRECEIVE|Y|4\nSHIP|Y|0\nREPORT",
+              "expected": "ERROR\nOK\nERROR\nOK\nERROR\nEMPTY",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A threshold of exactly zero is valid; a quantity equal to the threshold still counts as \"at or below\" for REPORT.",
+            "Reject a SHIP that would drive quantity negative before mutating anything, not after."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }
