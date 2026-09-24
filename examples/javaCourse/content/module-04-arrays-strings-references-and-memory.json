@@ -245,6 +245,75 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "tic-tac-toe-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: turn-validated tic-tac-toe engine",
+          "instructionMarkdown": "Implement TicTacToeEngine.run(String input) as the pure decision core behind the Real-Time Online Tic-Tac-Toe project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. NEW|gameId|playerX|playerO requires gameId to match [A-Za-z0-9_-]{1,20} and not already exist; creates an empty 3x3 board with playerX to move first; prints OK or ERROR. MOVE|gameId|player|row|col requires gameId to exist, the game to not already be over, row and col to each be an integer 0-2, the target cell to currently be empty, and player to be exactly whichever of playerX/playerO owns the current turn. On success, place that player's mark, then: if it completes a line of three (any row, column, or either diagonal), print WIN|X or WIN|O and end the game; else if the board is now completely full, print DRAW and end the game; otherwise print OK and pass the turn to the other player. Any violation (wrong gameId, wrong turn, occupied cell, out-of-range coordinate, or a move on an already-finished game) prints ERROR and changes nothing, including the turn. BOARD|gameId prints the 9 cells in row-major order as a single 9-character string using X, O, and . for empty, or ERROR if gameId does not exist. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the turn-validation and win/draw-detection core; the real-time WebSocket delivery is external, self-directed scope this course does not teach.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(TicTacToeEngine.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "TicTacToeEngine.java",
+              "content": "public final class TicTacToeEngine {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "tic-tac-toe-checkpoint-case-1",
+              "visibility": "public",
+              "input": "NEW|G1|alice|bob\nMOVE|G1|alice|0|0\nMOVE|G1|bob|1|1\nBOARD|G1",
+              "expected": "OK\nOK\nOK\nX...O....",
+              "comparison": "exact"
+            },
+            {
+              "id": "tic-tac-toe-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "tic-tac-toe-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "NEW|G2|alice|bob\nMOVE|G2|alice|0|0\nMOVE|G2|bob|1|0\nMOVE|G2|alice|0|1\nMOVE|G2|bob|1|1\nMOVE|G2|alice|0|2\nMOVE|G2|bob|2|2",
+              "expected": "OK\nOK\nOK\nOK\nOK\nWIN|X\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "tic-tac-toe-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "NEW|G3|alice|bob\nMOVE|G3|bob|0|0\nMOVE|G3|alice|0|0\nMOVE|G3|bob|0|0\nMOVE|G3|alice|5|0\nBOARD|G3",
+              "expected": "OK\nERROR\nOK\nERROR\nERROR\nX........",
+              "comparison": "exact"
+            },
+            {
+              "id": "tic-tac-toe-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "NEW|G4|alice|bob\nMOVE|G4|alice|0|0\nMOVE|G4|bob|0|1\nMOVE|G4|alice|0|2\nMOVE|G4|bob|1|1\nMOVE|G4|alice|1|0\nMOVE|G4|bob|1|2\nMOVE|G4|alice|2|1\nMOVE|G4|bob|2|0\nMOVE|G4|alice|2|2",
+              "expected": "OK\nOK\nOK\nOK\nOK\nOK\nOK\nOK\nOK\nDRAW",
+              "comparison": "exact"
+            },
+            {
+              "id": "tic-tac-toe-checkpoint-case-6",
+              "visibility": "hidden",
+              "input": "NEW|G5|alice|bob\nNEW|G5|carol|dave\nMOVE|UNKNOWN|alice|0|0\nBOARD|UNKNOWN",
+              "expected": "OK\nERROR\nERROR\nERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A rejected move (wrong turn, occupied cell, out of range) must not advance whose turn it is.",
+            "Check all eight winning lines (3 rows, 3 columns, 2 diagonals) after every successful move, before checking for a draw."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

@@ -389,6 +389,68 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "rollback-target-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: rollback target selector",
+          "instructionMarkdown": "Implement RollbackSelector.run(String input) as the pure decision core behind the Capstone Deployment Exercise project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. DEPLOY|version|healthy requires version to match [A-Za-z0-9_.-]{1,20} and healthy to be exactly the string true or false; appends this deployment to an ordered history (the same version may be deployed more than once) and prints OK, or ERROR if healthy is neither true nor false. ROLLBACK_TARGET prints the version of the most recent deployment recorded strictly BEFORE the last deployment in history whose healthy value was true, or NONE if no earlier deployment was healthy (including when history has zero or one entries). The last deployment's own healthy value is irrelevant to this query; only entries strictly before it are considered. HISTORY prints every recorded deployment in order as version:healthy separated by semicolons, or EMPTY if none have been recorded. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the rollback-selection decision; the real Docker build, compose file, and health-check wiring are external, self-directed scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(RollbackSelector.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "RollbackSelector.java",
+              "content": "public final class RollbackSelector {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "rollback-target-checkpoint-case-1",
+              "visibility": "public",
+              "input": "DEPLOY|v1|true\nDEPLOY|v2|false\nROLLBACK_TARGET",
+              "expected": "OK\nOK\nv1",
+              "comparison": "exact"
+            },
+            {
+              "id": "rollback-target-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "rollback-target-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "DEPLOY|v1|false\nDEPLOY|v2|false\nROLLBACK_TARGET",
+              "expected": "OK\nOK\nNONE",
+              "comparison": "exact"
+            },
+            {
+              "id": "rollback-target-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "DEPLOY|v1|true\nDEPLOY|v2|true\nDEPLOY|v3|false\nDEPLOY|v4|false\nROLLBACK_TARGET",
+              "expected": "OK\nOK\nOK\nOK\nv2",
+              "comparison": "exact"
+            },
+            {
+              "id": "rollback-target-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "DEPLOY|v1|true\nROLLBACK_TARGET\nDEPLOY|v2|maybe\nHISTORY",
+              "expected": "OK\nNONE\nERROR\nv1:true",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "\"Strictly before the last deployment\" excludes the last entry itself even when its own healthy value is true.",
+            "Search backward from the second-to-last entry for the most RECENT healthy one, not simply the first one in the whole history."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

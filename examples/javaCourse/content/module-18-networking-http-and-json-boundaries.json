@@ -241,6 +241,68 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "quiz-scoring-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: idempotent quiz scorer",
+          "instructionMarkdown": "Implement QuizScorer.run(String input) as the pure decision core behind the Online Quiz Platform project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. DEFINE|quizId|answers registers a quiz (quizId matching [A-Za-z0-9_-]{1,20}, not already defined) whose answers is a comma-separated list of 1 to 20 letters, each exactly A, B, C, or D; prints OK or ERROR. SUBMIT|quizId|attemptId|answers requires quizId to be defined, the submitted answers to have the same count as the quiz's defined answers with every letter in A-D, and attemptId to match the same id pattern. If this is the first submission for this exact (quizId, attemptId) pair, compute the score as the count of positions where the submitted answer matches the defined correct answer, record it, and print SCORE|<score>. If (quizId, attemptId) was already submitted with the identical answers, print DUPLICATE|<score> using the originally recorded score, without rescoring. If it was already submitted with different answers, print CONFLICT without changing the recorded result. A malformed submission (wrong quizId, wrong answer count, or an invalid letter) prints ERROR. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the scoring-and-idempotency core; a real platform's authentication and leaderboard are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(QuizScorer.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "QuizScorer.java",
+              "content": "public final class QuizScorer {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "quiz-scoring-checkpoint-case-1",
+              "visibility": "public",
+              "input": "DEFINE|Q1|A,B,C,D\nSUBMIT|Q1|t1|A,B,B,D",
+              "expected": "OK\nSCORE|3",
+              "comparison": "exact"
+            },
+            {
+              "id": "quiz-scoring-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "quiz-scoring-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "DEFINE|Q2|A,A\nSUBMIT|Q2|t2|A,B\nSUBMIT|Q2|t2|A,B\nSUBMIT|Q2|t2|B,B",
+              "expected": "OK\nSCORE|1\nDUPLICATE|1\nCONFLICT",
+              "comparison": "exact"
+            },
+            {
+              "id": "quiz-scoring-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "DEFINE|Q3|A,B,C\nSUBMIT|Q3|t3|A,B\nSUBMIT|Q3|t3|A,B,Z\nSUBMIT|UNKNOWN|t4|A",
+              "expected": "OK\nERROR\nERROR\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "quiz-scoring-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "DEFINE|Q4|A,B\nDEFINE|Q4|C,D\nDEFINE|Q5|A,Z\nSUBMIT|Q4|t5|A,B",
+              "expected": "OK\nERROR\nERROR\nSCORE|2",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "attemptId uniqueness for scoring purposes is scoped per quizId, not global — the same attemptId could in principle be reused on a different quiz.",
+            "Compare the identical-versus-different answers check exactly (same list, same order) before deciding DUPLICATE versus CONFLICT."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

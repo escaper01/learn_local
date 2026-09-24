@@ -233,6 +233,192 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "url-shortener-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: short code allocator",
+          "instructionMarkdown": "Implement ShortenerCore.run(String input) as the pure decision core behind the URL Shortener project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. SHORTEN|url requires url to be non-blank, at most 200 characters, and to contain neither '|' nor any whitespace character; on success it assigns the next code in a single global sequence starting at \"1\" and counting up as plain decimal strings (\"1\", \"2\", \"3\", ...), where only successful SHORTEN calls consume a number, and prints OK|<code>; a rejected url is not assigned a code and prints ERROR. RESOLVE|code prints the original url for that code and increments its hit counter, or prints ERROR if the code was never assigned. HITS|code prints the current hit count for that code as a plain integer, or ERROR if the code was never assigned. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the allocate/resolve/count core; a real service's collision-resistant encoding and REST layer are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(ShortenerCore.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "ShortenerCore.java",
+              "content": "public final class ShortenerCore {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "url-shortener-checkpoint-case-1",
+              "visibility": "public",
+              "input": "SHORTEN|https://example.com\nRESOLVE|1\nHITS|1",
+              "expected": "OK|1\nhttps://example.com\n1",
+              "comparison": "exact"
+            },
+            {
+              "id": "url-shortener-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "url-shortener-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "SHORTEN|https://a.com\nSHORTEN|https://b.com\nRESOLVE|2\nRESOLVE|99\nHITS|2",
+              "expected": "OK|1\nOK|2\nhttps://b.com\nERROR\n1",
+              "comparison": "exact"
+            },
+            {
+              "id": "url-shortener-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "SHORTEN|\nSHORTEN|has a space\nSHORTEN|https://c.com\nRESOLVE|1",
+              "expected": "ERROR\nERROR\nOK|1\nhttps://c.com",
+              "comparison": "exact"
+            },
+            {
+              "id": "url-shortener-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "SHORTEN|https://d.com\nRESOLVE|1\nRESOLVE|1\nRESOLVE|1\nHITS|1",
+              "expected": "OK|1\nhttps://d.com\nhttps://d.com\nhttps://d.com\n3",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Only a successful SHORTEN advances the counter; a rejected url must not skip a code number for the next valid one.",
+            "RESOLVE both returns the url AND increments the hit counter in the same call — do not require a separate command for that."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "notes-versioning-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: optimistic-locked note store",
+          "instructionMarkdown": "Implement NoteStore.run(String input) as the pure decision core behind the Notes Web App project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. CREATE|title|body requires title to be non-blank and at most 100 characters (body may be blank, at most 1000 characters); on success it assigns the next sequential positive integer id starting at 1, sets version to 1, and prints OK|<id>; a rejected create does not consume an id and prints ERROR. UPDATE|id|expectedVersion|newTitle|newBody requires the id to exist and newTitle to be non-blank (same length limits as CREATE); if the id does not exist, prints ERROR; if it exists but expectedVersion does not equal the note's current version, prints CONFLICT without changing anything; otherwise applies the new title/body, increments the version by one, and prints OK. DELETE|id prints OK and removes the note if the id currently exists, or ERROR if it does not (including an id that was already deleted). GET|id prints id:version:title:body for a currently existing note, or ERROR if it does not exist. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the optimistic-locking core; a real notes app's pagination and frontend are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(NoteStore.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "NoteStore.java",
+              "content": "public final class NoteStore {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "notes-versioning-checkpoint-case-1",
+              "visibility": "public",
+              "input": "CREATE|Groceries|Milk, eggs\nUPDATE|1|1|Groceries|Milk, eggs, bread\nGET|1",
+              "expected": "OK|1\nOK\n1:2:Groceries:Milk, eggs, bread",
+              "comparison": "exact"
+            },
+            {
+              "id": "notes-versioning-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "notes-versioning-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "CREATE|A|B\nUPDATE|1|1|A2|B2\nUPDATE|1|1|A3|B3\nGET|1",
+              "expected": "OK|1\nOK\nCONFLICT\n1:2:A2:B2",
+              "comparison": "exact"
+            },
+            {
+              "id": "notes-versioning-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "CREATE|X|Y\nDELETE|1\nGET|1\nUPDATE|1|1|Z|W\nDELETE|1\nDELETE|99",
+              "expected": "OK|1\nOK\nERROR\nERROR\nERROR\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "notes-versioning-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "CREATE||body\nCREATE|Valid|body2\nUPDATE|1|1||newbody\nGET|1",
+              "expected": "ERROR\nOK|1\nERROR\n1:1:Valid:body2",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A CONFLICT means the id exists but the caller's expectedVersion is stale; it never mutates the note.",
+            "A failed CREATE or UPDATE must never consume the next id, or partially apply a title/body change."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "blog-moderation-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: post and comment moderation",
+          "instructionMarkdown": "Implement BlogModeration.run(String input) as the pure decision core behind the Blog Backend project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. POST|postId|title requires postId to match [A-Za-z0-9_-]{1,20} and not already exist, and title to be non-blank and at most 100 characters; prints OK or ERROR. COMMENT|postId|commentId|body requires postId to already exist, commentId to match the same id pattern and not already exist (globally, across all posts), and body to be non-blank and at most 200 characters; prints OK or ERROR. HIDE|commentId requires commentId to exist and not already be hidden; prints OK and marks it hidden, or ERROR otherwise. VIEW|postId prints title|visibleCommentCount for an existing post, where visibleCommentCount excludes hidden comments, or ERROR if the postId does not exist. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the moderation-state core; a real blog's pagination, authors, and N+1-safe queries are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(BlogModeration.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "BlogModeration.java",
+              "content": "public final class BlogModeration {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "blog-moderation-checkpoint-case-1",
+              "visibility": "public",
+              "input": "POST|p1|Hello World\nCOMMENT|p1|c1|Nice post!\nCOMMENT|p1|c2|Great!\nVIEW|p1",
+              "expected": "OK\nOK\nOK\nHello World|2",
+              "comparison": "exact"
+            },
+            {
+              "id": "blog-moderation-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "blog-moderation-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "POST|p2|Title2\nCOMMENT|p2|c3|Body\nHIDE|c3\nHIDE|c3\nHIDE|unknown\nVIEW|p2",
+              "expected": "OK\nOK\nOK\nERROR\nERROR\nTitle2|0",
+              "comparison": "exact"
+            },
+            {
+              "id": "blog-moderation-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "POST|p3|T3\nPOST|p3|T3dup\nCOMMENT|unknownpost|c4|body\nCOMMENT|p3|c5|body1\nCOMMENT|p3|c5|body2\nVIEW|p3",
+              "expected": "OK\nERROR\nERROR\nOK\nERROR\nT3|1",
+              "comparison": "exact"
+            },
+            {
+              "id": "blog-moderation-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "POST||T\nPOST|p4|\nCOMMENT|p4|c6|\nVIEW|unknown",
+              "expected": "ERROR\nERROR\nERROR\nERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A hidden comment still exists (HIDE on it again is an error for \"already hidden\", not \"unknown\"), it just stops counting toward VIEW's visible total.",
+            "commentId uniqueness is global across every post, not scoped per post."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

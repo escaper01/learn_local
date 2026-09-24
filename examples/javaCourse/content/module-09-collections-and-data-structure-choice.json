@@ -244,6 +244,130 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "forum-vote-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: threaded vote aggregator",
+          "instructionMarkdown": "Implement VoteAggregator.run(String input) as the pure decision core behind the Forum/Reddit-Style Backend project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. POST|postId|title requires postId to match [A-Za-z0-9_-]{1,20} and not already be used (as a postId or a commentId); prints OK or ERROR. REPLY|commentId|parentId|body requires commentId to match the same id pattern and not already be used (as a postId or a commentId), parentId to already exist as a postId or a commentId, and body to be non-blank; prints OK or ERROR. VOTE|targetId|voter|value requires targetId to exist as a postId or commentId, voter to match the id pattern, and value to be exactly the string 1 or -1; if this voter already voted on this target, replace their previous vote's contribution with the new value rather than adding a second vote; prints OK or ERROR. SCORE|targetId prints the current sum of all votes on that target (which may be negative or zero) as a plain integer, or ERROR if the target does not exist. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the vote-uniqueness and aggregation core; a real forum's tree rendering and moderation are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(VoteAggregator.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "VoteAggregator.java",
+              "content": "public final class VoteAggregator {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "forum-vote-checkpoint-case-1",
+              "visibility": "public",
+              "input": "POST|p1|Hello\nVOTE|p1|alice|1\nVOTE|p1|bob|1\nSCORE|p1",
+              "expected": "OK\nOK\nOK\n2",
+              "comparison": "exact"
+            },
+            {
+              "id": "forum-vote-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "forum-vote-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "POST|p2|T\nVOTE|p2|alice|1\nVOTE|p2|alice|-1\nSCORE|p2",
+              "expected": "OK\nOK\nOK\n-1",
+              "comparison": "exact"
+            },
+            {
+              "id": "forum-vote-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "POST|p3|T3\nREPLY|c1|p3|first reply\nREPLY|c2|c1|nested reply\nREPLY|c3|unknownparent|orphan\nVOTE|c2|carol|1\nSCORE|c2\nSCORE|c3",
+              "expected": "OK\nOK\nOK\nERROR\nOK\n1\nERROR",
+              "comparison": "exact"
+            },
+            {
+              "id": "forum-vote-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "POST|p4|T4\nREPLY|c4|p4|body\nREPLY|c4|p4|dup\nVOTE|c4|dave|2\nVOTE|unknown|dave|1\nSCORE|p4",
+              "expected": "OK\nOK\nERROR\nERROR\nERROR\n0",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Changing an existing voter's value must update the aggregate by the NET difference, not simply add the new value on top of the old one.",
+            "A comment's parent can be either a post or another comment, and commentId/postId share one global namespace for uniqueness."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "chat-room-ledger-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: room-scoped message ledger",
+          "instructionMarkdown": "Implement ChatLedger.run(String input) as the pure decision core behind the Real-Time Chat Application project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. JOIN|room|user requires room and user to match [A-Za-z0-9_-]{1,20}; always prints OK, whether or not the user was already a member of that room (joining is idempotent). LEAVE|room|user prints OK and removes the user's membership only if they are currently a member of that room; otherwise ERROR. SEND|room|user|message requires the user to currently be a member of that room and message to be non-blank and at most 200 characters; on success it assigns the next id in a single global sequence starting at 1 (shared across every room) and prints OK|<id>; otherwise ERROR without assigning an id. HISTORY|room|fromId requires fromId to be a non-negative integer; prints every message ever sent to that room whose id is at least fromId, ordered by id ascending, formatted id:user:message separated by semicolons, or EMPTY if none qualify, or ERROR if fromId is malformed. A user who has since left the room still appears correctly in past history. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the room-membership and message-ordering core; the real-time WebSocket delivery and authentication are external, ungraded/self-directed scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(ChatLedger.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "ChatLedger.java",
+              "content": "public final class ChatLedger {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "chat-room-ledger-checkpoint-case-1",
+              "visibility": "public",
+              "input": "JOIN|R1|alice\nSEND|R1|alice|Hello\nHISTORY|R1|0",
+              "expected": "OK\nOK|1\n1:alice:Hello",
+              "comparison": "exact"
+            },
+            {
+              "id": "chat-room-ledger-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "chat-room-ledger-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "SEND|R2|bob|Hi\nJOIN|R2|bob\nSEND|R2|bob|Hi there\nLEAVE|R2|bob\nSEND|R2|bob|Again?\nJOIN|R2|bob\nSEND|R2|bob|Back\nHISTORY|R2|0",
+              "expected": "ERROR\nOK\nOK|1\nOK\nERROR\nOK\nOK|2\n1:bob:Hi there;2:bob:Back",
+              "comparison": "exact"
+            },
+            {
+              "id": "chat-room-ledger-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "JOIN|RA|carol\nJOIN|RB|carol\nSEND|RA|carol|MsgA1\nSEND|RB|carol|MsgB1\nSEND|RA|carol|MsgA2\nHISTORY|RA|0\nHISTORY|RA|2\nHISTORY|RB|0",
+              "expected": "OK\nOK\nOK|1\nOK|2\nOK|3\n1:carol:MsgA1;3:carol:MsgA2\n3:carol:MsgA2\n2:carol:MsgB1",
+              "comparison": "exact"
+            },
+            {
+              "id": "chat-room-ledger-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "JOIN|R3|dave\nHISTORY|R3|0\nSEND|R3|dave|\nHISTORY|R3|-1",
+              "expected": "OK\nEMPTY\nERROR\nERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "The message id sequence is global across every room, not restarted per room — trace the ids carefully across rooms in the third hidden case.",
+            "Leaving a room removes membership only; it never deletes that user's past messages from HISTORY."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

@@ -311,6 +311,130 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "resource-booking-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: resource slot booking engine",
+          "instructionMarkdown": "Implement BookingEngine.run(String input) as the pure decision core behind the Booking/Reservation System project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. BOOK|resource|slot|customer requires resource and customer to match [A-Za-z0-9_-]{1,20} and slot to be a non-negative integer; if that exact resource+slot is not currently booked, it becomes booked by this customer and prints OK; if it is already booked (by anyone), prints CONFLICT without changing the existing booking; a malformed line prints ERROR. CANCEL|resource|slot|customer prints OK and frees the slot only if that exact resource+slot is currently booked by exactly this customer; if it is booked by a different customer, or not booked at all, or malformed, prints ERROR without changing state. STATUS|resource|slot prints BOOKED:<customer> if currently booked, FREE if not, or ERROR if malformed. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the double-booking-prevention invariant; a real reservation system's transactions and concurrency are exercised by a genuine two-thread test outside this sandbox.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(BookingEngine.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "BookingEngine.java",
+              "content": "public final class BookingEngine {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "resource-booking-checkpoint-case-1",
+              "visibility": "public",
+              "input": "BOOK|R1|1|alice\nBOOK|R1|1|bob\nSTATUS|R1|1",
+              "expected": "OK\nCONFLICT\nBOOKED:alice",
+              "comparison": "exact"
+            },
+            {
+              "id": "resource-booking-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "resource-booking-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "BOOK|R2|3|alice\nCANCEL|R2|3|bob\nCANCEL|R2|3|alice\nBOOK|R2|3|carol\nSTATUS|R2|3",
+              "expected": "OK\nERROR\nOK\nOK\nBOOKED:carol",
+              "comparison": "exact"
+            },
+            {
+              "id": "resource-booking-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "CANCEL|R3|0|dave\nSTATUS|R3|0\nBOOK|R3|0|dave\nBOOK|R4|0|dave\nSTATUS|R3|0\nSTATUS|R4|0",
+              "expected": "ERROR\nFREE\nOK\nOK\nBOOKED:dave\nBOOKED:dave",
+              "comparison": "exact"
+            },
+            {
+              "id": "resource-booking-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "BOOK|R5|-1|erin\nBOOK|R5|abc|erin\nBOOK|R!5|2|erin\nSTATUS|R5|2",
+              "expected": "ERROR\nERROR\nERROR\nFREE",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A CONFLICT (someone else already booked it) is a different outcome from ERROR (malformed input); keep the two distinct.",
+            "Cancelling requires the exact customer who holds the booking; a wrong customer, or an unbooked slot, is always ERROR."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "delivery-state-machine-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: multi-actor delivery state machine",
+          "instructionMarkdown": "Implement DeliveryStateMachine.run(String input) as the pure decision core behind the Food Delivery Backend project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. Every order starts in state PLACED. ORDER|orderId|customer|restaurant requires orderId to match [A-Za-z0-9_-]{1,20} and not already exist; prints OK or ERROR. ACCEPT|orderId|actor moves an order from PLACED to ACCEPTED only if actor equals that order's restaurant and its current state is PLACED; prints OK or ERROR, leaving the state unchanged on any rejection. ASSIGN|orderId|actor|courier moves an order from ACCEPTED to READY (recording courier) only if actor equals the restaurant and the current state is ACCEPTED; prints OK or ERROR. PICKUP|orderId|actor moves an order from READY to PICKED_UP only if actor equals the assigned courier and the current state is READY; prints OK or ERROR. DELIVER|orderId|actor moves an order from PICKED_UP to DELIVERED only if actor equals the assigned courier and the current state is PICKED_UP; prints OK or ERROR. CANCEL|orderId|actor moves an order from PLACED to CANCELLED only if actor equals the customer and the current state is PLACED; prints OK or ERROR. STATUS|orderId prints the order's current state, or ERROR if the orderId does not exist. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the actor-gated transition core; a real delivery backend's item availability and routing are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(DeliveryStateMachine.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "DeliveryStateMachine.java",
+              "content": "public final class DeliveryStateMachine {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "delivery-state-machine-checkpoint-case-1",
+              "visibility": "public",
+              "input": "ORDER|O1|alice|resto1\nACCEPT|O1|resto1\nASSIGN|O1|resto1|courierX\nPICKUP|O1|courierX\nDELIVER|O1|courierX\nSTATUS|O1",
+              "expected": "OK\nOK\nOK\nOK\nOK\nDELIVERED",
+              "comparison": "exact"
+            },
+            {
+              "id": "delivery-state-machine-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "delivery-state-machine-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "ORDER|O2|alice|resto2\nACCEPT|O2|alice\nACCEPT|O2|resto2\nASSIGN|O2|alice|courierY\nASSIGN|O2|resto2|courierY\nPICKUP|O2|resto2\nPICKUP|O2|courierY\nSTATUS|O2",
+              "expected": "OK\nERROR\nOK\nERROR\nOK\nERROR\nOK\nPICKED_UP",
+              "comparison": "exact"
+            },
+            {
+              "id": "delivery-state-machine-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "ORDER|O3|bob|resto3\nCANCEL|O3|resto3\nCANCEL|O3|bob\nACCEPT|O3|resto3\nCANCEL|O3|bob\nSTATUS|O3",
+              "expected": "OK\nERROR\nOK\nERROR\nERROR\nCANCELLED",
+              "comparison": "exact"
+            },
+            {
+              "id": "delivery-state-machine-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "ORDER|O4|carol|resto4\nACCEPT|O4|resto4\nPICKUP|O4|somecourier\nSTATUS|UNKNOWN",
+              "expected": "OK\nOK\nERROR\nERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Every transition checks BOTH the correct actor identity AND the correct current state; a right actor at the wrong state (or vice versa) is still ERROR.",
+            "A rejected transition must never change the order's recorded state or assigned courier."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

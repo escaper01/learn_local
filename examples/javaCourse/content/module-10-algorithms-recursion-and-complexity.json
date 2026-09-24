@@ -327,6 +327,137 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "library-management-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: book checkout ledger",
+          "instructionMarkdown": "Implement LibraryLedger.run(String input) as the pure decision core behind the Library Management System project. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. ADD|isbn|copies registers a new title: isbn must match [A-Za-z0-9-]{1,20}, copies must be a positive integer, and the isbn must not already be registered; prints OK or ERROR. CHECKOUT|isbn|member requires the isbn to be registered, at least one available copy (copies minus currently outstanding checkouts), and that this member does not already have an outstanding checkout of this isbn; prints OK (and decrements availability) or ERROR. RETURN|isbn|member requires the member to currently have an outstanding checkout of this isbn; prints OK (increments availability) or ERROR. STATUS prints every registered isbn in ascending lexicographic order as isbn:available/total separated by semicolons, or EMPTY if none are registered. Any malformed line (wrong field count, non-numeric or non-positive copies, an isbn/member containing characters outside [A-Za-z0-9_-]) prints ERROR without changing any state. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the catalog's core invariant; a real library system's search, holds, and due dates are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(LibraryLedger.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "LibraryLedger.java",
+              "content": "public final class LibraryLedger {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "library-management-checkpoint-case-1",
+              "visibility": "public",
+              "input": "ADD|B1|2\nCHECKOUT|B1|alice\nCHECKOUT|B1|bob\nCHECKOUT|B1|carol\nSTATUS",
+              "expected": "OK\nOK\nOK\nERROR\nB1:0/2",
+              "comparison": "exact"
+            },
+            {
+              "id": "library-management-checkpoint-case-2",
+              "visibility": "public",
+              "input": "STATUS",
+              "expected": "EMPTY",
+              "comparison": "exact"
+            },
+            {
+              "id": "library-management-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "ADD|B2|1\nCHECKOUT|B2|dave\nCHECKOUT|B2|dave\nRETURN|B2|dave\nCHECKOUT|B2|dave\nSTATUS",
+              "expected": "OK\nOK\nERROR\nOK\nOK\nB2:0/1",
+              "comparison": "exact"
+            },
+            {
+              "id": "library-management-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "ADD|B3|5\nADD|B3|2\nRETURN|B3|erin\nCHECKOUT|UNKNOWN|frank\nSTATUS",
+              "expected": "OK\nERROR\nERROR\nERROR\nB3:5/5",
+              "comparison": "exact"
+            },
+            {
+              "id": "library-management-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "ADD|B9|1\n\nADD|A1|3\nBADCOMMAND|x\nADD|B9|-1\nSTATUS",
+              "expected": "OK\nOK\nERROR\nERROR\nA1:3/3;B9:1/1",
+              "comparison": "exact"
+            },
+            {
+              "id": "library-management-checkpoint-case-6",
+              "visibility": "hidden",
+              "input": "ADD|B$1|1\nADD|OK1|0\nADD|OK1|1\nCHECKOUT|OK1|gina\nSTATUS",
+              "expected": "ERROR\nERROR\nOK\nOK\nOK1:0/1",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A checkout needs BOTH an available copy and no existing outstanding loan of that isbn by the same member; check both before mutating anything.",
+            "STATUS must sort registered isbns lexicographically (ordinary String order), not by insertion order."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
+        },
+        {
+          "id": "connect-four-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: gravity-drop connect four engine",
+          "instructionMarkdown": "Implement ConnectFourEngine.run(String input) as the pure decision core behind the Online Connect Four / Battleship project (Connect Four variant). Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. The board has 6 rows (0 = top, 5 = bottom) and 7 columns (0-6). NEW|gameId|playerA|playerB requires gameId to match [A-Za-z0-9_-]{1,20} and not already exist; creates an empty board with playerA to move first; prints OK or ERROR. DROP|gameId|player|col requires gameId to exist, the game to not already be over, col to be an integer 0-6, that column to not already be full, and player to be exactly whichever of playerA/playerB owns the current turn. On success the piece falls to the lowest empty row in that column; then: if it completes four in a row (horizontally, vertically, or on either diagonal), print WIN|A or WIN|B and end the game; else if the board is now completely full (42 pieces), print DRAW and end the game; otherwise print OK and pass the turn. Any violation (wrong gameId, wrong turn, out-of-range or full column, or a move on a finished game) prints ERROR and changes nothing, including the turn. BOARD|gameId prints the 6 rows top-to-bottom, each row as 7 characters of A, B, or . left-to-right, the rows joined with '/', or ERROR if gameId does not exist. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the gravity-drop and four-in-a-row core; the real-time WebSocket delivery is external, self-directed scope this course does not teach.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(ConnectFourEngine.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "ConnectFourEngine.java",
+              "content": "public final class ConnectFourEngine {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "connect-four-checkpoint-case-1",
+              "visibility": "public",
+              "input": "NEW|C1|alice|bob\nDROP|C1|alice|3\nDROP|C1|bob|3\nBOARD|C1",
+              "expected": "OK\nOK\nOK\n......./......./......./......./...B.../...A...",
+              "comparison": "exact"
+            },
+            {
+              "id": "connect-four-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "connect-four-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "NEW|C2|alice|bob\nDROP|C2|alice|0\nDROP|C2|bob|0\nDROP|C2|alice|0\nDROP|C2|bob|0\nDROP|C2|alice|0\nDROP|C2|bob|0\nDROP|C2|alice|0\nDROP|C2|alice|1",
+              "expected": "OK\nOK\nOK\nOK\nOK\nOK\nOK\nERROR\nOK",
+              "comparison": "exact"
+            },
+            {
+              "id": "connect-four-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "NEW|C3|alice|bob\nDROP|C3|alice|0\nDROP|C3|bob|0\nDROP|C3|alice|1\nDROP|C3|bob|1\nDROP|C3|alice|2\nDROP|C3|bob|2\nDROP|C3|alice|3",
+              "expected": "OK\nOK\nOK\nOK\nOK\nOK\nOK\nWIN|A",
+              "comparison": "exact"
+            },
+            {
+              "id": "connect-four-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "NEW|C4|alice|bob\nDROP|C4|alice|7\nDROP|C4|alice|-1\nDROP|UNKNOWN|alice|0\nBOARD|UNKNOWN",
+              "expected": "OK\nERROR\nERROR\nERROR\nERROR",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "A piece always lands in the LOWEST currently-empty row of its column — track each column's next free row rather than scanning the board on every drop.",
+            "Check for four-in-a-row in all four directions from the just-placed piece; scanning the whole board from scratch every time is correct but slower than necessary."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

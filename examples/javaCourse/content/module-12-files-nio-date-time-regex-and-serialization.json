@@ -233,6 +233,68 @@
             "memoryMb": 256,
             "maxOutputKb": 64
           }
+        },
+        {
+          "id": "session-overlap-checkpoint",
+          "type": "project",
+          "title": "Portfolio checkpoint: session overlap scheduler",
+          "instructionMarkdown": "Implement SessionScheduler.run(String input) as the pure decision core behind the Study Group Web App project, using java.time.LocalDateTime for every timestamp. Each nonblank trimmed line is one command; blank lines are skipped and produce no output line. SCHEDULE|member|groupId|start|durationMinutes requires member and groupId to match [A-Za-z0-9_-]{1,20}, start to parse as an ISO-8601 local date-time such as 2024-03-10T10:00, and durationMinutes to be a positive integer; the session's interval is [start, start+durationMinutes). If this interval intersects any other interval already scheduled for the same member (regardless of group), where two half-open intervals intersect exactly when each one's start is strictly before the other's end, print CONFLICT without recording it; a malformed line prints ERROR; otherwise record it and print OK. CANCEL|member|groupId|start prints OK and removes the session only if one was recorded for exactly that member, groupId, and start; otherwise ERROR. UPCOMING|member|now (now also an ISO-8601 local date-time) prints every currently recorded session for that member whose start is not before now, sorted chronologically ascending by start, formatted groupId@start separated by semicolons, or EMPTY if none qualify. Output is one line per nonblank input line, joined with \\n, no trailing newline. This models only the overlap-detection and listing core; a real study-group app's authentication and reviews are external, ungraded scope.",
+          "starterFiles": [
+            {
+              "path": "Main.java",
+              "content": "public class Main {\n    public static void main(String[] args) throws Exception {\n        String input = new String(System.in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);\n        System.out.print(SessionScheduler.run(input));\n    }\n}\n"
+            },
+            {
+              "path": "SessionScheduler.java",
+              "content": "public final class SessionScheduler {\n    public static String run(String input) {\n        // Implement the documented command and validation contract.\n        return \"\";\n    }\n}\n"
+            }
+          ],
+          "tests": [
+            {
+              "id": "session-overlap-checkpoint-case-1",
+              "visibility": "public",
+              "input": "SCHEDULE|alice|G1|2024-03-10T10:00|60\nSCHEDULE|alice|G2|2024-03-10T11:00|30\nUPCOMING|alice|2024-03-10T09:00",
+              "expected": "OK\nOK\nG1@2024-03-10T10:00;G2@2024-03-10T11:00",
+              "comparison": "exact"
+            },
+            {
+              "id": "session-overlap-checkpoint-case-2",
+              "visibility": "public",
+              "input": "",
+              "expected": "",
+              "comparison": "exact"
+            },
+            {
+              "id": "session-overlap-checkpoint-case-3",
+              "visibility": "hidden",
+              "input": "SCHEDULE|bob|G1|2024-03-10T10:00|60\nSCHEDULE|bob|G2|2024-03-10T10:30|30\nCANCEL|bob|G1|2024-03-10T10:00\nSCHEDULE|bob|G2b|2024-03-10T10:15|60",
+              "expected": "OK\nCONFLICT\nOK\nOK",
+              "comparison": "exact"
+            },
+            {
+              "id": "session-overlap-checkpoint-case-4",
+              "visibility": "hidden",
+              "input": "CANCEL|carol|G1|2024-03-10T10:00\nSCHEDULE|carol|G1|not-a-date|60\nSCHEDULE|carol|G1|2024-03-10T10:00|0\nSCHEDULE|carol|G1|2024-03-10T10:00|60\nUPCOMING|carol|2024-03-10T09:00",
+              "expected": "ERROR\nERROR\nERROR\nOK\nG1@2024-03-10T10:00",
+              "comparison": "exact"
+            },
+            {
+              "id": "session-overlap-checkpoint-case-5",
+              "visibility": "hidden",
+              "input": "SCHEDULE|dave|G1|2024-03-10T08:00|60\nSCHEDULE|dave|G2|2024-03-10T12:00|60\nSCHEDULE|erin|G3|2024-03-10T08:00|60\nUPCOMING|dave|2024-03-10T09:00\nUPCOMING|erin|2024-03-10T09:00",
+              "expected": "OK\nOK\nOK\nG2@2024-03-10T12:00\nEMPTY",
+              "comparison": "exact"
+            }
+          ],
+          "hints": [
+            "Back-to-back sessions (one ending exactly when the other starts) do not overlap — the interval is half-open, [start, end).",
+            "UPCOMING compares against the given now parameter, never the real system clock, so results stay deterministic."
+          ],
+          "limits": {
+            "timeoutMs": 3000,
+            "memoryMb": 256,
+            "maxOutputKb": 64
+          }
         }
       ]
     }

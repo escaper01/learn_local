@@ -1,17 +1,145 @@
 # Stacks, heap, metaspace, code cache, native memory, and allocation
 
-## Memory is larger than the Java heap
-Heap holds ordinary objects; each thread has stack frames; metaspace holds class metadata; compiled native code occupies a code cache. Direct buffers, native libraries, and thread structures also consume process memory. A container limit covers the process, so setting the heap equal to the entire container limit leaves no headroom.
+"The JVM ran out of memory" is a diagnosis that is almost never precise enough to act on, because a running JVM process is made of several genuinely distinct memory regions, each with its own size limits, its own failure modes, and its own tuning flags — and confusing them (most commonly, treating "heap" as if it meant "the whole process") leads directly to a container killed by the operating system for memory it never budgeted for. This lesson maps the regions precisely, as the necessary foundation for every diagnostic and tuning lesson that follows in this chapter.
+
+What you will learn:
+
+- The heap: where ordinary objects live, and why its size is bounded but adjustable
+- Thread stacks: one per thread, holding local variables and call frames, not objects
+- Metaspace: where class metadata lives, replacing the old, fixed-size PermGen
+- The code cache: where the JIT compiler (next lesson) stores compiled native code
+- Native (off-heap) memory: direct buffers, native library allocations, and thread stacks themselves
+- Why heap usage never accounts for a JVM process's total memory footprint
+- Why sizing `-Xmx` to a container's full memory limit is a specific, common mistake
+
+## The heap: where ordinary objects live
+
+The **heap** is where every object created with `new` (and every array, and every boxed primitive) is allocated. It is the region every garbage collector in the next lesson manages, and the one most tuning advice focuses on:
+
+```text
+-Xms512m   # initial heap size
+-Xmx2g     # maximum heap size
+```
+
+`-Xmx` bounds how large the heap may grow; exceeding it (when no more memory can be reclaimed by garbage collection) is what actually produces `java.lang.OutOfMemoryError: Java heap space` — a specific, heap-scoped failure, distinct from every other memory exhaustion this lesson covers.
+
+## Thread stacks: one per thread, not shared, not for objects
+
+Each thread — every platform thread the concurrency chapter covered — has its own **stack**, a region holding local variables, method parameters, and the call chain of stack frames as methods call other methods. Stacks do not hold objects themselves, only **references** to objects (which live on the heap) and primitive values:
+
+```text
+-Xss512k   # stack size per thread
+```
+
+A thread's stack size is fixed at thread creation and is a genuinely separate memory allocation from the heap — a program that creates thousands of platform threads (exactly the anti-pattern the concurrency chapter's virtual-threads lesson argued against) multiplies that per-thread stack cost by every thread created, entirely independent of how large the heap is configured. Excessive recursion exhausting a single thread's stack produces `StackOverflowError`, a failure specific to that one thread's stack region, unrelated to the heap's own capacity.
+
+## Metaspace: class metadata, no longer a fixed-size region
+
+**Metaspace** holds the JVM's metadata about loaded classes: their structure, method bytecode, and — directly connecting to the previous chapter — everything a `Class` object and its `getDeclaredMethods()`/reflection data ultimately describe. Before Java 8, this metadata lived in a fixed-size region called PermGen, whose exhaustion (`OutOfMemoryError: PermGen space`) was a notoriously common, hard-to-tune failure, especially in application servers that reloaded web applications repeatedly (loading a fresh copy of every class each time, exactly the class-loader-leak scenario from the previous chapter). Metaspace, by contrast, is allocated from **native** memory (not the JVM heap) and grows dynamically by default, though it can still be bounded:
+
+```text
+-XX:MaxMetaspaceSize=256m
+```
+
+Metaspace exhaustion (`OutOfMemoryError: Metaspace`) today is most commonly a symptom of exactly the class-loader-leak pattern from Chapter 21: repeatedly loading new classes (a plugin reload cycle, a dynamically generated proxy class per request) without ever making the previous loader's classes eligible for garbage collection accumulates metadata for classes that should have been unloaded, growing metaspace usage without bound over the application's lifetime.
+
+## Code cache: where compiled native code lives
+
+The **code cache** stores the actual native machine code the JIT compiler (the next lesson's subject) produces when it compiles frequently executed Java bytecode into optimized native instructions. This is a genuinely separate, fixed-size-by-default region from both the heap and metaspace:
+
+```text
+-XX:ReservedCodeCacheSize=256m
+```
+
+A code cache that fills up (rare in ordinary applications, more common in ones with an enormous number of distinct methods, or heavy use of dynamically generated bytecode) causes the JIT compiler to stop compiling further methods — not a hard crash, but a silent performance regression, since methods that would otherwise have been optimized remain running in the slower, interpreted or lightly-optimized mode indefinitely.
+
+## Native (off-heap) memory: direct buffers and native library allocations
+
+Beyond the heap, stacks, metaspace, and code cache, a JVM process also uses **native memory** for several other purposes: `java.nio.ByteBuffer.allocateDirect(...)` (a "direct buffer," used heavily by high-performance I/O code, backed by memory outside the heap entirely so it can be handed to the operating system without an extra copy), memory used internally by native libraries the JVM itself links against, and thread stacks (already covered above, but worth reiterating as native, not heap, memory).
 
 ```java
-long used = Runtime.getRuntime().totalMemory()
-    - Runtime.getRuntime().freeMemory();
-System.out.println("Approximate heap use: " + used);
+// Allocated OUTSIDE the Java heap entirely; not counted against -Xmx at all.
+ByteBuffer directBuffer = ByteBuffer.allocateDirect(1024 * 1024 * 100); // 100 MB, off-heap
 ```
-This is a rough instantaneous heap estimate, not a full retained-size or process-memory measurement.
 
-## Allocation
-Object allocation is often cheap through thread-local allocation buffers, but retained graphs and allocation churn affect collection. The JVM may eliminate some allocations when observable behavior permits it; source-level new does not define an exact measured allocation cost.
+A direct buffer's backing memory is reclaimed only when the `ByteBuffer` object itself (the small on-heap wrapper referencing the off-heap memory) becomes unreachable and is garbage collected — meaning off-heap memory usage can lag behind what heap occupancy alone would suggest, and an application allocating many direct buffers without bound can exhaust the operating system's available memory while heap usage graphs look entirely healthy.
+
+## Why heap usage never accounts for total process memory
+
+Putting the full picture together answers this chapter's first concept-check question directly: a running JVM process's total memory footprint is the **sum** of the heap, every thread's stack, metaspace, the code cache, and all native/off-heap allocations — never the heap alone:
+
+```text
+Total JVM process memory ≈
+    heap (bounded by -Xmx)
+  + (thread count × stack size, bounded by -Xss per thread)
+  + metaspace (bounded by -XX:MaxMetaspaceSize, if set)
+  + code cache (bounded by -XX:ReservedCodeCacheSize)
+  + native/off-heap allocations (direct buffers, native library memory, JVM internal structures)
+```
+
+Monitoring only heap usage (a common default in a basic dashboard) can look perfectly healthy — comfortably under `-Xmx` — while the process's actual resident memory, as the operating system sees it, is meaningfully larger, and it is that OS-visible total that a container's memory limit and the OS's own out-of-memory killer actually enforce, not `-Xmx` alone.
+
+## The specific mistake: sizing -Xmx to the container's full memory limit
+
+This chapter's third concept-check option names a real, common mistake directly: setting `-Xmx` equal to a container's entire memory limit (say, `-Xmx2g` in a container capped at 2 GiB) leaves **no headroom** for every other region this lesson just covered — thread stacks, metaspace, code cache, and native/off-heap memory all still need to fit within that same 2 GiB, on top of whatever the heap is actually using. The predictable outcome is the container's memory limit being exceeded by the process's *total* footprint even while heap usage alone stays comfortably under `-Xmx`, and the container runtime's own out-of-memory killer terminating the process abruptly — an event that shows up in container orchestration logs, not as a Java `OutOfMemoryError` at all, which makes it a specifically confusing failure to diagnose without understanding this lesson's full memory-region picture.
+
+```text
+Container memory limit: 2 GiB
+-Xmx set to: 2g               <- leaves ~0 headroom for stacks, metaspace, code cache, native memory
+Actual safe practice: -Xmx set to a fraction (commonly 50-75%) of the container
+limit, leaving explicit headroom for everything else — or, on modern JVMs,
+letting -XX:MaxRAMPercentage (container-aware by default since Java 10+)
+choose a heap size as a percentage of the detected container limit instead
+of an absolute value, still leaving deliberate headroom below 100%.
+```
+
+`-XX:MaxRAMPercentage=75.0` (or an equivalent explicit `-Xmx` well below the container's full limit) is the practical fix — treating the container's memory limit as a budget the heap must share with every other region, not a number `-Xmx` alone is entitled to consume completely.
+
+## What happens under the hood: from allocation to a region-specific failure
+
+1. `new SomeObject()` allocates space on the heap; if the heap's current generation (next lesson) has no room and garbage collection cannot free enough, the JVM throws `OutOfMemoryError: Java heap space`, a failure scoped specifically to the heap.
+2. A method call pushes a new frame onto the calling thread's own stack, holding its local variables and return address; deep enough recursion exhausts that one thread's stack specifically, throwing `StackOverflowError` without affecting the heap or any other thread's stack at all.
+3. Loading a new class (an ordinary class, a dynamically generated proxy, a plugin's classes from the previous chapter) allocates its metadata in metaspace, native memory outside the heap; metaspace exhaustion throws `OutOfMemoryError: Metaspace`.
+4. The JIT compiler (next lesson) writes compiled native code into the code cache as it decides methods are hot enough to optimize; a full code cache does not throw an exception at all, it simply stops further compilation, a silent performance-only effect.
+5. `ByteBuffer.allocateDirect` and various native library calls allocate memory the operating system tracks against the process but the JVM heap accounting never sees directly; exhausting this can manifest as `OutOfMemoryError: Direct buffer memory` for direct buffers specifically, or as an OS-level allocation failure or an OOM-killer termination for other native allocations, depending on exactly what ran out.
+
+## Common mistakes
+
+**Mistake 1: treating heap usage as the whole story for a JVM process's memory footprint.** A process can be killed by an OS out-of-memory condition while heap graphs show comfortable headroom, because stacks, metaspace, code cache, and native memory are not part of that heap accounting at all. Fix: monitor and budget for the process's total resident memory, not heap usage alone.
+
+**Mistake 2: setting `-Xmx` to a container's entire memory limit.** This leaves no room for the other memory regions every JVM process still needs, and the container's OOM killer terminates the process for memory `-Xmx` never accounted for as heap. Fix: size the heap as a deliberate fraction of the container limit (via an explicit `-Xmx` well under the limit, or `-XX:MaxRAMPercentage`), leaving genuine headroom.
+
+**Mistake 3: diagnosing a metaspace exhaustion as an ordinary heap leak.** The two are separate regions with separate causes (metaspace growth typically points to a class-loading or class-loader-leak problem, not an ordinary object-retention problem). Fix: read the specific `OutOfMemoryError` message (`Java heap space` versus `Metaspace` versus `Direct buffer memory`) before assuming which region is actually exhausted.
+
+## Best practices
+
+- Budget a JVM process's memory as the sum of heap, stacks, metaspace, code cache, and native/off-heap memory — never heap alone.
+- Leave deliberate headroom between `-Xmx` and a container's full memory limit, or use a container-aware percentage-based flag instead of an absolute value at the limit.
+- Read the specific text of an `OutOfMemoryError` (heap space, metaspace, direct buffer memory) as the first diagnostic step, since each names a genuinely different region and a different likely cause.
+- Watch metaspace growth specifically as a signal worth investigating for a class-loading or class-loader-leak problem, independent of ordinary heap object retention.
+- Track direct-buffer and other native allocations separately from heap usage when diagnosing memory growth that heap graphs alone do not explain.
+
+## Summary
+
+- A JVM process's memory is the sum of the heap, per-thread stacks, metaspace, the code cache, and native/off-heap allocations — never heap usage alone.
+- The heap holds ordinary objects and is bounded by `-Xmx`; stacks hold local variables and call frames per thread, bounded by `-Xss` each; metaspace holds class metadata in native memory, replacing the old fixed-size PermGen; the code cache holds JIT-compiled native code.
+- Each region fails independently and distinctly: `OutOfMemoryError: Java heap space`, `StackOverflowError`, `OutOfMemoryError: Metaspace`, a silently-stopped JIT compiler, or an OS-level/OOM-killer termination for exhausted native memory.
+- Sizing `-Xmx` to a container's entire memory limit leaves no headroom for the other regions, a specific and common cause of a container being killed for memory the heap accounting never saw.
+- Metaspace growth under stable load commonly points to a class-loading or class-loader-leak problem, connecting directly to the previous chapter's plugin-architecture material.
 
 ## Practice
-Compare heap measurements with process memory during a controlled load. Distinguish heap exhaustion, native-thread failure, metaspace growth, and direct-buffer pressure. Do not prescribe larger -Xmx for every OutOfMemoryError; identify the exhausted resource and retaining or workload cause.
+
+1. **Warm-up:** Explain why a JVM process can be terminated by a container's out-of-memory killer even while its heap usage graph stays comfortably under `-Xmx`.
+2. **Warm-up:** A `StackOverflowError` occurs in one thread of a multi-threaded application. Explain why this does not indicate the heap or any other thread's stack is exhausted.
+3. **Core:** Configure a small application with an explicit `-Xmx`, `-Xss`, and `-XX:MaxMetaspaceSize`, and use a monitoring tool (or simple logging of `Runtime.getRuntime()` memory methods) to observe heap usage separately from the process's total resident memory as reported by the operating system.
+4. **Core:** Write a small program that repeatedly loads new classes via a fresh `URLClassLoader` each time (without ever releasing references to the old ones), and observe metaspace usage growing without bound.
+5. **Challenge:** Size a container's memory limit and a JVM's `-Xmx`/`-XX:MaxRAMPercentage` deliberately, leaving headroom for stacks, metaspace, and native memory, and justify the specific numbers chosen based on the application's actual thread count and expected class-loading behavior.
+
+## Check your understanding
+
+1. Name the five memory regions this lesson covers, and which one each specific kind of allocation (an object, a local variable, a loaded class's metadata, JIT-compiled code, a direct buffer) belongs to.
+2. Why does monitoring only heap usage fail to predict whether a JVM process might be killed for exceeding a container's memory limit?
+3. What specifically replaced PermGen, and what is the practical difference in how it is sized?
+4. What happens when the code cache fills up, and why is that failure mode different in kind from an `OutOfMemoryError`?
+5. Why can a program's off-heap (direct buffer) memory usage lag behind what its heap occupancy alone would suggest?
+6. Why is setting `-Xmx` equal to a container's full memory limit a specific, diagnosable mistake, and what is the practical fix?
