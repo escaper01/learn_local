@@ -1,0 +1,15 @@
+{
+  "id": "blog-backend",
+  "title": "Post-Course Portfolio: Blog Backend",
+  "descriptionMarkdown": "# Blog Backend\n\n## Position in the curriculum\nPost-course portfolio expansion: build after finishing the full curriculum through the final capstone, and after (or alongside) the simpler URL Shortener/Notes Web App entries. This is the first catalog entry with a genuine entity relationship (a post has many comments), which is exactly where N+1 queries and lazy-fetching mistakes first become possible.\n\n## Already-proven foundation\nChapter 24's JPA lesson already required you to reproduce and fix an N+1 query with `JOIN FETCH`. This project is where that specific, easy-to-miss bug has room to actually occur across a real `Post`/`Comment` relationship, not a contrived two-line example.\n\n## Project scope\nModel `Author`, `Post` (title, body, published-at, author), and `Comment` (post, author name, body) with a `Post`-to-`Comment` one-to-many relationship, `LAZY` by default. Endpoints: create/list/get a post, add a comment to a post, and a `GET /api/posts/{id}` that returns the post together with its comments in a single response DTO. Deliberately reproduce the N+1 problem first (loop over a list of posts, access `.getComments()` on each), observe it with SQL logging, then fix it with an explicit `JOIN FETCH` query for the one endpoint that actually needs comments eagerly. Support a `PUT` to update a post's own fields without touching its comments, and reject an attempt to publish a post with a blank title via Bean Validation.\n\n## Required evidence\n- SQL-logging evidence (before and after) showing the N+1 query pattern and its fix reducing the query count for the same endpoint.\n- A `@DataJpaTest` for the `JOIN FETCH` query confirming it returns posts with comments populated in one round trip.\n- A test confirming a post's DTO never accidentally exposes the author's internal entity fields (only the fields the DTO declares).\n- A `@WebMvcTest` for the comment-creation endpoint's validation (a blank comment body is rejected with 400).\n- A short written note explaining, for one specific endpoint, why `LAZY` is the right default and why that one endpoint specifically needed `JOIN FETCH` instead.\n\n## Review and completion\nA reviewer asks you to add a `GET /api/posts` list endpoint and predicts, before you write it, whether your existing entity mapping will produce an N+1 query for it — then checks your SQL log to see if the prediction was right and, if so, asks you to fix it the same way.",
+  "learningObjectives": [
+    "Model and query a one-to-many JPA relationship correctly",
+    "Reproduce a genuine N+1 query with SQL logging, then fix it with JOIN FETCH for exactly the endpoint that needs it",
+    "Keep response DTOs separate from entities across a relationship, not just a single flat entity",
+    "Apply Bean Validation to a nested creation request (a comment attached to a post)",
+    "Predict, before writing a new endpoint, whether it will reproduce a known query-performance mistake"
+  ],
+  "checkpointExerciseIds": [
+    "java-developer-capstone"
+  ]
+}

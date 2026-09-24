@@ -1,0 +1,15 @@
+{
+  "id": "url-shortener",
+  "title": "Post-Course Portfolio: URL Shortener",
+  "descriptionMarkdown": "# URL Shortener\n\n## Position in the curriculum\nThis belongs to the post-course portfolio expansion catalog: build it after finishing the full 25-chapter curriculum, including the final capstone. It is the simplest entry in the catalog and a good first Spring Boot project, since it needs exactly one entity and no relationships.\n\n## Already-proven foundation\nThe final capstone already proved you can build a validated, tested command core and reason about its persistence and HTTP boundaries. This project is where that same discipline first meets a real, running Spring Boot application instead of an in-memory simulation.\n\n## Project scope\nA `POST /api/links` endpoint accepts a long URL (validated with Bean Validation: non-blank, a syntactically valid URL, a maximum length), generates a short, collision-resistant code, persists the mapping via Spring Data JPA, and returns `201 Created` with the short code. A `GET /{code}` endpoint looks up the mapping and responds with `302 Found` and a `Location` header pointing at the original URL, or `404` if the code is unknown. Enforce short-code uniqueness with a real database `UNIQUE` constraint, not just an application-level check. Add a `GET /api/links/{code}/stats` endpoint returning a click count, incremented atomically on every successful redirect. Keep the DTOs (request/response shapes) separate from the JPA entity, exactly as Chapter 24 requires.\n\n## Required evidence\n- A `@DataJpaTest` for the repository's uniqueness constraint and lookup-by-code query.\n- A `@WebMvcTest` for the controller's validation behavior (a blank or malformed URL returns 400 with a structured error body).\n- A migration (Flyway or Liquibase) creating the mapping table with its unique constraint, applied through the migration tool, never by hand.\n- A concurrency test firing many simultaneous redirects at the same code and confirming the click counter's final value is exactly correct, not undercounted by a lost update.\n- A README with the exact commands to build, migrate, and run the service from a clean checkout.\n\n## Review and completion\nA reviewer submits the same long URL twice and asks whether your design produces the same short code both times or two different ones, and to justify the choice. They then submit a deliberately malformed URL and a URL far past your declared length limit, expecting a clear 400 response with no stack trace ever reaching the client.",
+  "learningObjectives": [
+    "Build a single-entity Spring Boot REST resource with a validated DTO separate from its JPA entity",
+    "Enforce uniqueness with a real database constraint rather than an application-only check",
+    "Use the correct HTTP status and header for a redirect versus a not-found lookup",
+    "Write and run @WebMvcTest and @DataJpaTest slices for the same feature",
+    "Manage schema changes through a versioned migration tool from the very first commit"
+  ],
+  "checkpointExerciseIds": [
+    "java-developer-capstone"
+  ]
+}
