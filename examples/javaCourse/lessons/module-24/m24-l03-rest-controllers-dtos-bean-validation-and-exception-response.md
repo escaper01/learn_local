@@ -82,7 +82,7 @@ This chapter's concept-check question states the essential limit precisely: `@Va
 A well-designed REST API translates internal exceptions into structured, correctly-statused JSON error responses, rather than leaking a raw stack trace (exactly Chapter 23's "verbose error pages" insecure-default warning) or returning a generic `500` for every failure regardless of its actual nature:
 
 ```java
-@ControllerAdvice // applies across every controller in the application
+@RestControllerAdvice // @ControllerAdvice + @ResponseBody, applied across every controller
 public class ApiExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException.class)
@@ -109,7 +109,9 @@ public class ApiExceptionHandler {
 }
 ```
 
-`@ControllerAdvice` centralizes this translation across every controller, rather than repeating try/catch boilerplate in each one — one place maps each specific exception type to its correct HTTP status and a structured, client-safe error body. The catch-all `Exception` handler at the end is exactly the security-conscious pattern Chapter 23 established: log the *full* internal detail server-side (a stack trace, exact failure context, useful for debugging) while returning only a generic, non-revealing message to the client — the difference between an error response that helps a legitimate developer debug their own request (a specific validation message) and one that would help an attacker map your internal implementation (a raw stack trace or an internal exception class name).
+`@RestControllerAdvice` is to `@ControllerAdvice` exactly what `@RestController` is to `@Controller`: it adds `@ResponseBody` semantics to every handler method in the class, so each method's return value is serialized directly into the response body (JSON, via the same `HttpMessageConverter` machinery a controller uses) instead of being resolved as a view name. Using plain `@ControllerAdvice` here, in an application with no view templates configured (the ordinary case for a JSON API), does not throw a clear error — Spring MVC treats the handler's returned `ErrorResponse` as a view name to look up, finds no matching view or static resource, and the request ends up failing with a confusing, unrelated `404 Not Found` instead of the intended `400`/`404`/`500` with the structured JSON body this method was written to produce. `@RestControllerAdvice` (or adding `@ResponseBody` to each individual `@ExceptionHandler` method) is what actually makes the intended behavior happen.
+
+`@RestControllerAdvice` centralizes this translation across every controller, rather than repeating try/catch boilerplate in each one — one place maps each specific exception type to its correct HTTP status and a structured, client-safe error body. The catch-all `Exception` handler at the end is exactly the security-conscious pattern Chapter 23 established: log the *full* internal detail server-side (a stack trace, exact failure context, useful for debugging) while returning only a generic, non-revealing message to the client — the difference between an error response that helps a legitimate developer debug their own request (a specific validation message) and one that would help an attacker map your internal implementation (a raw stack trace or an internal exception class name).
 
 ## Keeping controllers thin
 
@@ -140,15 +142,17 @@ This is directly Chapter 20's hexagonal-architecture separation, applied to a we
 
 **Mistake 2: assuming `@Valid` passing means the caller is authenticated or authorized.** Bean Validation checks only the request's declared shape constraints, nothing about identity or permission. Fix: enforce authentication and object-level authorization as entirely separate controls, in the service layer or via Spring Security, never substituted for by `@Valid`.
 
-**Mistake 3: letting an unhandled exception propagate as a raw stack trace to the client.** This is exactly Chapter 23's "verbose error pages" insecure default. Fix: use `@ControllerAdvice` to translate every exception into a structured, correctly-statused, client-safe error response, logging full detail only server-side.
+**Mistake 3: letting an unhandled exception propagate as a raw stack trace to the client.** This is exactly Chapter 23's "verbose error pages" insecure default. Fix: use `@RestControllerAdvice` to translate every exception into a structured, correctly-statused, client-safe error response, logging full detail only server-side.
 
 **Mistake 4: putting business logic (authorization decisions, domain rules, multi-step transactions) directly in controller methods.** This makes the logic hard to unit-test without a running HTTP server and blurs the adapter/domain boundary Chapter 20 established. Fix: keep controllers thin, delegating all real logic to the service layer.
+
+**Mistake 5: using plain `@ControllerAdvice` (without `@ResponseBody`) in a JSON API.** The handler's return value is resolved as a view name instead of serialized as JSON, typically surfacing as a confusing, unrelated `404 Not Found` rather than the intended structured error response. Fix: use `@RestControllerAdvice`, or add `@ResponseBody` to each `@ExceptionHandler` method.
 
 ## Best practices
 
 - Keep DTOs separate from domain and JPA entities at every controller boundary, translating explicitly between them.
 - Use `@Valid` and Bean Validation constraints to check request shape, and enforce authentication/authorization as entirely separate, explicit controls.
-- Centralize exception-to-HTTP-response translation in a `@ControllerAdvice`, mapping each specific exception type to its correct status and a client-safe message.
+- Centralize exception-to-HTTP-response translation in a `@RestControllerAdvice` (not plain `@ControllerAdvice`, which resolves return values as view names instead of JSON), mapping each specific exception type to its correct status and a client-safe message.
 - Log full exception detail server-side while returning only generic, non-revealing messages to clients for unexpected failures.
 - Keep controller methods thin: bind, delegate to the service layer, return — with business logic living in services that remain testable without a running HTTP server.
 
@@ -164,7 +168,7 @@ This is directly Chapter 20's hexagonal-architecture separation, applied to a we
 
 1. **Warm-up:** Explain precisely why a request passing every `@Valid` constraint could still come from a caller who should not be permitted to perform the requested action at all.
 2. **Warm-up:** A controller method returns a JPA entity directly instead of a DTO. Describe one concrete way this could break or leak information that a dedicated DTO would have prevented.
-3. **Core:** Build a small controller with a `@Valid`-annotated request DTO, at least two Bean Validation constraints, and a `@ControllerAdvice` mapping both a validation failure and a custom not-found exception to their correct HTTP statuses.
+3. **Core:** Build a small controller with a `@Valid`-annotated request DTO, at least two Bean Validation constraints, and a `@RestControllerAdvice` mapping both a validation failure and a custom not-found exception to their correct HTTP statuses; confirm the response body is genuine JSON, not a `404` from a misresolved view name.
 4. **Core:** Write a unit test for the underlying service method (not the controller) that confirms an authorization check rejects a caller attempting to act on a resource they do not own, entirely without starting an HTTP server.
 5. **Challenge:** Design a complete error-response contract (a consistent JSON shape for every error type) for a small API, and implement `@ExceptionHandler`s covering validation failure, not-found, an authorization failure, and an unexpected internal error, each mapped to its correct status and message.
 
@@ -172,7 +176,8 @@ This is directly Chapter 20's hexagonal-architecture separation, applied to a we
 
 1. What does `@Valid` on a controller parameter actually check, and what does a successful validation say about the caller's identity or permissions?
 2. Why should a controller's return type be a dedicated DTO rather than a JPA entity or domain object directly?
-3. What is the purpose of `@ControllerAdvice`, and why is centralizing exception handling better than repeating try/catch logic per controller?
+3. What is the purpose of `@ControllerAdvice`/`@RestControllerAdvice`, and why is centralizing exception handling better than repeating try/catch logic per controller?
+7. Why does using plain `@ControllerAdvice` instead of `@RestControllerAdvice` in a JSON API typically surface as a confusing `404 Not Found`, rather than as an obvious error naming the actual problem?
 4. Why should an unexpected internal error's full detail be logged server-side but not included in the client-facing response?
 5. Why does keeping a controller "thin" make the underlying business logic easier to test?
 6. If a request is well-formed and passes every Bean Validation constraint, what two separate concerns (named in this and earlier chapters) still need to be checked before the action should actually be permitted?

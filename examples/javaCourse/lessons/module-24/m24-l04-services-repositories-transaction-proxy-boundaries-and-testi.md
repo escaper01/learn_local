@@ -88,6 +88,8 @@ The correct fix, once the mechanism is understood, is straightforward: route the
 @Service
 public class OrderService {
     @Autowired
+    @Lazy // required: without it, Spring's default circular-reference check refuses to
+          // start at all, since this field's type is the bean currently being created
     private OrderService self; // Spring injects the PROXY here, not the raw instance
 
     public void completeOrderIfEligible(Long orderId) {
@@ -112,6 +114,8 @@ public class OrderCompletionEligibilityChecker {
     }
 }
 ```
+
+The `@Lazy` on the self-injected field is not optional decoration: without it, Spring Boot's default circular-reference protection (on since Spring Boot 2.6) refuses to start the application at all, reporting `AccountService` as depending on itself in an unresolvable cycle — because eagerly injecting a bean into its own field while that same bean is still being constructed is exactly the circular dependency the container is checking for. `@Lazy` breaks the cycle by injecting a proxy that only resolves the real (fully-constructed) bean the first time `self` is actually used, not during construction — a real, verified requirement for this pattern on a modern Spring Boot version, not a stylistic preference.
 
 This chapter's own judgment question makes the testing implication explicit: for a `@Transactional` method reached through `this`, the right thing to verify is **whether the call actually crosses the configured proxy and transaction boundary** — not merely whether the `@Transactional` annotation's text is present on the method (it can be present and still silently ignored, exactly as shown above), and not whether the method happens to be short. A genuine integration test — one that actually runs against Spring's container and a real (or realistically embedded) database, deliberately forcing a failure partway through a self-invoked call chain and checking whether a rollback genuinely occurred — is the only way to verify this specific behavior; a plain unit test calling the method directly on a bare `new OrderService(...)` instance, with no proxy involved at all, cannot expose this bug either way, since there is no proxy to bypass in the first place.
 
