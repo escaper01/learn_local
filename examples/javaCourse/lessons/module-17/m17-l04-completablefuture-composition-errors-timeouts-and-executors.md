@@ -172,7 +172,7 @@ public class ErrorHandling {
 
             // exceptionally: supply a fallback only on failure
             CompletableFuture<Integer> withFallback = CompletableFuture
-                    .supplyAsync(() -> { throw new IllegalStateException("pricing service down"); }, pool)
+                    .<Integer>supplyAsync(() -> { throw new IllegalStateException("pricing service down"); }, pool)
                     .exceptionally(ex -> {
                         System.out.println("recovered from: " + ex.getCause().getMessage());
                         return -1;
@@ -198,6 +198,7 @@ public class ErrorHandling {
 
 ```text
 recovered from: pricing service down
+fallback result: -1
 handled failure: java.lang.ArithmeticException: / by zero
 observed value=42 ex=null
 observed still returns: 42
