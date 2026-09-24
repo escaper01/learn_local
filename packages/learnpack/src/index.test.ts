@@ -62,7 +62,7 @@ describe("LearnPack semantic validation", () => {
       id: "java-developer-academy-21",
       moduleCount: 25,
       lessonCount: 152,
-      exerciseCount: 208
+      exerciseCount: 226
     });
 
     const modules = source.modules.map((module, index) => ({ ...module, description: (entries.get(manifest.modules[index]!) as { description: string }).description }));
@@ -95,7 +95,7 @@ describe("LearnPack semantic validation", () => {
       id: "java-developer-academy-21",
       moduleCount: 25,
       lessonCount: 152,
-      exerciseCount: 208
+      exerciseCount: 226
     });
   });
 
