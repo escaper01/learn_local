@@ -1,14 +1,12 @@
-import { copyFile, mkdir, readFile, readdir, rm, rmdir, stat, writeFile } from "node:fs/promises";
-import { dirname, join, relative, resolve } from "node:path";
+import { lstat, mkdir, readFile, readdir, realpath, rm, rmdir, stat, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
-import yauzl, { type Entry, type ZipFile } from "yauzl";
 import { AppError, type CourseView, type ImportedCourseSummary, type ValidationIssue } from "@learnlocal/contracts";
 import manifestSchema from "../schema/manifest.schema.json";
 import moduleSchema from "../schema/module.schema.json";
 import projectSchema from "../schema/project.schema.json";
 
-const MAX_ARCHIVE_BYTES = 50 * 1024 * 1024;
 const MAX_EXPANDED_BYTES = 100 * 1024 * 1024;
 const MAX_ENTRY_BYTES = 5 * 1024 * 1024;
 const MAX_ENTRIES = 500;
@@ -172,103 +170,83 @@ export async function scaffoldLearnPackFromManifest(manifestPath: string): Promi
   return { courseId: value.id, root, created, existing };
 }
 
-function assertEntryAllowed(entry: Entry, normalizedPath: string, seen: Set<string>, state: { count: number; expanded: number }): void {
-  state.count += 1;
-  state.expanded += entry.uncompressedSize;
-  if (state.count > MAX_ENTRIES) throw new AppError("PACK_ENTRY_LIMIT", "validation", `LearnPack has more than ${MAX_ENTRIES} entries.`);
-  if (state.expanded > MAX_EXPANDED_BYTES) throw new AppError("PACK_EXPANDED_SIZE_LIMIT", "validation", "LearnPack expands beyond the 100 MB safety limit.");
-  if (!isSafeArchivePath(normalizedPath)) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe archive path: ${entry.fileName}`);
-  if (seen.has(normalizedPath)) throw new AppError("PACK_DUPLICATE_PATH", "validation", `Duplicate archive path: ${normalizedPath}`);
-  seen.add(normalizedPath);
-
-  const unixMode = (entry.externalFileAttributes >>> 16) & 0xffff;
-  if ((unixMode & 0o170000) === 0o120000) throw new AppError("PACK_SYMLINK_NOT_ALLOWED", "validation", `Symbolic links are not allowed: ${entry.fileName}`);
-  if (FORBIDDEN_EXTENSIONS.has(extension(normalizedPath))) throw new AppError("PACK_EXECUTABLE_NOT_ALLOWED", "validation", `Executable content is not allowed: ${normalizedPath}`);
-  if (entry.uncompressedSize > MAX_ENTRY_BYTES) throw new AppError("PACK_ENTRY_SIZE_LIMIT", "validation", `Archive entry is too large: ${entry.fileName}`);
+interface DirectoryFileEntry {
+  relativePath: string;
+  absolutePath: string;
+  sizeBytes: number;
 }
 
-function openZip(path: string): Promise<ZipFile> {
-  return new Promise((resolve, reject) => {
-    yauzl.open(path, { lazyEntries: true, autoClose: true, strictFileNames: false, validateEntrySizes: true }, (error, zip) => {
-      if (error || !zip) reject(error ?? new Error("Unable to open ZIP archive."));
-      else resolve(zip);
-    });
-  });
-}
+// Walks the imported folder from a realpath'd root so every entry's containment check
+// is verified against the fully-resolved base, not just the string the user selected.
+async function collectDirectoryFiles(root: string): Promise<DirectoryFileEntry[]> {
+  const resolvedRoot = await realpath(resolve(root));
+  const results: DirectoryFileEntry[] = [];
 
-function readEntry(zip: ZipFile, entry: Entry): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    zip.openReadStream(entry, (error, stream) => {
-      if (error || !stream) {
-        reject(error ?? new Error(`Unable to read ${entry.fileName}.`));
-        return;
+  async function walk(currentAbsolute: string, currentRelative: string): Promise<void> {
+    const entries = await readdir(currentAbsolute, { withFileTypes: true });
+    for (const entry of entries) {
+      const entryAbsolute = join(currentAbsolute, entry.name);
+      const entryRelative = currentRelative ? `${currentRelative}/${entry.name}` : entry.name;
+      const info = await lstat(entryAbsolute);
+      if (info.isSymbolicLink()) throw new AppError("PACK_SYMLINK_NOT_ALLOWED", "validation", `Symbolic links are not allowed: ${entryRelative}`);
+      const resolvedEntry = await realpath(entryAbsolute);
+      const resolvedRelative = relative(resolvedRoot, resolvedEntry);
+      if (resolvedRelative.startsWith("..") || isAbsolute(resolvedRelative)) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe archive path: ${entryRelative}`);
+      if (info.isDirectory()) {
+        await walk(entryAbsolute, entryRelative);
+      } else if (info.isFile()) {
+        results.push({ relativePath: entryRelative, absolutePath: entryAbsolute, sizeBytes: info.size });
+      } else {
+        throw new AppError("PACK_UNSUPPORTED_ENTRY", "validation", `Unsupported file type: ${entryRelative}`);
       }
-      const chunks: Buffer[] = [];
-      let size = 0;
-      stream.on("data", (chunk: Buffer) => {
-        size += chunk.byteLength;
-        if (size > MAX_ENTRY_BYTES) stream.destroy(new Error("Archive entry exceeded its declared safety limit."));
-        else chunks.push(chunk);
-      });
-      stream.once("error", reject);
-      stream.once("end", () => resolve(Buffer.concat(chunks)));
-    });
-  });
+    }
+  }
+
+  await walk(resolvedRoot, "");
+  return results;
 }
 
-// JSON entries are parsed; Markdown entries are kept as text for lessons that reference them.
-async function readArchiveEntries(path: string): Promise<Map<string, unknown>> {
-  const archive = await stat(path);
-  if (!archive.isFile() || archive.size > MAX_ARCHIVE_BYTES) {
-    throw new AppError("PACK_ARCHIVE_SIZE_LIMIT", "validation", "LearnPack must be a file no larger than 50 MB.");
+// JSON files are parsed; Markdown files are kept as text for lessons that reference them.
+async function readDirectoryEntries(rootPath: string): Promise<Map<string, unknown>> {
+  let root;
+  try {
+    root = await stat(rootPath);
+  } catch {
+    throw new AppError("PACK_NOT_DIRECTORY", "validation", "Select a LearnPack course folder.");
   }
-  const zip = await openZip(path);
+  if (!root.isDirectory()) throw new AppError("PACK_NOT_DIRECTORY", "validation", "Select a LearnPack course folder.");
+
+  const files = await collectDirectoryFiles(rootPath);
   const values = new Map<string, unknown>();
   const seen = new Set<string>();
-  const limits = { count: 0, expanded: 0 };
+  const state = { count: 0, expanded: 0 };
 
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    const fail = (error: unknown) => {
-      if (settled) return;
-      settled = true;
-      zip.close();
-      reject(error);
-    };
-    zip.once("error", fail);
-    zip.once("end", () => {
-      if (!settled) {
-        settled = true;
-        resolve(values);
+  for (const file of files) {
+    if (!isSafeArchivePath(file.relativePath)) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe archive path: ${file.relativePath}`);
+    state.count += 1;
+    if (state.count > MAX_ENTRIES) throw new AppError("PACK_ENTRY_LIMIT", "validation", `LearnPack has more than ${MAX_ENTRIES} entries.`);
+    if (seen.has(file.relativePath)) throw new AppError("PACK_DUPLICATE_PATH", "validation", `Duplicate archive path: ${file.relativePath}`);
+    seen.add(file.relativePath);
+
+    const fileExtension = extension(file.relativePath);
+    if (FORBIDDEN_EXTENSIONS.has(fileExtension)) throw new AppError("PACK_EXECUTABLE_NOT_ALLOWED", "validation", `Executable content is not allowed: ${file.relativePath}`);
+    if (file.sizeBytes > MAX_ENTRY_BYTES) throw new AppError("PACK_ENTRY_SIZE_LIMIT", "validation", `Archive entry is too large: ${file.relativePath}`);
+    state.expanded += file.sizeBytes;
+    if (state.expanded > MAX_EXPANDED_BYTES) throw new AppError("PACK_EXPANDED_SIZE_LIMIT", "validation", "LearnPack expands beyond the 100 MB safety limit.");
+
+    if (fileExtension === ".json") {
+      const content = await readFile(file.absolutePath, "utf8");
+      try {
+        values.set(file.relativePath, JSON.parse(content) as unknown);
+      } catch {
+        throw new AppError("PACK_INVALID_JSON", "validation", `Invalid JSON in ${file.relativePath}.`, { file: file.relativePath });
       }
-    });
-    zip.on("entry", (entry) => {
-      void (async () => {
-        try {
-          const normalizedPath = normalizeArchivePath(entry.fileName);
-          if (normalizedPath.endsWith("/")) {
-            zip.readEntry();
-            return;
-          }
-          assertEntryAllowed(entry, normalizedPath, seen, limits);
-          if (extension(normalizedPath) === ".json") {
-            const content = await readEntry(zip, entry);
-            try {
-              values.set(normalizedPath, JSON.parse(content.toString("utf8")) as unknown);
-            } catch {
-              throw new AppError("PACK_INVALID_JSON", "validation", `Invalid JSON in ${normalizedPath}.`, { file: normalizedPath });
-            }
-          } else if (extension(normalizedPath) === ".md") {
-            values.set(normalizedPath, (await readEntry(zip, entry)).toString("utf8").replace(/^﻿/, ""));
-          }
-          zip.readEntry();
-        } catch (error) {
-          fail(error);
-        }
-      })();
-    });
-    zip.readEntry();
-  });
+    } else if (fileExtension === ".md") {
+      values.set(file.relativePath, (await readFile(file.absolutePath, "utf8")).replace(/^﻿/, ""));
+    }
+  }
+
+  return values;
 }
 
 export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, importedAt = new Date().toISOString()): ValidatedLearnPack {
@@ -425,19 +403,14 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
 }
 
 export async function inspectLearnPack(path: string): Promise<ValidatedLearnPack> {
-  if (!path.toLowerCase().endsWith(".learnpack")) throw new AppError("PACK_EXTENSION_INVALID", "validation", "Select a .learnpack file.");
-  return validateLearnPackContent(await readArchiveEntries(path));
+  return validateLearnPackContent(await readDirectoryEntries(path));
 }
 
 export async function importLearnPack(path: string, libraryDirectory: string): Promise<ValidatedLearnPack> {
   const validated = await inspectLearnPack(path);
   const courseDirectory = join(libraryDirectory, validated.manifest.id);
   await mkdir(courseDirectory, { recursive: true });
-  const baseName = validated.manifest.version;
-  await Promise.all([
-    copyFile(path, join(courseDirectory, `${baseName}.learnpack`)),
-    writeFile(join(courseDirectory, `${baseName}.course.json`), JSON.stringify(validated, null, 2), "utf8")
-  ]);
+  await writeFile(join(courseDirectory, `${validated.manifest.version}.course.json`), JSON.stringify(validated, null, 2), "utf8");
   return validated;
 }
 
@@ -454,7 +427,6 @@ export async function removeImportedCourse(libraryDirectory: string, courseId: s
   } catch {
     throw new AppError("COURSE_NOT_FOUND", "validation", "The requested imported course version is unavailable.");
   }
-  await rm(join(courseDirectory, `${version}.learnpack`), { force: true });
   await rm(record, { force: true });
   try {
     await rmdir(courseDirectory);

@@ -1,11 +1,12 @@
 import type { CoursePromptRequest } from "@learnlocal/contracts";
 
 export function buildCoursePrompt(input: CoursePromptRequest): string {
+  const topicsLine = input.topics?.length ? `\n- Topics to include: ${input.topics.join(", ")}` : "";
   return `You are designing a complete, portable programming course for LearnLocal.
 
 USER REQUEST
 - Programming language: ${input.language}
-- What the learner wants to learn and build: ${input.learningRequest}
+- What the learner wants to learn and build: ${input.learningRequest}${topicsLine}
 
 INFER THE COURSE METADATA
 Infer all other details yourself. Do not ask follow-up questions.
@@ -15,7 +16,7 @@ Infer all other details yourself. Do not ask follow-up questions.
 - Treat every topic, goal, exclusion, experience clue, and project idea in the user's request as authoritative. Where the user is silent, choose sensible defaults.
 
 DELIVERABLE
-Create a complete LearnPack 1.0 course as separate JSON files in one response. The learner will save manifest.json first, use LearnLocal to create the paths referenced by it, paste each JSON block into the matching file, and compress those files into the final .learnpack archive. Do not create or simulate an archive.
+Create a complete LearnPack 1.0 course as separate JSON files in one response. The learner will save manifest.json first, use LearnLocal to create the paths referenced by it, paste each JSON block into the matching file, and then import that course folder directly in LearnLocal. Do not create or simulate an archive.
 
 COMPLETE RESPONSE PROTOCOL
 - Produce every required file in this single response, beginning with manifest.json.

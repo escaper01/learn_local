@@ -23,7 +23,7 @@ describe("local database", () => {
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-"));
     const repository = new AttemptRepository(join(directory, "test.sqlite"));
     try {
-      expect(repository.health()).toMatchObject({ integrity: "ok", schemaVersion: 2 });
+      expect(repository.health()).toMatchObject({ integrity: "ok", schemaVersion: 3 });
       repository.record("exercise", "run", passingResult("exec_00000000-0000-0000-0000-000000000001"));
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 1, completedExercises: 0 });
       expect(repository.isExerciseCompleted("exercise")).toBe(false);
@@ -87,6 +87,30 @@ describe("local database", () => {
       expect(repository.readWorkspaceFiles("java-course@1.0.0:exercise")).toEqual([]);
       expect(repository.isExerciseCompleted("java-course-advanced:exercise")).toBe(true);
       expect(repository.readWorkspaceFiles("java-course-advanced@1.0.0:exercise")).toHaveLength(1);
+    } finally {
+      repository.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("persists prompt templates and history, enforcing their caps", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-prompts-"));
+    const repository = new AttemptRepository(join(directory, "test.sqlite"));
+    try {
+      const form = { language: "Java", learningRequest: "Teach me Java.", topics: ["Records"] };
+      expect(repository.savePromptTemplate("t1", "Java basics", form)).toMatchObject([{ id: "t1", name: "Java basics", form }]);
+      for (let index = 0; index < 25; index += 1) repository.savePromptTemplate(`bulk-${index}`, `Bulk ${index}`, form);
+      const templates = repository.listPromptTemplates();
+      expect(templates.length).toBe(20);
+      expect(templates.some((template) => template.id === "t1")).toBe(false);
+      const remaining = repository.removePromptTemplate(templates[0]!.id);
+      expect(remaining.length).toBe(19);
+
+      expect(repository.addPromptHistory("h1", "prompt one", form)).toMatchObject([{ id: "h1", prompt: "prompt one" }]);
+      for (let index = 0; index < 15; index += 1) repository.addPromptHistory(`bulk-h-${index}`, `prompt ${index}`, form);
+      const history = repository.listPromptHistory();
+      expect(history.length).toBe(10);
+      expect(history.some((item) => item.id === "h1")).toBe(false);
     } finally {
       repository.close();
       await rm(directory, { recursive: true, force: true });

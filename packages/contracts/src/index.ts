@@ -138,9 +138,32 @@ export const settingResetSchema = z.object({
 
 export const coursePromptRequestSchema = z.object({
   language: z.string().min(1).max(80),
-  learningRequest: z.string().min(3).max(8000)
+  learningRequest: z.string().min(3).max(8000),
+  topics: z.array(z.string().min(1).max(120)).max(40).optional()
 }).strict();
 export type CoursePromptRequest = z.infer<typeof coursePromptRequestSchema>;
+
+export interface PromptTemplate {
+  id: string;
+  name: string;
+  form: CoursePromptRequest;
+}
+
+export interface PromptHistoryItem {
+  id: string;
+  createdAt: string;
+  prompt: string;
+  form: CoursePromptRequest;
+}
+
+export const promptTemplateSaveSchema = z.object({
+  name: z.string().min(1).max(120),
+  form: coursePromptRequestSchema
+}).strict();
+
+export const promptTemplateRemoveSchema = z.object({
+  id: z.string().min(1).max(64)
+}).strict();
 
 export interface LearningSummary {
   totalAttempts: number;
@@ -288,6 +311,10 @@ export interface LearnLocalApi {
   prompts: {
     generate(input: CoursePromptRequest): Promise<{ prompt: string }>;
     scaffold(): Promise<{ status: "created" | "cancelled"; courseId?: string; created: number; existing: number }>;
+    listTemplates(): Promise<PromptTemplate[]>;
+    saveTemplate(input: z.infer<typeof promptTemplateSaveSchema>): Promise<PromptTemplate[]>;
+    removeTemplate(input: z.infer<typeof promptTemplateRemoveSchema>): Promise<PromptTemplate[]>;
+    listHistory(): Promise<PromptHistoryItem[]>;
   };
   progress: {
     summary(): Promise<LearningSummary>;
@@ -341,6 +368,10 @@ export const IPC_CHANNELS = {
   settingsImport: "settings:import",
   promptsGenerate: "prompts:generate",
   promptsScaffold: "prompts:scaffold",
+  promptsListTemplates: "prompts:list-templates",
+  promptsSaveTemplate: "prompts:save-template",
+  promptsRemoveTemplate: "prompts:remove-template",
+  promptsListHistory: "prompts:list-history",
   progressSummary: "progress:summary",
   progressSubmitQuiz: "progress:submit-quiz",
   progressRevealHint: "progress:reveal-hint",

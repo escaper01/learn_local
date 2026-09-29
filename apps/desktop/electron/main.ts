@@ -14,6 +14,8 @@ import {
   IPC_CHANNELS,
   runRequestSchema,
   quizSubmitSchema,
+  promptTemplateSaveSchema,
+  promptTemplateRemoveSchema,
   runtimeRemoveRequestSchema,
   runtimeRequestSchema,
   settingMutationSchema,
@@ -106,9 +108,8 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.coursesImport, async (event) => {
     assertTrustedSender(event);
     const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender)!, {
-      title: "Import a LearnPack",
-      properties: ["openFile"],
-      filters: [{ name: "LearnLocal course", extensions: ["learnpack"] }]
+      title: "Import a LearnPack course folder",
+      properties: ["openDirectory"]
     });
     const sourcePath = selected.filePaths[0];
     if (selected.canceled || !sourcePath) return { status: "cancelled" as const };
@@ -237,7 +238,32 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC_CHANNELS.promptsGenerate, (event, input: unknown) => {
     assertTrustedSender(event);
-    return { prompt: buildCoursePrompt(coursePromptRequestSchema.parse(input)) };
+    const form = coursePromptRequestSchema.parse(input);
+    const prompt = buildCoursePrompt(form);
+    attempts?.addPromptHistory(`prompt_${randomUUID()}`, prompt, form);
+    return { prompt };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.promptsListTemplates, (event) => {
+    assertTrustedSender(event);
+    return attempts?.listPromptTemplates() ?? [];
+  });
+
+  ipcMain.handle(IPC_CHANNELS.promptsSaveTemplate, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { name, form } = promptTemplateSaveSchema.parse(input);
+    return attempts?.savePromptTemplate(`template_${randomUUID()}`, name, form) ?? [];
+  });
+
+  ipcMain.handle(IPC_CHANNELS.promptsRemoveTemplate, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { id } = promptTemplateRemoveSchema.parse(input);
+    return attempts?.removePromptTemplate(id) ?? [];
+  });
+
+  ipcMain.handle(IPC_CHANNELS.promptsListHistory, (event) => {
+    assertTrustedSender(event);
+    return attempts?.listPromptHistory() ?? [];
   });
 
   ipcMain.handle(IPC_CHANNELS.promptsScaffold, async (event) => {

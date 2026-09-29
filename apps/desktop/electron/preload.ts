@@ -30,7 +30,11 @@ const api: LearnLocalApi = {
   },
   prompts: {
     generate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsGenerate, input),
-    scaffold: () => ipcRenderer.invoke(IPC_CHANNELS.promptsScaffold)
+    scaffold: () => ipcRenderer.invoke(IPC_CHANNELS.promptsScaffold),
+    listTemplates: () => ipcRenderer.invoke(IPC_CHANNELS.promptsListTemplates),
+    saveTemplate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsSaveTemplate, input),
+    removeTemplate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsRemoveTemplate, input),
+    listHistory: () => ipcRenderer.invoke(IPC_CHANNELS.promptsListHistory)
   },
   progress: {
     summary: () => ipcRenderer.invoke(IPC_CHANNELS.progressSummary),

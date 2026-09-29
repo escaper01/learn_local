@@ -1,7 +1,10 @@
 import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { AppError, type ExecutionAction, type ExecutionResult, type LearningSummary, type SettingScope, type SettingValue } from "@learnlocal/contracts";
+import { AppError, type CoursePromptRequest, type ExecutionAction, type ExecutionResult, type LearningSummary, type PromptHistoryItem, type PromptTemplate, type SettingScope, type SettingValue } from "@learnlocal/contracts";
+
+const MAX_PROMPT_TEMPLATES = 20;
+const MAX_PROMPT_HISTORY = 10;
 
 export interface StoredSettingRow {
   key: string;
@@ -300,6 +303,48 @@ export class AttemptRepository {
     return this.revealedHintCount(exerciseId);
   }
 
+  listPromptTemplates(): PromptTemplate[] {
+    const rows = this.database.prepare("SELECT id, name, form_json FROM prompt_templates ORDER BY created_at DESC").all() as Array<Record<string, unknown>>;
+    return rows.map((row) => ({ id: String(row.id), name: String(row.name), form: JSON.parse(String(row.form_json)) as CoursePromptRequest }));
+  }
+
+  savePromptTemplate(id: string, name: string, form: CoursePromptRequest): PromptTemplate[] {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.database.prepare("INSERT INTO prompt_templates (id, name, form_json, created_at) VALUES (?, ?, ?, ?)").run(id, name, JSON.stringify(form), new Date().toISOString());
+      this.database.prepare(`DELETE FROM prompt_templates WHERE id NOT IN (SELECT id FROM prompt_templates ORDER BY created_at DESC LIMIT ${MAX_PROMPT_TEMPLATES})`).run();
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+    return this.listPromptTemplates();
+  }
+
+  removePromptTemplate(id: string): PromptTemplate[] {
+    this.database.prepare("DELETE FROM prompt_templates WHERE id = ?").run(id);
+    return this.listPromptTemplates();
+  }
+
+  listPromptHistory(): PromptHistoryItem[] {
+    const rows = this.database.prepare("SELECT id, created_at, prompt, form_json FROM prompt_history ORDER BY created_at DESC").all() as Array<Record<string, unknown>>;
+    return rows.map((row) => ({ id: String(row.id), createdAt: String(row.created_at), prompt: String(row.prompt), form: JSON.parse(String(row.form_json)) as CoursePromptRequest }));
+  }
+
+  addPromptHistory(id: string, prompt: string, form: CoursePromptRequest): PromptHistoryItem[] {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const now = new Date().toISOString();
+      this.database.prepare("INSERT INTO prompt_history (id, created_at, prompt, form_json) VALUES (?, ?, ?, ?)").run(id, now, prompt, JSON.stringify(form));
+      this.database.prepare(`DELETE FROM prompt_history WHERE id NOT IN (SELECT id FROM prompt_history ORDER BY created_at DESC LIMIT ${MAX_PROMPT_HISTORY})`).run();
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+    return this.listPromptHistory();
+  }
+
   private migrate(): void {
     this.database.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -380,6 +425,32 @@ export class AttemptRepository {
             updated_at TEXT NOT NULL
           );
           INSERT INTO schema_migrations (version, applied_at) VALUES (2, datetime('now'));
+        `);
+        this.database.exec("COMMIT");
+      } catch (error) {
+        this.database.exec("ROLLBACK");
+        throw error;
+      }
+    }
+    if (Number(version.version) < 3) {
+      this.database.exec("BEGIN IMMEDIATE");
+      try {
+        this.database.exec(`
+          CREATE TABLE IF NOT EXISTS prompt_templates (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            form_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+          );
+
+          CREATE TABLE IF NOT EXISTS prompt_history (
+            id TEXT PRIMARY KEY,
+            created_at TEXT NOT NULL,
+            prompt TEXT NOT NULL,
+            form_json TEXT NOT NULL
+          );
+
+          INSERT INTO schema_migrations (version, applied_at) VALUES (3, datetime('now'));
         `);
         this.database.exec("COMMIT");
       } catch (error) {

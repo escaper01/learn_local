@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { join, resolve } from "node:path";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { importLearnPack, inspectLearnPack, listImportedCourses, loadImportedCourse, normalizeArchivePath, removeImportedCourse, scaffoldLearnPackFromManifest, toCourseView, validateLearnPackContent } from "./index";
+
+const JAVA_FOUNDATIONS_DIR = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations");
 
 function validEntries(): Map<string, unknown> {
   return new Map([
@@ -87,7 +89,7 @@ describe("LearnPack semantic validation", () => {
       expect(new Set(project.tests?.map((test) => test.expected)).size).toBeGreaterThanOrEqual(4);
     }
 
-    const archive = await inspectLearnPack(resolve(root, "../../javaCourse.learnpack"));
+    const archive = await inspectLearnPack(root);
     expect(archive.manifest).toEqual(source.manifest);
     expect(archive.modules).toEqual(source.modules);
     expect(archive.projects).toEqual(source.projects);
@@ -135,27 +137,29 @@ describe("LearnPack semantic validation", () => {
     expect(normalizeArchivePath("..\\manifest.json")).toBe("../manifest.json");
   });
 
-  it("imports an otherwise valid archive containing Windows ZIP separators", async () => {
-    const directory = await mkdtemp(resolve(tmpdir(), "learnlocal-windows-zip-"));
-    const source = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
-    const archive = join(directory, "windows.learnpack");
+  it("rejects a symlink inside the imported course folder", async () => {
+    const directory = await mkdtemp(resolve(tmpdir(), "learnlocal-symlink-"));
+    const outside = await mkdtemp(resolve(tmpdir(), "learnlocal-outside-"));
     try {
-      const bytes = await readFile(source);
-      const slashPath = Buffer.from("content/01-arrays.json");
-      const windowsPath = Buffer.from("content\\01-arrays.json");
-      let replaced = 0;
-      for (let offset = 0; offset <= bytes.length - slashPath.length; offset += 1) {
-        if (bytes.subarray(offset, offset + slashPath.length).equals(slashPath)) {
-          windowsPath.copy(bytes, offset);
-          replaced += 1;
-        }
+      await cp(JAVA_FOUNDATIONS_DIR, directory, { recursive: true });
+      await writeFile(join(outside, "secret.json"), "{}", "utf8");
+      try {
+        await symlink(join(outside, "secret.json"), join(directory, "content", "linked.json"));
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "EPERM") return; // No symlink privilege on this host (e.g. Windows without Developer Mode).
+        throw error;
       }
-      expect(replaced).toBeGreaterThanOrEqual(2);
-      await writeFile(archive, bytes);
-      await expect(inspectLearnPack(archive)).resolves.toMatchObject({ summary: { id: "java-foundations" } });
+      await expect(inspectLearnPack(directory)).rejects.toMatchObject({ code: "PACK_SYMLINK_NOT_ALLOWED" });
     } finally {
       await rm(directory, { recursive: true, force: true });
+      await rm(outside, { recursive: true, force: true });
     }
+  });
+
+  it("rejects a path that is not a directory", async () => {
+    const file = join(await mkdtemp(resolve(tmpdir(), "learnlocal-notdir-")), "not-a-folder.json");
+    await writeFile(file, "{}", "utf8");
+    await expect(inspectLearnPack(file)).rejects.toMatchObject({ code: "PACK_NOT_DIRECTORY" });
   });
 
   it("creates referenced files from a valid manifest without overwriting existing work", async () => {
@@ -178,14 +182,14 @@ describe("LearnPack semantic validation", () => {
   });
 
   it("inspects the canonical LearnPack archive without extracting it", async () => {
-    const path = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
+    const path = JAVA_FOUNDATIONS_DIR;
     const pack = await inspectLearnPack(path);
     expect(pack.summary).toMatchObject({ id: "java-foundations", exerciseCount: 1 });
   });
 
   it("removes one imported course version without touching other library content", async () => {
     const library = await mkdtemp(resolve(tmpdir(), "learnlocal-remove-"));
-    const path = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
+    const path = JAVA_FOUNDATIONS_DIR;
     try {
       await importLearnPack(path, library);
       await writeFile(join(library, "unrelated.txt"), "keep me", "utf8");
@@ -203,7 +207,7 @@ describe("LearnPack semantic validation", () => {
 
   it("revalidates stored courses and redacts all test definitions from the renderer view", async () => {
     const library = await mkdtemp(resolve(tmpdir(), "learnlocal-courses-"));
-    const path = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations.learnpack");
+    const path = JAVA_FOUNDATIONS_DIR;
     try {
       await importLearnPack(path, library);
       const stored = await loadImportedCourse(library, "java-foundations", "1.0.0");

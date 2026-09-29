@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingScope, SettingValue, SourceFile, ValidationIssue } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, PromptHistoryItem, PromptTemplate, ResolvedSetting, RuntimeSummary, SettingScope, SettingValue, SourceFile, ValidationIssue } from "@learnlocal/contracts";
 
 import { SafeMarkdown } from "./SafeMarkdown";
 
 loader.config({ monaco });
 
 type Theme = "dark" | "light";
-type PromptTemplate = { id: string; name: string; form: CoursePromptRequest };
-type PromptHistoryItem = { id: string; createdAt: string; prompt: string };
 
 function isSupportedLanguage(value: string): value is "java" | "python" {
   return value === "java" || value === "python";
@@ -28,32 +26,6 @@ function exerciseIcon(type: string, completed: boolean): string {
   if (type === "project") return "◆";
   if (type === "output") return "▶";
   return "⌘";
-}
-
-function loadLocalList<T>(key: string): T[] {
-  try { const value = JSON.parse(localStorage.getItem(key) ?? "[]"); return Array.isArray(value) ? value as T[] : []; }
-  catch { return []; }
-}
-
-function normalizePromptForm(value: unknown): CoursePromptRequest {
-  const record = typeof value === "object" && value ? value as Record<string, unknown> : {};
-  const rawLanguage = typeof record.languageName === "string" ? record.languageName : typeof record.language === "string" ? record.language : "Java";
-  const language = rawLanguage === "java" ? "Java" : rawLanguage === "python" ? "Python" : rawLanguage;
-  if (typeof record.learningRequest === "string") return { language, learningRequest: record.learningRequest };
-  const request = [
-    record.goal,
-    record.topics,
-    typeof record.skipTopics === "string" && record.skipTopics ? `Exclude: ${record.skipTopics}` : "",
-    typeof record.projectTheme === "string" && record.projectTheme ? `Build projects around: ${record.projectTheme}` : "",
-    record.customInstructions
-  ].filter((item): item is string => typeof item === "string" && item.trim().length > 0).join("\n");
-  return { language, learningRequest: request || "Teach the language from fundamentals through practical projects." };
-}
-
-function loadPromptTemplates(): PromptTemplate[] {
-  return loadLocalList<{ id?: unknown; name?: unknown; form?: unknown }>("learnlocal.promptTemplates")
-    .filter((template) => typeof template.id === "string" && typeof template.name === "string")
-    .map((template) => ({ id: template.id as string, name: template.name as string, form: normalizePromptForm(template.form) }));
 }
 
 function initialTheme(): Theme {
@@ -91,7 +63,7 @@ const PYTHON_SOLUTION_CODE = `def sum_values(values):
     return total
 `;
 
-const DEFAULT_LESSON_PANE_WIDTH = 48;
+const DEFAULT_LESSON_PANE_WIDTH = 75;
 
 const DEFAULT_PROMPT_FORM: CoursePromptRequest = {
   language: "Java",
@@ -220,8 +192,9 @@ export default function App() {
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState("");
-  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>(loadPromptTemplates);
-  const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>(() => loadLocalList("learnlocal.promptHistory"));
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
+  const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>([]);
+  const [topicDraft, setTopicDraft] = useState("");
   const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
   const [activeCourse, setActiveCourse] = useState<CourseView | null>(null);
   const [activeLesson, setActiveLesson] = useState<CourseView["modules"][number]["lessons"][number] | null>(null);
@@ -241,7 +214,7 @@ export default function App() {
   const lessonGridRef = useRef<HTMLDivElement | null>(null);
   const [lessonPaneWidth, setLessonPaneWidth] = useState<number>(() => {
     const saved = Number(localStorage.getItem("learnlocal.lessonPaneWidth"));
-    return Number.isFinite(saved) && saved >= 25 && saved <= 70 ? saved : DEFAULT_LESSON_PANE_WIDTH;
+    return Number.isFinite(saved) && saved >= 20 && saved <= 80 ? saved : DEFAULT_LESSON_PANE_WIDTH;
   });
   const [resizingPanes, setResizingPanes] = useState(false);
 
@@ -252,7 +225,7 @@ export default function App() {
       if (!grid) return;
       const rect = grid.getBoundingClientRect();
       const percent = ((event.clientX - rect.left) / rect.width) * 100;
-      setLessonPaneWidth(Math.min(70, Math.max(25, percent)));
+      setLessonPaneWidth(Math.min(80, Math.max(20, percent)));
     };
     const handleUp = () => setResizingPanes(false);
     document.body.style.cursor = "col-resize";
@@ -426,7 +399,7 @@ export default function App() {
     const issueText = issues.length
       ? issues.map((issue) => `- ${issue.file ?? "archive"}${issue.path ? ` ${issue.path}` : ""}: ${issue.message} (${issue.code})`).join("\n")
       : `- ${importFailure.message} (${importFailure.code})`;
-    const prompt = `Repair my LearnPack 1.0 JSON source files using these validator findings:\n\n${issueText}\n\nReturn every corrected file in one response. For each file, write SAVE AS: followed by its exact forward-slash relative path, then one JSON code block containing only that file. Do not create an archive; I will save and compress the JSON files into .learnpack myself. Preserve stable IDs and do not add shell commands, scripts, Docker configuration, executables, dependencies, HTML, or unsafe paths.`;
+    const prompt = `Repair my LearnPack 1.0 JSON source files using these validator findings:\n\n${issueText}\n\nReturn every corrected file in one response. For each file, write SAVE AS: followed by its exact forward-slash relative path, then one JSON code block containing only that file. Do not create an archive; I will save the JSON files into my course folder myself. Preserve stable IDs and do not add shell commands, scripts, Docker configuration, executables, dependencies, HTML, or unsafe paths.`;
     await navigator.clipboard.writeText(prompt);
     setRepairCopied(true);
     window.setTimeout(() => setRepairCopied(false), 1500);
@@ -650,34 +623,46 @@ export default function App() {
     catch (reason) { setError(friendlyError(reason)); }
   };
 
-  const openPromptGenerator = () => {
+  const openPromptGenerator = async () => {
     setShowPrompt(true);
     setPromptForm((current) => ({ ...current, language: activeCourse?.summary.language ?? (language === "java" ? "Java" : "Python") }));
+    try {
+      const [templates, history] = await Promise.all([window.learnLocal.prompts.listTemplates(), window.learnLocal.prompts.listHistory()]);
+      setPromptTemplates(templates);
+      setPromptHistory(history);
+    } catch (reason) { setError(friendlyError(reason)); }
   };
 
   const generatePrompt = async () => {
     try {
       const generated = await window.learnLocal.prompts.generate(promptForm);
       setGeneratedPrompt(generated.prompt);
-      const next = [{ id: crypto.randomUUID(), createdAt: new Date().toISOString(), prompt: generated.prompt }, ...promptHistory].slice(0, 10);
-      setPromptHistory(next);
-      localStorage.setItem("learnlocal.promptHistory", JSON.stringify(next));
       setCopied(false);
+      setPromptHistory(await window.learnLocal.prompts.listHistory());
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
-  const savePromptTemplate = () => {
-    const name = window.prompt("Template name", `${promptForm.language} course` )?.trim();
-    if (!name) return;
-    const next = [{ id: crypto.randomUUID(), name, form: promptForm }, ...promptTemplates].slice(0, 20);
-    setPromptTemplates(next);
-    localStorage.setItem("learnlocal.promptTemplates", JSON.stringify(next));
+  const addTopic = () => {
+    const value = topicDraft.trim();
+    if (!value) return;
+    setPromptForm((current) => (current.topics ?? []).includes(value) ? current : { ...current, topics: [...(current.topics ?? []), value] });
+    setTopicDraft("");
   };
 
-  const removePromptTemplate = (id: string) => {
-    const next = promptTemplates.filter((template) => template.id !== id);
-    setPromptTemplates(next);
-    localStorage.setItem("learnlocal.promptTemplates", JSON.stringify(next));
+  const removeTopic = (topic: string) => {
+    setPromptForm((current) => ({ ...current, topics: (current.topics ?? []).filter((item) => item !== topic) }));
+  };
+
+  const savePromptTemplate = async () => {
+    const name = window.prompt("Template name", `${promptForm.language} course`)?.trim();
+    if (!name) return;
+    try { setPromptTemplates(await window.learnLocal.prompts.saveTemplate({ name, form: promptForm })); }
+    catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const removePromptTemplate = async (id: string) => {
+    try { setPromptTemplates(await window.learnLocal.prompts.removeTemplate({ id })); }
+    catch (reason) { setError(friendlyError(reason)); }
   };
 
   const copyPrompt = async () => {
@@ -835,7 +820,10 @@ export default function App() {
               <div className="quiz-heading"><span>CONCEPT CHECK</span><strong>{activeImportedExercise.title}</strong><SafeMarkdown value={activeImportedExercise.instructionMarkdown}/></div>
               <div className="quiz-choices">{activeImportedExercise.choices?.map((choice, index) => <button key={choice} className={`${selectedChoice === index ? "selected" : ""} ${quizCorrect !== null && selectedChoice === index ? quizCorrect ? "correct" : "incorrect" : ""}`} disabled={quizCorrect === true} onClick={() => { setSelectedChoice(index); setQuizCorrect(null); }}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
               {quizCorrect !== null && <div className={`quiz-feedback ${quizCorrect ? "correct" : "incorrect"}`}><strong>{quizCorrect ? "Correct" : "Not quite"}</strong><p>{quizCorrect ? "Concept check completed. Your progress was saved." : "Review the lesson and try another answer."}</p></div>}
-              <div className="quiz-actions"><button className="submit-button" disabled={selectedChoice === null || quizCorrect === true} onClick={() => void submitQuiz()}>{quizCorrect === false ? "Try again" : "Check answer"}</button></div>
+              <div className="quiz-actions">
+                <button className="submit-button" disabled={selectedChoice === null || quizCorrect === true} onClick={() => void submitQuiz()}>{quizCorrect === false ? "Try again" : "Check answer"}</button>
+                {quizCorrect === true && nextStep && <button type="button" className="next-step-button" onClick={() => goToCourseStep(nextStep)}>Next →</button>}
+              </div>
             </section>
           ) : (
           <section className="coding-pane">
@@ -886,6 +874,9 @@ export default function App() {
             <section className="results-pane">
               <div className="results-header"><strong>Test results</strong><span>{activeAction ? `${activeAction === "run" ? "Running public tests" : "Checking all tests"}…` : result ? result.status : "No run yet"}</span></div>
               {activeAction ? <div className="running-state"><span className="spinner"/><strong>{executionPhase}</strong><p>The first run can take longer while Docker downloads the pinned runtime.</p></div> : <ResultPanel result={result} error={error} />}
+              {!activeAction && result?.compile.success && result.tests.length > 0 && result.tests.every((test) => test.passed) && nextStep && (
+                <div className="quiz-actions"><button type="button" className="next-step-button" onClick={() => goToCourseStep(nextStep)}>Next →</button></div>
+              )}
             </section>
           </section>
           ))}
@@ -934,9 +925,9 @@ export default function App() {
       )}
       {view === "courses" && (
         <section className="content-view courses-view">
-          <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import LearnPack</button></header>
+          <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import course folder</button></header>
           <div className="course-grid">
-            {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Build your first learning path</h2><p>Generate a course prompt for any language, package the JSON files, then import the LearnPack.</p><button className="submit-button" onClick={() => void openPromptGenerator()}>Generate course prompt</button></article>}
+            {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Build your first learning path</h2><p>Generate a course prompt for any language, create the referenced JSON files, then import that course folder.</p><button className="submit-button" onClick={() => void openPromptGenerator()}>Generate course prompt</button></article>}
             {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><div className="course-actions"><button className="run-button" onClick={() => void openImportedCourse(course)}>Open curriculum</button><button type="button" className="course-remove" disabled={Boolean(activeAction)} onClick={() => openCourseRemoval(course)}>Remove</button></div></article>)}
           </div>
         </section>
@@ -968,7 +959,7 @@ export default function App() {
             <button className="modal-close" aria-label="Cancel course removal" disabled={removingCourse} onClick={() => setRemovalTarget(null)}>×</button>
             <div className="eyebrow">REMOVE COURSE</div>
             <h2 id="course-removal-title">Remove {removalTarget.title}?</h2>
-            <p>Version {removalTarget.version} will be removed from this device. You can import the .learnpack file again at any time.</p>
+            <p>Version {removalTarget.version} will be removed from this device. You can import the course folder again at any time.</p>
             <label className="course-removal-option">
               <input type="checkbox" checked={removeLearningData} disabled={removingCourse} onChange={(event) => setRemoveLearningData(event.target.checked)} />
               <span><strong>Also delete my progress and saved code</strong><small>Completed exercises, quiz attempts, revealed hints, and saved workspaces for this course. This cannot be undone. Leave unchecked to restore your progress if you re-import the course.</small></span>
@@ -990,7 +981,7 @@ export default function App() {
             <h2 id="import-failure-title">The course was not imported</h2>
             <p>{importFailure.message}</p>
             <div className="import-issues">{(Array.isArray(importFailure.details?.issues) ? importFailure.details.issues as ValidationIssue[] : []).map((issue, index) => <article key={`${issue.code}-${index}`}><strong>{issue.file ?? "Archive"}{issue.path ? ` · ${issue.path}` : ""}</strong><span>{issue.message}</span><code>{issue.code}</code></article>)}</div>
-            <div className="import-repair-note">Fix the original JSON files, rebuild the archive with manifest.json at its root, then import it again.</div>
+            <div className="import-repair-note">Fix the original JSON files, keep manifest.json at the folder's root, then import the folder again.</div>
             <div className="import-failure-actions"><button className="run-button" onClick={() => void copyRepairPrompt()}>{repairCopied ? "Repair prompt copied" : "Copy AI repair prompt"}</button><button className="submit-button" onClick={() => setImportFailure(null)}>Close</button></div>
           </section>
         </div>
@@ -1070,15 +1061,21 @@ export default function App() {
             <p>Describe your goal, then paste the prompt into any AI assistant. Save its manifest first, let LearnLocal create the referenced files, and paste each JSON block into its matching file.</p>
             <div className="prompt-layout">
               <div className="prompt-form">
-                <div className="prompt-template-bar"><select aria-label="Load prompt template" defaultValue="" onChange={(event) => { const template = promptTemplates.find((candidate) => candidate.id === event.target.value); if (template) setPromptForm(template.form); event.target.value = ""; }}><option value="">Load template…</option>{promptTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button type="button" onClick={savePromptTemplate}>Save current</button></div>
-                {promptTemplates.length > 0 && <div className="prompt-template-chips">{promptTemplates.map((template) => <span key={template.id}><button type="button" onClick={() => setPromptForm(template.form)}>{template.name}</button><button type="button" aria-label={`Delete ${template.name} template`} onClick={() => removePromptTemplate(template.id)}>×</button></span>)}</div>}
+                <div className="prompt-template-bar"><select aria-label="Load prompt template" defaultValue="" onChange={(event) => { const template = promptTemplates.find((candidate) => candidate.id === event.target.value); if (template) setPromptForm(template.form); event.target.value = ""; }}><option value="">Load template…</option>{promptTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button type="button" onClick={() => void savePromptTemplate()}>Save current</button></div>
+                {promptTemplates.length > 0 && <div className="prompt-template-chips">{promptTemplates.map((template) => <span key={template.id}><button type="button" onClick={() => setPromptForm(template.form)}>{template.name}</button><button type="button" aria-label={`Delete ${template.name} template`} onClick={() => void removePromptTemplate(template.id)}>×</button></span>)}</div>}
                 <label className="wide">Programming language<input value={promptForm.language} placeholder="Java, Python, Rust, C#, …" onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value })} /></label>
-                <label className="wide">What do you want to learn or build?<textarea className="prompt-request" placeholder="Describe your goal and topics in your own words. You can also mention anything to exclude, your experience, or a project idea. The AI will infer the remaining course details." value={promptForm.learningRequest} onChange={(event) => setPromptForm({ ...promptForm, learningRequest: event.target.value })} /></label>
+                <label className="wide">Topics to include (optional)
+                  <div className="prompt-topics">
+                    {(promptForm.topics ?? []).map((topic) => <span className="topic-chip" key={topic}>{topic}<button type="button" aria-label={`Remove ${topic}`} onClick={() => removeTopic(topic)}>×</button></span>)}
+                    <input value={topicDraft} placeholder="Add a topic, press Enter" onChange={(event) => setTopicDraft(event.target.value)} onKeyDown={(event) => { if (event.key !== "Enter") return; event.preventDefault(); addTopic(); }} />
+                  </div>
+                </label>
+                <label className="wide">What do you want to learn or build?<textarea className="prompt-request" placeholder="Describe your goal in your own words. You can also mention anything to exclude, your experience, or a project idea. The AI will infer the remaining course details." value={promptForm.learningRequest} onChange={(event) => setPromptForm({ ...promptForm, learningRequest: event.target.value })} /></label>
                 <button className="submit-button prompt-generate" onClick={() => void generatePrompt()}>Generate LearnPack prompt</button>
               </div>
               <div className="prompt-preview">
                 {generatedPrompt ? <textarea readOnly value={generatedPrompt} aria-label="Generated course prompt" /> : <div><span>✦</span><strong>Your prompt will appear here</strong><p>It will include the LearnPack schema contract and locked security rules.</p></div>}
-                {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save manifest.json, create its referenced files, paste each JSON block, then ZIP the folder contents and rename it .learnpack.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
+                {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save manifest.json, create its referenced files, paste each JSON block, then use Import course folder and select that folder.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
               </div>
             </div>
             <div className="manifest-scaffold"><div><strong>Have a manifest.json?</strong><span>Create every referenced content and project file beside it. Existing files are never overwritten.</span>{scaffoldMessage && <small>{scaffoldMessage}</small>}</div><button className="run-button" type="button" onClick={() => void scaffoldFromManifest()}>Create files from manifest</button></div>
