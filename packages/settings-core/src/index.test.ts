@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSettingsProfile, resolveSettings, validateSettingValue } from "./index";
+import { parseSettingsProfile, resolveSettings, SETTING_DEFINITIONS, validateSettingValue } from "./index";
 
 describe("settings core", () => {
   it("resolves course, language, global, then default precedence", () => {
@@ -18,5 +18,11 @@ describe("settings core", () => {
 
   it("validates imported settings atomically", () => {
     expect(() => parseSettingsProfile({ format: "learnlocal-settings", schemaVersion: "1.0.0", settings: { "runner.memoryMb": 4096 } })).toThrow(/unknown/i);
+  });
+
+  it("defines a time tracking category with a bounded daily goal", () => {
+    expect(SETTING_DEFINITIONS.find((definition) => definition.key === "timeTracking.dailyGoalMinutes")).toMatchObject({ category: "Time tracking", type: "number", min: 5, max: 480 });
+    expect(() => validateSettingValue("timeTracking.dailyGoalMinutes", 1000)).toThrow(/outside/i);
+    expect(validateSettingValue("timeTracking.reminderEnabled", false)).toBe(false);
   });
 });

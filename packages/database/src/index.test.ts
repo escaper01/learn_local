@@ -23,7 +23,7 @@ describe("local database", () => {
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-"));
     const repository = new AttemptRepository(join(directory, "test.sqlite"));
     try {
-      expect(repository.health()).toMatchObject({ integrity: "ok", schemaVersion: 3 });
+      expect(repository.health()).toMatchObject({ integrity: "ok", schemaVersion: 4 });
       repository.record("exercise", "run", passingResult("exec_00000000-0000-0000-0000-000000000001"));
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 1, completedExercises: 0 });
       expect(repository.isExerciseCompleted("exercise")).toBe(false);
@@ -111,6 +111,33 @@ describe("local database", () => {
       const history = repository.listPromptHistory();
       expect(history.length).toBe(10);
       expect(history.some((item) => item.id === "h1")).toBe(false);
+    } finally {
+      repository.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("tracks study sessions, closes stale ones, and rolls up totals", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-time-"));
+    const repository = new AttemptRepository(join(directory, "test.sqlite"));
+    try {
+      repository.startStudySession("session_1", { language: "java", courseId: "java-course", exerciseId: "ex-1" });
+      repository.heartbeatStudySession("session_1");
+      repository.stopStudySession("session_1");
+
+      // Starting a second session auto-closes any still-open session first.
+      repository.startStudySession("session_2", { language: "java", courseId: "java-course", exerciseId: "ex-2" });
+      repository.startStudySession("session_3", { language: "python", courseId: null, exerciseId: null });
+
+      const summary = repository.studyTimeSummary();
+      expect(summary.todaySeconds).toBeGreaterThanOrEqual(0);
+      expect(summary.perCourse.find((entry) => entry.courseId === "java-course")).toBeTruthy();
+
+      repository.removeCourseLearningData("java-course");
+      const afterRemoval = repository.studyTimeSummary();
+      expect(afterRemoval.perCourse.find((entry) => entry.courseId === "java-course")).toBeUndefined();
+
+      repository.stopAllOpenStudySessions();
     } finally {
       repository.close();
       await rm(directory, { recursive: true, force: true });

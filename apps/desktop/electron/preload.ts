@@ -50,6 +50,12 @@ const api: LearnLocalApi = {
   diagnostics: {
     export: () => ipcRenderer.invoke(IPC_CHANNELS.diagnosticsExport)
   },
+  timeTracking: {
+    start: (input) => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingStart, input),
+    heartbeat: (input) => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingHeartbeat, input),
+    stop: (input) => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingStop, input),
+    summary: () => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingSummary)
+  },
   environment: {
     status: () => ipcRenderer.invoke(IPC_CHANNELS.environmentStatus)
   },

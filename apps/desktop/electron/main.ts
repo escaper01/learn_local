@@ -16,6 +16,8 @@ import {
   quizSubmitSchema,
   promptTemplateSaveSchema,
   promptTemplateRemoveSchema,
+  timeTrackingStartSchema,
+  timeTrackingSessionSchema,
   runtimeRemoveRequestSchema,
   runtimeRequestSchema,
   settingMutationSchema,
@@ -369,6 +371,31 @@ function registerIpc(): void {
     return { status: "saved" as const };
   });
 
+  ipcMain.handle(IPC_CHANNELS.timeTrackingStart, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { language, courseId, exerciseId } = timeTrackingStartSchema.parse(input);
+    const sessionId = `session_${randomUUID()}`;
+    attempts?.startStudySession(sessionId, { language: language ?? null, courseId: courseId ?? null, exerciseId: exerciseId ?? null });
+    return { sessionId };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.timeTrackingHeartbeat, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { sessionId } = timeTrackingSessionSchema.parse(input);
+    attempts?.heartbeatStudySession(sessionId);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.timeTrackingStop, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { sessionId } = timeTrackingSessionSchema.parse(input);
+    attempts?.stopStudySession(sessionId);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.timeTrackingSummary, (event) => {
+    assertTrustedSender(event);
+    return attempts?.studyTimeSummary() ?? { todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [] };
+  });
+
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {
     assertTrustedSender(event);
     return docker.detect();
@@ -544,4 +571,7 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
-app.on("before-quit", () => attempts?.close());
+app.on("before-quit", () => {
+  attempts?.stopAllOpenStudySessions();
+  attempts?.close();
+});

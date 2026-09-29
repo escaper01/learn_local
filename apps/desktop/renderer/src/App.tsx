@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, PromptHistoryItem, PromptTemplate, ResolvedSetting, RuntimeSummary, SettingScope, SettingValue, SourceFile, ValidationIssue } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, PromptHistoryItem, PromptTemplate, ResolvedSetting, RuntimeSummary, SettingScope, SettingValue, SourceFile, TimeTrackingSummary, ValidationIssue } from "@learnlocal/contracts";
 
 import { SafeMarkdown } from "./SafeMarkdown";
 
@@ -84,6 +84,15 @@ function formatBytes(value: number | null): string {
   let unit = 0;
   while (amount >= 1024 && unit < units.length - 1) { amount /= 1024; unit += 1; }
   return `${amount.toFixed(unit > 1 ? 1 : 0)} ${units[unit]}`;
+}
+
+function formatDuration(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  if (hours > 0) return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  if (minutes > 0) return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  return `${seconds}s`;
 }
 
 function StatusDot({ status }: { status: ProviderStatus | undefined }) {
@@ -198,6 +207,9 @@ export default function App() {
   const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>([]);
   const [topicDraft, setTopicDraft] = useState("");
   const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
+  const [timeSummary, setTimeSummary] = useState<TimeTrackingSummary>({ todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [] });
+  const [studySessionId, setStudySessionId] = useState<string | null>(null);
+  const [studySeconds, setStudySeconds] = useState(0);
   const [activeCourse, setActiveCourse] = useState<CourseView | null>(null);
   const [activeLesson, setActiveLesson] = useState<CourseView["modules"][number]["lessons"][number] | null>(null);
   const [activeImportedExercise, setActiveImportedExercise] = useState<CourseView["modules"][number]["lessons"][number]["exercises"][number] | null>(null);
@@ -258,9 +270,47 @@ export default function App() {
   }, [sidebarCollapsed]);
 
   useEffect(() => {
+    if (view !== "lesson" || !activeLesson) return;
+    let sessionId: string | null = null;
+    let cancelled = false;
+    const courseLanguage = activeCourse?.summary.language;
+    const trackedLanguage = isSupportedLanguage(courseLanguage ?? language) ? (courseLanguage ?? language) as "java" | "python" : undefined;
+    void window.learnLocal.timeTracking.start({ language: trackedLanguage, courseId: activeCourse?.summary.id, exerciseId: activeImportedExercise?.id }).then((started) => {
+      if (cancelled) { void window.learnLocal.timeTracking.stop({ sessionId: started.sessionId }); return; }
+      sessionId = started.sessionId;
+      setStudySessionId(started.sessionId);
+    });
+    return () => {
+      cancelled = true;
+      if (sessionId) void window.learnLocal.timeTracking.stop({ sessionId });
+      setStudySessionId(null);
+    };
+  }, [view, activeLesson?.id, activeImportedExercise?.id, activeCourse?.summary.id, language]);
+
+  useEffect(() => {
+    if (!studySessionId) return;
+    const heartbeat = window.setInterval(() => void window.learnLocal.timeTracking.heartbeat({ sessionId: studySessionId }), 30_000);
+    return () => window.clearInterval(heartbeat);
+  }, [studySessionId]);
+
+  useEffect(() => {
+    if (!studySessionId) { setStudySeconds(0); return; }
+    const startedAt = Date.now();
+    setStudySeconds(0);
+    const tick = window.setInterval(() => setStudySeconds(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => window.clearInterval(tick);
+  }, [studySessionId]);
+
+  useEffect(() => {
+    if (view !== "dashboard") return;
+    void window.learnLocal.timeTracking.summary().then(setTimeSummary).catch((value) => setError(friendlyError(value)));
+  }, [view]);
+
+  useEffect(() => {
     void window.learnLocal.environment.status().then(setProvider).catch((value) => setError(friendlyError(value)));
     void window.learnLocal.courses.list().then(setCourses).catch((value) => setError(friendlyError(value)));
     void window.learnLocal.progress.summary().then(setLearningSummary).catch((value) => setError(friendlyError(value)));
+    void window.learnLocal.settings.list().then(setSettings).catch((value) => setError(friendlyError(value)));
     const stopProgress = window.learnLocal.execution.onProgress((event) => {
       if (event.executionId === activeRef.current) setExecutionPhase(event.message);
     });
@@ -687,6 +737,7 @@ export default function App() {
 
   const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
+  const showStudyTimer = settings.find((setting) => setting.key === "timeTracking.reminderEnabled")?.value !== false;
   const activeStarter = activeImportedExercise?.starterFiles.find((file) => file.path === activeFilePath) ?? activeImportedExercise?.starterFiles[0];
   type CourseLesson = CourseView["modules"][number]["lessons"][number];
   type CourseExercise = CourseLesson["exercises"][number];
@@ -762,6 +813,7 @@ export default function App() {
               <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
               {theme === "dark" ? "Light" : "Dark"}
             </button>
+            {showStudyTimer && studySessionId && <div className="study-timer active" title="Time spent on this lesson"><span aria-hidden="true">⏱</span><b>{formatDuration(studySeconds)}</b></div>}
             <div className="progress-chip"><span>{activeCourse ? "Course progress" : "Exercises completed"}</span><b>{activeCourse ? `${completedCourseExercises} / ${courseExercises.length}` : learningSummary.completedExercises}</b></div>
           </div>
         </header>
@@ -923,6 +975,15 @@ export default function App() {
             <article><span>Passed</span><strong>{learningSummary.passedSubmissions}</strong><small>Successful submissions</small></article>
             <article><span>Current streak</span><strong>{learningSummary.currentStreakDays}<i> days</i></strong><small>Consecutive practice days</small></article>
           </div>
+          <article className="time-tracking-card">
+            <div><strong>Time studying</strong><span>Per exercise/lesson sessions, tracked locally</span></div>
+            <div className="time-tracking-grid">
+              <article><span>Today</span><strong>{formatDuration(timeSummary.todaySeconds)}</strong></article>
+              <article><span>This week</span><strong>{formatDuration(timeSummary.weekSeconds)}</strong></article>
+              <article><span>This month</span><strong>{formatDuration(timeSummary.monthSeconds)}</strong></article>
+              <article><span>{activeCourse ? activeCourse.summary.title : "Current course"}</span><strong>{formatDuration(timeSummary.perCourse.find((entry) => entry.courseId === activeCourse?.summary.id)?.seconds ?? 0)}</strong></article>
+            </div>
+          </article>
           <div className="dashboard-grid">
             {activeCourse && <article className="task-heatmap"><div><strong>Course task activity</strong><span>{activeCourse.summary.title}</span></div><div>{courseExercises.map((exercise) => <button type="button" key={exercise.id} className={`${exercise.completed ? "completed" : "pending"} ${exercise.type}`} title={`${exercise.title}\n${exercise.type.replace(/([A-Z])/g, " $1")} · ${exercise.completed ? "Completed" : "Not completed"}`} onClick={() => { for (const module of activeCourse.modules) { const lesson = module.lessons.find((candidate) => candidate.exercises.some((item) => item.id === exercise.id)); if (lesson) { void selectCourseExercise(lesson, exercise); return; } } }} aria-label={`${exercise.title}: ${exercise.completed ? "completed" : "not completed"}`}/>)}</div><small>Hover a square for task details. Select one to open it.</small></article>}
             <article className="activity-card"><div><strong>Practice activity</strong><span>Last 28 days</span></div><div className="activity-bars">{Array.from({ length: 28 }, (_, index) => {

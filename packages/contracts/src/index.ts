@@ -268,6 +268,23 @@ export const quizSubmitSchema = z.object({
   choiceIndex: z.number().int().min(0).max(11)
 }).strict();
 
+export const timeTrackingStartSchema = z.object({
+  language: z.enum(["java", "python"]).optional(),
+  courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional(),
+  exerciseId: z.string().min(1).max(160).optional()
+}).strict();
+
+export const timeTrackingSessionSchema = z.object({
+  sessionId: z.string().regex(/^session_[a-f0-9-]{36}$/)
+}).strict();
+
+export interface TimeTrackingSummary {
+  todaySeconds: number;
+  weekSeconds: number;
+  monthSeconds: number;
+  perCourse: Array<{ courseId: string; seconds: number }>;
+}
+
 export const hintRevealSchema = z.object({
   courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
   version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
@@ -330,6 +347,12 @@ export interface LearnLocalApi {
   diagnostics: {
     export(): Promise<{ status: "saved" | "cancelled" }>;
   };
+  timeTracking: {
+    start(input: z.infer<typeof timeTrackingStartSchema>): Promise<{ sessionId: string }>;
+    heartbeat(input: z.infer<typeof timeTrackingSessionSchema>): Promise<void>;
+    stop(input: z.infer<typeof timeTrackingSessionSchema>): Promise<void>;
+    summary(): Promise<TimeTrackingSummary>;
+  };
   environment: {
     status(): Promise<ProviderStatus>;
   };
@@ -380,6 +403,10 @@ export const IPC_CHANNELS = {
   workspaceExerciseRead: "workspace:exercise-read",
   workspaceExerciseWrite: "workspace:exercise-write",
   diagnosticsExport: "diagnostics:export",
+  timeTrackingStart: "timeTracking:start",
+  timeTrackingHeartbeat: "timeTracking:heartbeat",
+  timeTrackingStop: "timeTracking:stop",
+  timeTrackingSummary: "timeTracking:summary",
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",

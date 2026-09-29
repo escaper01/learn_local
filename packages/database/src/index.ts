@@ -1,10 +1,12 @@
 import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { AppError, type CoursePromptRequest, type ExecutionAction, type ExecutionResult, type LearningSummary, type PromptHistoryItem, type PromptTemplate, type SettingScope, type SettingValue } from "@learnlocal/contracts";
+import { AppError, type CoursePromptRequest, type ExecutionAction, type ExecutionResult, type LearningSummary, type PromptHistoryItem, type PromptTemplate, type SettingScope, type SettingValue, type TimeTrackingSummary } from "@learnlocal/contracts";
 
 const MAX_PROMPT_TEMPLATES = 20;
 const MAX_PROMPT_HISTORY = 10;
+const STUDY_SESSION_STALE_MS = 2 * 60_000;
+const DURATION_SECONDS_SQL = "CAST((julianday(COALESCE(ended_at, last_heartbeat_at)) - julianday(started_at)) * 86400 AS INTEGER)";
 
 export interface StoredSettingRow {
   key: string;
@@ -183,7 +185,11 @@ export class AttemptRepository {
       this.database.prepare(`DELETE FROM exercise_progress WHERE ${clauses}`).run(...values);
       this.database.prepare(`DELETE FROM exercise_attempts WHERE ${clauses}`).run(...values);
       this.database.prepare("DELETE FROM workspace_files WHERE workspace_id = ?").run(`builtin-${language}`);
-      for (const courseId of courseIds) this.database.prepare("DELETE FROM workspace_files WHERE workspace_id LIKE ? ESCAPE '\\'").run(`${courseId}@%`);
+      this.database.prepare("DELETE FROM study_sessions WHERE language = ? AND course_id IS NULL").run(language);
+      for (const courseId of courseIds) {
+        this.database.prepare("DELETE FROM workspace_files WHERE workspace_id LIKE ? ESCAPE '\\'").run(`${courseId}@%`);
+        this.database.prepare("DELETE FROM study_sessions WHERE course_id = ?").run(courseId);
+      }
       this.database.exec("COMMIT");
     } catch (error) {
       this.database.exec("ROLLBACK");
@@ -199,6 +205,7 @@ export class AttemptRepository {
         this.database.prepare(`DELETE FROM ${table} WHERE exercise_id LIKE ? ESCAPE '\\'`).run(exercisePattern);
       }
       this.database.prepare("DELETE FROM workspace_files WHERE workspace_id LIKE ? ESCAPE '\\'").run(`${courseId}@%`);
+      this.database.prepare("DELETE FROM study_sessions WHERE course_id = ?").run(courseId);
       this.database.exec("COMMIT");
     } catch (error) {
       this.database.exec("ROLLBACK");
@@ -345,6 +352,59 @@ export class AttemptRepository {
     return this.listPromptHistory();
   }
 
+  startStudySession(id: string, context: { language: string | null; courseId: string | null; exerciseId: string | null }): void {
+    const now = new Date().toISOString();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.database.prepare("UPDATE study_sessions SET ended_at = last_heartbeat_at WHERE ended_at IS NULL").run();
+      this.database.prepare(`
+        INSERT INTO study_sessions (id, started_at, last_heartbeat_at, ended_at, language, course_id, exercise_id, created_at)
+        VALUES (?, ?, ?, NULL, ?, ?, ?, ?)
+      `).run(id, now, now, context.language, context.courseId, context.exerciseId, now);
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
+  heartbeatStudySession(id: string): void {
+    this.database.prepare("UPDATE study_sessions SET last_heartbeat_at = ? WHERE id = ? AND ended_at IS NULL").run(new Date().toISOString(), id);
+  }
+
+  stopStudySession(id: string): void {
+    const now = new Date().toISOString();
+    this.database.prepare("UPDATE study_sessions SET ended_at = ?, last_heartbeat_at = ? WHERE id = ? AND ended_at IS NULL").run(now, now, id);
+  }
+
+  stopAllOpenStudySessions(): void {
+    const now = new Date().toISOString();
+    this.database.prepare("UPDATE study_sessions SET ended_at = ?, last_heartbeat_at = ? WHERE ended_at IS NULL").run(now, now);
+  }
+
+  private closeStaleStudySessions(): void {
+    const threshold = new Date(Date.now() - STUDY_SESSION_STALE_MS).toISOString();
+    this.database.prepare("UPDATE study_sessions SET ended_at = last_heartbeat_at WHERE ended_at IS NULL AND last_heartbeat_at < ?").run(threshold);
+  }
+
+  studyTimeSummary(): TimeTrackingSummary {
+    this.closeStaleStudySessions();
+    const today = this.database.prepare(`SELECT COALESCE(SUM(${DURATION_SECONDS_SQL}), 0) AS seconds FROM study_sessions WHERE date(started_at) = date('now')`).get() as { seconds: number };
+    const week = this.database.prepare(`SELECT COALESCE(SUM(${DURATION_SECONDS_SQL}), 0) AS seconds FROM study_sessions WHERE started_at >= datetime('now', '-6 days')`).get() as { seconds: number };
+    const month = this.database.prepare(`SELECT COALESCE(SUM(${DURATION_SECONDS_SQL}), 0) AS seconds FROM study_sessions WHERE started_at >= datetime('now', '-29 days')`).get() as { seconds: number };
+    const perCourseRows = this.database.prepare(`
+      SELECT course_id, COALESCE(SUM(${DURATION_SECONDS_SQL}), 0) AS seconds
+      FROM study_sessions WHERE course_id IS NOT NULL
+      GROUP BY course_id ORDER BY seconds DESC LIMIT 10
+    `).all() as Array<{ course_id: string; seconds: number }>;
+    return {
+      todaySeconds: Number(today.seconds),
+      weekSeconds: Number(week.seconds),
+      monthSeconds: Number(month.seconds),
+      perCourse: perCourseRows.map((row) => ({ courseId: String(row.course_id), seconds: Number(row.seconds) }))
+    };
+  }
+
   private migrate(): void {
     this.database.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -451,6 +511,29 @@ export class AttemptRepository {
           );
 
           INSERT INTO schema_migrations (version, applied_at) VALUES (3, datetime('now'));
+        `);
+        this.database.exec("COMMIT");
+      } catch (error) {
+        this.database.exec("ROLLBACK");
+        throw error;
+      }
+    }
+    if (Number(version.version) < 4) {
+      this.database.exec("BEGIN IMMEDIATE");
+      try {
+        this.database.exec(`
+          CREATE TABLE IF NOT EXISTS study_sessions (
+            id TEXT PRIMARY KEY,
+            started_at TEXT NOT NULL,
+            last_heartbeat_at TEXT NOT NULL,
+            ended_at TEXT,
+            language TEXT,
+            course_id TEXT,
+            exercise_id TEXT,
+            created_at TEXT NOT NULL
+          );
+
+          INSERT INTO schema_migrations (version, applied_at) VALUES (4, datetime('now'));
         `);
         this.database.exec("COMMIT");
       } catch (error) {
