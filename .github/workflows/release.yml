@@ -22,6 +22,35 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run release:win
+      - name: Merge duplicate draft releases for this tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ github.ref_name }}"
+          REPO="${{ github.repository }}"
+          mapfile -t ids < <(gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | sort -n)
+          if [ "${#ids[@]}" -le 1 ]; then
+            echo "Only one release found for $TAG, nothing to merge."
+            exit 0
+          fi
+          echo "Found ${#ids[@]} releases for $TAG (electron-builder can race-create duplicates); merging extras into the primary."
+          mkdir -p /tmp/release-merge
+          recovered=()
+          for id in "${ids[@]:1}"; do
+            mapfile -t assets < <(gh api "repos/$REPO/releases/$id/assets" --jq '.[] | "\(.id) \(.name)"')
+            for asset in "${assets[@]}"; do
+              aid="${asset%% *}"
+              aname="${asset#* }"
+              gh api -H "Accept: application/octet-stream" "repos/$REPO/releases/assets/$aid" > "/tmp/release-merge/$aname"
+              recovered+=("/tmp/release-merge/$aname")
+            done
+            # Delete the duplicate before uploading elsewhere, so the tag-based
+            # upload below can only resolve to the one release left standing.
+            gh api -X DELETE "repos/$REPO/releases/$id"
+          done
+          if [ "${#recovered[@]}" -gt 0 ]; then
+            gh release upload "$TAG" "${recovered[@]}" --clobber -R "$REPO"
+          fi
       - name: Package the Java curriculum for the release
         shell: bash
         run: |
