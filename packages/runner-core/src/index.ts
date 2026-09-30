@@ -67,7 +67,7 @@ export interface RawSandboxResult {
 
 export interface SandboxExecutionRequest {
   executionId: string;
-  runtimeId: "java-21" | "python-3";
+  runtimeId: "java-21";
   imageReference: string;
   workspace: Pick<PreparedJavaWorkspace, "directory" | "compileCommand" | "runCommand">;
   limits: {

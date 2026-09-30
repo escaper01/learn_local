@@ -5,7 +5,7 @@
 3. Trigger **Package desktop apps** in GitHub Actions for unsigned Windows, macOS, and Linux artifacts.
    The packaging job never publishes implicitly; publishing a release is a separate, explicit owner action.
 4. For a public release, configure trusted Windows code-signing and Apple Developer ID/notarization credentials in repository secrets, then rerun packaging.
-5. Smoke-test first launch, Docker detection, Java/Python installation, the canonical LearnPack import, Run/Submit/cancel, restart persistence, runtime removal, settings import/export, and diagnostics export on each supported OS.
+5. Smoke-test first launch, Docker detection, Java installation, the canonical LearnPack import, Run/Submit/cancel, restart persistence, runtime removal, settings import/export, and diagnostics export on each supported OS.
 6. Publish checksums and keep the pinned runtime digests in the release notes.
 
 The application intentionally does not auto-install Docker or modify Linux group membership. The installer must preserve local application data on uninstall unless the user explicitly chooses data removal.
