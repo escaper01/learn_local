@@ -1,5 +1,45 @@
 import type { ReactNode } from "react";
 
+// A lightweight, language-agnostic heuristic highlighter (comments, strings, numbers,
+// call-position identifiers, capitalized identifiers, keywords) for course code blocks -
+// not a real tokenizer, but enough to make reading-panel code visually match the editor
+// instead of rendering as one flat color.
+const CODE_KEYWORDS = new Set([
+  "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
+  "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float",
+  "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native",
+  "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp",
+  "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void",
+  "volatile", "while", "true", "false", "null",
+  "def", "elif", "except", "from", "as", "with", "lambda", "yield", "pass", "None", "True", "False",
+  "and", "or", "not", "in", "is", "self", "raise", "global", "nonlocal", "async", "await",
+  "let", "var", "function", "export", "type", "interface", "readonly", "of"
+]);
+
+const CODE_TOKEN_REGEX = /(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)(?=\()|(\b[A-Z]\w*\b)|(\b[A-Za-z_]\w*\b)/g;
+
+function highlightCode(code: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let key = 0;
+  CODE_TOKEN_REGEX.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = CODE_TOKEN_REGEX.exec(code))) {
+    if (match.index > lastIndex) nodes.push(code.slice(lastIndex, match.index));
+    const text = match[0];
+    if (match[1]) nodes.push(<span className="tok-comment" key={key++}>{text}</span>);
+    else if (match[2]) nodes.push(<span className="tok-string" key={key++}>{text}</span>);
+    else if (match[3]) nodes.push(<span className="tok-number" key={key++}>{text}</span>);
+    else if (match[4]) nodes.push(<span className="tok-function" key={key++}>{text}</span>);
+    else if (match[5]) nodes.push(<span className="tok-type" key={key++}>{text}</span>);
+    else if (match[6] && CODE_KEYWORDS.has(match[6])) nodes.push(<span className="tok-keyword" key={key++}>{text}</span>);
+    else nodes.push(text);
+    lastIndex = CODE_TOKEN_REGEX.lastIndex;
+  }
+  if (lastIndex < code.length) nodes.push(code.slice(lastIndex));
+  return nodes;
+}
+
 function emphasis(text: string, keyPrefix: string): ReactNode[] {
   return text.split(/(\*\*(?=\S)[^*]+?(?<=\S)\*\*|\*(?=\S)[^*]+?(?<=\S)\*)/g).filter(Boolean).map((part, index) => {
     if (part.length > 4 && part.startsWith("**") && part.endsWith("**")) return <strong key={`${keyPrefix}-${index}`}>{part.slice(2, -2)}</strong>;
@@ -33,7 +73,7 @@ export function SafeMarkdown({ value, className = "" }: { value: string; classNa
       index += 1;
       while (index < lines.length && !lines[index]!.trim().startsWith("```")) { code.push(lines[index]!); index += 1; }
       index += index < lines.length ? 1 : 0;
-      blocks.push(<pre key={`code-${index}`}><code data-language={language || undefined}>{code.join("\n")}</code></pre>);
+      blocks.push(<pre key={`code-${index}`}><code data-language={language || undefined}>{highlightCode(code.join("\n"))}</code></pre>);
       continue;
     }
     const heading = /^(#{1,6})\s+(.+)$/.exec(trimmed);

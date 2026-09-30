@@ -23,7 +23,8 @@ export const THEME_TOKEN_KEYS = [
   "accent", "accent-strong", "accent-contrast", "accent-soft-bg", "accent-soft-text",
   "success", "success-strong", "success-bg", "danger", "danger-strong", "danger-bg",
   "warning", "warning-bg", "java-color", "java-bg", "python-color", "python-bg",
-  "shadow", "backdrop", "code-text", "code-bg", "gold", "font-reading"
+  "shadow", "backdrop", "code-text", "code-bg", "gold", "font-reading",
+  "syntax-keyword", "syntax-string", "syntax-comment", "syntax-number", "syntax-type", "syntax-function"
 ] as const;
 
 export type ThemeTokenKey = typeof THEME_TOKEN_KEYS[number];
@@ -50,6 +51,8 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
       "java-color": "#f0ae62", "java-bg": "#37271a", "python-color": "#75b9e9", "python-bg": "#183249",
       shadow: "#00000066", backdrop: "#05070ab8",
       "code-text": "#8fc7ff", "code-bg": "#1c2430", gold: "#d1a94e",
+      "syntax-keyword": "#c586c0", "syntax-string": "#ce9178", "syntax-comment": "#6a9955",
+      "syntax-number": "#b5cea8", "syntax-type": "#4ec9b0", "syntax-function": "#dcdcaa",
       "font-reading": SANS
     },
     monacoBase: "vs-dark",
@@ -85,6 +88,8 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
       "java-color": "#a5650f", "java-bg": "#f7ead2", "python-color": "#1f5c8a", "python-bg": "#dcecf7",
       shadow: "#2331292b", backdrop: "#2a2a2666",
       "code-text": "#0a5cb8", "code-bg": "#eef2f7", gold: "#b48a2e",
+      "syntax-keyword": "#d73a49", "syntax-string": "#032f62", "syntax-comment": "#6a737d",
+      "syntax-number": "#005cc5", "syntax-type": "#22863a", "syntax-function": "#6f42c1",
       "font-reading": SERIF
     },
     monacoBase: "vs",
@@ -120,6 +125,8 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
       "java-color": "#d19a66", "java-bg": "#3a2b1a", "python-color": "#56b6c2", "python-bg": "#1c3438",
       shadow: "#00000066", backdrop: "#10131866",
       "code-text": "#98c379", "code-bg": "#1e222a", gold: "#e5c07b",
+      "syntax-keyword": "#c678dd", "syntax-string": "#98c379", "syntax-comment": "#5c6370",
+      "syntax-number": "#d19a66", "syntax-type": "#e5c07b", "syntax-function": "#61afef",
       "font-reading": SANS
     },
     monacoBase: "vs-dark",
@@ -155,6 +162,8 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
       "java-color": "#d19a66", "java-bg": "#362a1a", "python-color": "#56b6c2", "python-bg": "#1a3236",
       shadow: "#00000066", backdrop: "#0d0f1266",
       "code-text": "#89ca78", "code-bg": "#1b1f24", gold: "#d19a66",
+      "syntax-keyword": "#c678dd", "syntax-string": "#89ca78", "syntax-comment": "#5c6370",
+      "syntax-number": "#d19a66", "syntax-type": "#e0c285", "syntax-function": "#528bff",
       "font-reading": SANS
     },
     monacoBase: "vs-dark",
@@ -190,6 +199,8 @@ export const BUILT_IN_THEMES: ThemeDefinition[] = [
       "java-color": "#e8a33d", "java-bg": "#3a2a14", "python-color": "#61d6d6", "python-bg": "#123434",
       shadow: "#00000066", backdrop: "#00071566",
       "code-text": "#61d6d6", "code-bg": "#011a3d", gold: "#f2c811",
+      "syntax-keyword": "#29b8d6", "syntax-string": "#61d6d6", "syntax-comment": "#6a9955",
+      "syntax-number": "#f2c811", "syntax-type": "#5ecbde", "syntax-function": "#eeedf0",
       "font-reading": SANS
     },
     monacoBase: "vs-dark",
@@ -216,7 +227,8 @@ export const TOKEN_GROUPS: Array<{ label: string; keys: ThemeTokenKey[] }> = [
   { label: "Accent", keys: ["accent", "accent-strong", "accent-contrast", "accent-soft-bg", "accent-soft-text"] },
   { label: "Status", keys: ["success", "success-strong", "success-bg", "danger", "danger-strong", "danger-bg", "warning", "warning-bg"] },
   { label: "Language badges", keys: ["java-color", "java-bg", "python-color", "python-bg"] },
-  { label: "Code blocks", keys: ["code-text", "code-bg", "gold"] }
+  { label: "Code blocks", keys: ["code-text", "code-bg", "gold"] },
+  { label: "Code syntax", keys: ["syntax-keyword", "syntax-string", "syntax-comment", "syntax-number", "syntax-type", "syntax-function"] }
 ];
 
 export function applyThemeTokens(theme: Pick<ThemeDefinition, "tokens" | "colorScheme">): void {

@@ -40,7 +40,19 @@ describe("SafeMarkdown", () => {
     expect(html).toContain('<blockquote class="callout warning"><p><strong>Warning:</strong> never do this</p></blockquote>');
     expect(html).toContain('<blockquote class="callout tip">');
     expect(html).toContain('<blockquote class="callout note"><p>plain note</p></blockquote>');
-    expect(html).toContain('<pre><code data-language="java">int x = 1; // **not bold**</code></pre>');
+    expect(html).toContain('<pre><code data-language="java">');
+    expect(html).toContain("// **not bold**");
+    expect(html).not.toContain("<strong>not bold</strong>");
+  });
+
+  it("highlights code block tokens instead of rendering flat text", () => {
+    const html = render('```java\nint total = 0; // running sum\nSolution.sum("a");\n```');
+    expect(html).toContain('<span class="tok-keyword">int</span>');
+    expect(html).toContain('<span class="tok-number">0</span>');
+    expect(html).toContain('<span class="tok-comment">// running sum</span>');
+    expect(html).toContain('<span class="tok-string">&quot;a&quot;</span>');
+    expect(html).toContain('<span class="tok-function">sum</span>');
+    expect(html).toContain('<span class="tok-type">Solution</span>');
   });
 
   it("treats HTML and links in course content as inert text", () => {
