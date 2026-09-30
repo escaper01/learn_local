@@ -194,6 +194,9 @@ export default function App() {
   const [runtimes, setRuntimes] = useState<RuntimeSummary[]>([]);
   const [runtimeOperation, setRuntimeOperation] = useState<RuntimeSummary["id"] | null>(null);
   const [runtimeOperationLabel, setRuntimeOperationLabel] = useState("Working");
+  const [runtimeOffer, setRuntimeOffer] = useState<RuntimeSummary | null>(null);
+  const [runtimeOfferBusy, setRuntimeOfferBusy] = useState(false);
+  const [hintCountdown, setHintCountdown] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<ResolvedSetting[]>([]);
   const [settingsScope, setSettingsScope] = useState<SettingScope>("global");
@@ -207,7 +210,7 @@ export default function App() {
   const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>([]);
   const [topicDraft, setTopicDraft] = useState("");
   const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
-  const [timeSummary, setTimeSummary] = useState<TimeTrackingSummary>({ todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [] });
+  const [timeSummary, setTimeSummary] = useState<TimeTrackingSummary>({ todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [], perModule: [] });
   const [studySessionId, setStudySessionId] = useState<string | null>(null);
   const [studySeconds, setStudySeconds] = useState(0);
   const [activeCourse, setActiveCourse] = useState<CourseView | null>(null);
@@ -270,12 +273,20 @@ export default function App() {
   }, [sidebarCollapsed]);
 
   useEffect(() => {
+    // Seed the live topbar timer with today's true backend total once; after this it only
+    // ever counts up locally (see the ticking effect below), so switching lessons/exercises
+    // never resets what the learner sees, even though each one still logs its own session row.
+    void window.learnLocal.timeTracking.summary().then((summary) => setStudySeconds(summary.todaySeconds)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (view !== "lesson" || !activeLesson) return;
     let sessionId: string | null = null;
     let cancelled = false;
     const courseLanguage = activeCourse?.summary.language;
     const trackedLanguage = isSupportedLanguage(courseLanguage ?? language) ? (courseLanguage ?? language) as "java" | "python" : undefined;
-    void window.learnLocal.timeTracking.start({ language: trackedLanguage, courseId: activeCourse?.summary.id, exerciseId: activeImportedExercise?.id }).then((started) => {
+    const moduleId = activeCourse?.modules.find((module) => module.lessons.some((lesson) => lesson.id === activeLesson.id))?.id;
+    void window.learnLocal.timeTracking.start({ language: trackedLanguage, courseId: activeCourse?.summary.id, moduleId, exerciseId: activeImportedExercise?.id }).then((started) => {
       if (cancelled) { void window.learnLocal.timeTracking.stop({ sessionId: started.sessionId }); return; }
       sessionId = started.sessionId;
       setStudySessionId(started.sessionId);
@@ -294,10 +305,8 @@ export default function App() {
   }, [studySessionId]);
 
   useEffect(() => {
-    if (!studySessionId) { setStudySeconds(0); return; }
-    const startedAt = Date.now();
-    setStudySeconds(0);
-    const tick = window.setInterval(() => setStudySeconds(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    if (!studySessionId) return;
+    const tick = window.setInterval(() => setStudySeconds((current) => current + 1), 1000);
     return () => window.clearInterval(tick);
   }, [studySessionId]);
 
@@ -485,6 +494,31 @@ export default function App() {
     }
   };
 
+  const maybeOfferRuntimeInstall = async (courseLanguage: string) => {
+    const autoInstall = settings.find((setting) => setting.key === "runner.autoInstall")?.value !== false;
+    if (!autoInstall || !isSupportedLanguage(courseLanguage)) return;
+    try {
+      const list = await window.learnLocal.runtimes.list();
+      const runtime = list.find((candidate) => candidate.language === courseLanguage);
+      if (runtime && runtime.status !== "ready") setRuntimeOffer(runtime);
+    } catch {
+      // Non-critical: the learner can still open the Languages menu manually.
+    }
+  };
+
+  const installOfferedRuntime = async () => {
+    if (!runtimeOffer) return;
+    setRuntimeOfferBusy(true);
+    try {
+      await window.learnLocal.runtimes.install(runtimeOffer.id);
+      setRuntimeOffer(null);
+    } catch (value) {
+      setError(friendlyError(value));
+    } finally {
+      setRuntimeOfferBusy(false);
+    }
+  };
+
   const removeRuntimeAndData = async (runtime: RuntimeSummary) => {
     const confirmed = window.confirm(`Remove ${runtime.displayName} and all ${runtime.language} courses, saved workspaces, attempts, hints, and progress from this device? This cannot be undone.`);
     if (!confirmed) return;
@@ -547,6 +581,7 @@ export default function App() {
       setQuizCorrect(null);
       setTopicModalTab("lessons");
       setView("lesson");
+      void maybeOfferRuntimeInstall(course.language);
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
@@ -738,6 +773,15 @@ export default function App() {
   const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
   const showStudyTimer = settings.find((setting) => setting.key === "timeTracking.reminderEnabled")?.value !== false;
+  const hintDelaySeconds = Number(settings.find((setting) => setting.key === "learning.hintDelaySeconds")?.value ?? 0);
+  const dailyGoalMinutes = Number(settings.find((setting) => setting.key === "timeTracking.dailyGoalMinutes")?.value ?? 30);
+
+  useEffect(() => {
+    if (!activeImportedExercise || hintDelaySeconds <= 0) { setHintCountdown(0); return; }
+    setHintCountdown(hintDelaySeconds);
+    const tick = window.setInterval(() => setHintCountdown((current) => Math.max(0, current - 1)), 1000);
+    return () => window.clearInterval(tick);
+  }, [activeImportedExercise?.id, activeImportedExercise?.hints.length, hintDelaySeconds]);
   const activeStarter = activeImportedExercise?.starterFiles.find((file) => file.path === activeFilePath) ?? activeImportedExercise?.starterFiles[0];
   type CourseLesson = CourseView["modules"][number]["lessons"][number];
   type CourseExercise = CourseLesson["exercises"][number];
@@ -813,7 +857,7 @@ export default function App() {
               <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
               {theme === "dark" ? "Light" : "Dark"}
             </button>
-            {showStudyTimer && studySessionId && <div className="study-timer active" title="Time spent on this lesson"><span aria-hidden="true">⏱</span><b>{formatDuration(studySeconds)}</b></div>}
+            {showStudyTimer && <div className={`study-timer ${studySessionId ? "active" : ""}`} title="Time studied today"><span aria-hidden="true">⏱</span><b>{formatDuration(studySeconds)}</b></div>}
             <div className="progress-chip"><span>{activeCourse ? "Course progress" : "Exercises completed"}</span><b>{activeCourse ? `${completedCourseExercises} / ${courseExercises.length}` : learningSummary.completedExercises}</b></div>
           </div>
         </header>
@@ -834,7 +878,11 @@ export default function App() {
               <div>{!activeLesson?.theoryMarkdown.trimStart().startsWith("# ") && <strong>{activeLesson?.title ?? "Course lesson"}</strong>}<SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
             </div>
             {(activeImportedExercise?.hints ?? []).map((hint, index) => <details className="hint" key={`${index}-${hint}`} open><summary>Hint {index + 1} of {activeImportedExercise?.hintCount ?? 0}</summary><p>{hint}</p></details>)}
-            {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && <button className="ghost-button reveal-hint" type="button" onClick={() => void revealNextHint()}>Reveal hint {activeImportedExercise.hints.length + 1}</button>}
+            {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && (
+              <button className="ghost-button reveal-hint" type="button" disabled={hintCountdown > 0} onClick={() => void revealNextHint()}>
+                {hintCountdown > 0 ? `Hint ${activeImportedExercise.hints.length + 1} available in ${hintCountdown}s` : `Reveal hint ${activeImportedExercise.hints.length + 1}`}
+              </button>
+            )}
             {!activeImportedExercise && lessonNavigation("bottom")}
           </article>
 
@@ -983,6 +1031,20 @@ export default function App() {
               <article><span>This month</span><strong>{formatDuration(timeSummary.monthSeconds)}</strong></article>
               <article><span>{activeCourse ? activeCourse.summary.title : "Current course"}</span><strong>{formatDuration(timeSummary.perCourse.find((entry) => entry.courseId === activeCourse?.summary.id)?.seconds ?? 0)}</strong></article>
             </div>
+            <div className="time-goal">
+              <span>Daily goal · {dailyGoalMinutes}m</span>
+              <div className="time-goal-bar"><i style={{ width: `${Math.min(100, (timeSummary.todaySeconds / (dailyGoalMinutes * 60)) * 100)}%` }} /></div>
+              <b>{Math.min(100, Math.round((timeSummary.todaySeconds / (dailyGoalMinutes * 60)) * 100))}%</b>
+            </div>
+            {activeCourse && (
+              <div className="time-per-module">
+                <span>Time per chapter · {activeCourse.summary.title}</span>
+                {activeCourse.modules.map((module, index) => {
+                  const seconds = timeSummary.perModule.find((entry) => entry.courseId === activeCourse.summary.id && entry.moduleId === module.id)?.seconds ?? 0;
+                  return <div className="time-per-module-row" key={module.id}><small>{String(index + 1).padStart(2, "0")} · {module.title}</small><b>{formatDuration(seconds)}</b></div>;
+                })}
+              </div>
+            )}
           </article>
           <div className="dashboard-grid">
             {activeCourse && <article className="task-heatmap"><div><strong>Course task activity</strong><span>{activeCourse.summary.title}</span></div><div>{courseExercises.map((exercise) => <button type="button" key={exercise.id} className={`${exercise.completed ? "completed" : "pending"} ${exercise.type}`} title={`${exercise.title}\n${exercise.type.replace(/([A-Z])/g, " $1")} · ${exercise.completed ? "Completed" : "Not completed"}`} onClick={() => { for (const module of activeCourse.modules) { const lesson = module.lessons.find((candidate) => candidate.exercises.some((item) => item.id === exercise.id)); if (lesson) { void selectCourseExercise(lesson, exercise); return; } } }} aria-label={`${exercise.title}: ${exercise.completed ? "completed" : "not completed"}`}/>)}</div><small>Hover a square for task details. Select one to open it.</small></article>}
@@ -1091,6 +1153,22 @@ export default function App() {
             </div>
             {error?.category === "runtime" && <div className="runtime-error"><strong>{error.message}</strong><span>{error.code}</span></div>}
             <div className="runtime-note"><span>●</span><p>Executions use fresh containers with network disabled. No public port is opened.</p></div>
+          </section>
+        </div>
+      )}
+      {runtimeOffer && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => !runtimeOfferBusy && setRuntimeOffer(null)}>
+          <section className="import-modal" role="dialog" aria-modal="true" aria-labelledby="runtime-offer-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Not now" disabled={runtimeOfferBusy} onClick={() => setRuntimeOffer(null)}>×</button>
+            <span className={`runtime-logo ${runtimeOffer.language}`} style={{ marginBottom: 17 }}>{runtimeOffer.language === "java" ? "J" : "Py"}</span>
+            <div className="eyebrow">RUNTIME NEEDED</div>
+            <h2 id="runtime-offer-title">Install {runtimeOffer.displayName} to run this course's code?</h2>
+            <p>This course's exercises run in a disposable, network-disabled {runtimeOffer.displayName} container. You can keep reading and browsing without it, but Run/Submit need it installed first.</p>
+            {error?.category === "runtime" && <div className="runtime-error"><strong>{error.message}</strong><span>{error.code}</span></div>}
+            <div className="import-failure-actions">
+              <button className="ghost-button" disabled={runtimeOfferBusy} onClick={() => setRuntimeOffer(null)}>Not now, continue in study mode</button>
+              <button className="submit-button" disabled={runtimeOfferBusy} onClick={() => void installOfferedRuntime()}>{runtimeOfferBusy ? "Installing…" : "Install now"}</button>
+            </div>
           </section>
         </div>
       )}

@@ -352,15 +352,15 @@ export class AttemptRepository {
     return this.listPromptHistory();
   }
 
-  startStudySession(id: string, context: { language: string | null; courseId: string | null; exerciseId: string | null }): void {
+  startStudySession(id: string, context: { language: string | null; courseId: string | null; moduleId: string | null; exerciseId: string | null }): void {
     const now = new Date().toISOString();
     this.database.exec("BEGIN IMMEDIATE");
     try {
       this.database.prepare("UPDATE study_sessions SET ended_at = last_heartbeat_at WHERE ended_at IS NULL").run();
       this.database.prepare(`
-        INSERT INTO study_sessions (id, started_at, last_heartbeat_at, ended_at, language, course_id, exercise_id, created_at)
-        VALUES (?, ?, ?, NULL, ?, ?, ?, ?)
-      `).run(id, now, now, context.language, context.courseId, context.exerciseId, now);
+        INSERT INTO study_sessions (id, started_at, last_heartbeat_at, ended_at, language, course_id, module_id, exercise_id, created_at)
+        VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?)
+      `).run(id, now, now, context.language, context.courseId, context.moduleId, context.exerciseId, now);
       this.database.exec("COMMIT");
     } catch (error) {
       this.database.exec("ROLLBACK");
@@ -397,11 +397,17 @@ export class AttemptRepository {
       FROM study_sessions WHERE course_id IS NOT NULL
       GROUP BY course_id ORDER BY seconds DESC LIMIT 10
     `).all() as Array<{ course_id: string; seconds: number }>;
+    const perModuleRows = this.database.prepare(`
+      SELECT course_id, module_id, COALESCE(SUM(${DURATION_SECONDS_SQL}), 0) AS seconds
+      FROM study_sessions WHERE course_id IS NOT NULL AND module_id IS NOT NULL
+      GROUP BY course_id, module_id ORDER BY course_id, seconds DESC
+    `).all() as Array<{ course_id: string; module_id: string; seconds: number }>;
     return {
       todaySeconds: Number(today.seconds),
       weekSeconds: Number(week.seconds),
       monthSeconds: Number(month.seconds),
-      perCourse: perCourseRows.map((row) => ({ courseId: String(row.course_id), seconds: Number(row.seconds) }))
+      perCourse: perCourseRows.map((row) => ({ courseId: String(row.course_id), seconds: Number(row.seconds) })),
+      perModule: perModuleRows.map((row) => ({ courseId: String(row.course_id), moduleId: String(row.module_id), seconds: Number(row.seconds) }))
     };
   }
 
@@ -534,6 +540,19 @@ export class AttemptRepository {
           );
 
           INSERT INTO schema_migrations (version, applied_at) VALUES (4, datetime('now'));
+        `);
+        this.database.exec("COMMIT");
+      } catch (error) {
+        this.database.exec("ROLLBACK");
+        throw error;
+      }
+    }
+    if (Number(version.version) < 5) {
+      this.database.exec("BEGIN IMMEDIATE");
+      try {
+        this.database.exec(`
+          ALTER TABLE study_sessions ADD COLUMN module_id TEXT;
+          INSERT INTO schema_migrations (version, applied_at) VALUES (5, datetime('now'));
         `);
         this.database.exec("COMMIT");
       } catch (error) {

@@ -373,9 +373,9 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC_CHANNELS.timeTrackingStart, (event, input: unknown) => {
     assertTrustedSender(event);
-    const { language, courseId, exerciseId } = timeTrackingStartSchema.parse(input);
+    const { language, courseId, moduleId, exerciseId } = timeTrackingStartSchema.parse(input);
     const sessionId = `session_${randomUUID()}`;
-    attempts?.startStudySession(sessionId, { language: language ?? null, courseId: courseId ?? null, exerciseId: exerciseId ?? null });
+    attempts?.startStudySession(sessionId, { language: language ?? null, courseId: courseId ?? null, moduleId: moduleId ?? null, exerciseId: exerciseId ?? null });
     return { sessionId };
   });
 
@@ -393,7 +393,7 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC_CHANNELS.timeTrackingSummary, (event) => {
     assertTrustedSender(event);
-    return attempts?.studyTimeSummary() ?? { todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [] };
+    return attempts?.studyTimeSummary() ?? { todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [], perModule: [] };
   });
 
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {

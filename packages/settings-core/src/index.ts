@@ -22,13 +22,10 @@ export interface StoredSetting {
 export const SETTING_DEFINITIONS: readonly SettingDefinition[] = Object.freeze([
   { key: "editor.fontSize", category: "Editor", label: "Editor font size", description: "Code editor text size in pixels.", type: "number", defaultValue: 14, min: 12, max: 24 },
   { key: "editor.wordWrap", category: "Editor", label: "Wrap long lines", description: "Wrap code that extends beyond the editor width.", type: "boolean", defaultValue: false },
-  { key: "learning.dailyMinutes", category: "Learning", label: "Daily practice target", description: "Preferred practice time per day.", type: "number", defaultValue: 30, min: 10, max: 240 },
-  { key: "learning.hintDelaySeconds", category: "Learning", label: "Hint delay", description: "Seconds before the next hint becomes available.", type: "number", defaultValue: 30, min: 0, max: 300 },
-  { key: "prompt.teachingStyle", category: "Prompts", label: "Teaching style", description: "Default tone for generated course prompts.", type: "enum", defaultValue: "supportive", options: ["supportive", "concise", "socratic", "project-based"] },
-  { key: "prompt.customInstructions", category: "Prompts", label: "Custom instructions", description: "Additional requirements included in generated prompts.", type: "string", defaultValue: "" },
-  { key: "runner.autoInstall", category: "Runtimes", label: "Offer runtime installation", description: "Offer to install a missing approved runtime when opening a course.", type: "boolean", defaultValue: true },
-  { key: "timeTracking.dailyGoalMinutes", category: "Time tracking", label: "Daily study goal", description: "Target study minutes per day, shown on the dashboard.", type: "number", defaultValue: 30, min: 5, max: 480 },
-  { key: "timeTracking.reminderEnabled", category: "Time tracking", label: "Show the live study timer", description: "Show a running timer next to the theme toggle while you are in a lesson.", type: "boolean", defaultValue: true }
+  { key: "learning.hintDelaySeconds", category: "Learning", label: "Hint delay", description: "Seconds before the next hint becomes available after you open an exercise.", type: "number", defaultValue: 30, min: 0, max: 300 },
+  { key: "runner.autoInstall", category: "Runtimes", label: "Offer runtime installation", description: "Offer to install a missing approved runtime when you open a course that needs it.", type: "boolean", defaultValue: true },
+  { key: "timeTracking.dailyGoalMinutes", category: "Time tracking", label: "Daily study goal", description: "Target study minutes per day; progress shows on the dashboard.", type: "number", defaultValue: 30, min: 5, max: 480 },
+  { key: "timeTracking.reminderEnabled", category: "Time tracking", label: "Show the live study timer", description: "Show a running timer next to the theme toggle.", type: "boolean", defaultValue: true }
 ]);
 
 export function definitionFor(key: string): SettingDefinition {

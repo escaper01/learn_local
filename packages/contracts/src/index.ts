@@ -271,6 +271,7 @@ export const quizSubmitSchema = z.object({
 export const timeTrackingStartSchema = z.object({
   language: z.enum(["java", "python"]).optional(),
   courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional(),
+  moduleId: z.string().min(1).max(160).optional(),
   exerciseId: z.string().min(1).max(160).optional()
 }).strict();
 
@@ -283,6 +284,7 @@ export interface TimeTrackingSummary {
   weekSeconds: number;
   monthSeconds: number;
   perCourse: Array<{ courseId: string; seconds: number }>;
+  perModule: Array<{ courseId: string; moduleId: string; seconds: number }>;
 }
 
 export const hintRevealSchema = z.object({
