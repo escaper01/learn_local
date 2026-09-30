@@ -73,10 +73,10 @@ button { font: inherit; }
 .sidebar-toggle:hover { color: var(--text); background: var(--surface-hover); }
 .nav-item { display: flex; align-items: center; gap: 11px; width: 100%; padding: 10px 11px; border: 0; border-radius: 8px; color: var(--text-muted); background: transparent; text-align: left; cursor: pointer; }
 .nav-item .nav-icon { width: 19px; color: var(--text-faint); text-align: center; }
-.nav-item .nav-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-item .nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nav-item.active { color: var(--accent-soft-text); background: var(--accent-soft-bg); }
 .nav-item.active .nav-icon { color: var(--accent); }
-.nav-item-child { position: relative; margin-left: 18px; width: calc(100% - 18px); padding-left: 8px; }
+.nav-item-child { position: relative; margin-left: 18px; width: calc(100% - 18px); padding-left: 8px; font-size: 11px; }
 .nav-item-child::before { position: absolute; top: 0; left: -10px; bottom: 50%; width: 10px; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); border-radius: 0 0 0 6px; content: ""; }
 .sidebar.collapsed .nav-item-child { margin-left: 0; width: 100%; padding-left: 0; }
 .sidebar.collapsed .nav-item-child::before { display: none; }
