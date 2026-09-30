@@ -1,8 +1,29 @@
+<p align="center"><img src="docs/logo.svg" alt="LearnLocal logo" width="96" height="96" /></p>
+
 # LearnLocal
 
 **Programming education for anyone, regardless of internet access or budget.**
 
 LearnLocal is an offline-first desktop application for learning to code. Import a course once, and everything after that — reading lessons, taking quizzes, writing and running real code, tracking your progress — works completely offline, with no account, no subscription, and no data ever leaving your machine.
+
+## Download
+
+Grab the latest Windows build from the [Releases page](https://github.com/escaper01/learn_local/releases):
+
+- **`LearnLocal-<version>-x64.exe`** — a normal installer (Start Menu shortcut, uninstaller).
+- **`LearnLocal-Portable-<version>-x64.exe`** — no installation. Copy it anywhere (including a USB drive) and run it directly; it stores its database, courses, and settings in a `LearnLocal-Data` folder next to the executable, so the whole thing stays self-contained.
+
+**Docker Desktop (or Docker Engine) must be installed and running** for LearnLocal to execute code — it's what runs your Java submissions in a disposable, network-disabled container. You can still browse and read a course without it, but Run/Submit need it. Reading courses, quizzes, and the editor all work fine before you install Docker.
+
+### Importing the bundled Java course
+
+Every release also includes **`javaCourse.zip`** — the full 25-chapter Java Developer Academy curriculum, ready to import:
+
+1. Download `javaCourse.zip` from the same [release](https://github.com/escaper01/learn_local/releases) and extract it anywhere on disk (right-click → **Extract All…**).
+2. Open LearnLocal and click **Import course folder**.
+3. In the folder picker, locate and select the folder you just extracted (the one containing `manifest.json`).
+
+LearnLocal validates the folder and adds it to **My courses**. The same steps work for any other LearnPack course folder you obtain elsewhere — see [Course content](#course-content) below for authoring your own.
 
 ## Why LearnLocal exists
 
@@ -22,7 +43,7 @@ Today, LearnLocal ships with trusted, sandboxed **Java 21** execution and a comp
 | ![Lesson with a quiz](docs/screenshots/quiz.jpg) **Concept checks** — multiple-choice quizzes woven into lessons, with instant feedback. | ![Lesson and code editor](docs/screenshots/lesson-editor-light.jpg) **Lesson + editor** — reading pane and Monaco code editor side by side, both syntax-highlighted from the same theme. |
 | ![Dark theme](docs/screenshots/lesson-editor-dark.jpg) **Built-in dark theme** — LeetCode-inspired, for a coding-tool feel. | ![Theme picker](docs/screenshots/theme-picker.jpg) **Theme picker** — pick a built-in theme or duplicate one to design your own. |
 
-*(All screenshots above are from the default Medium Light theme unless noted.)*
+*(Screenshots above show both the default LeetCode Dark theme and the Medium Light alternative.)*
 
 ## Feature overview
 

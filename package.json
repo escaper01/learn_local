@@ -1,6 +1,6 @@
 {
   "name": "learnlocal",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./out/main/main.js",
   "private": true,
   "description": "An offline-first desktop application for portable, interactive programming courses.",
@@ -43,6 +43,7 @@
     "appId": "dev.learnlocal.desktop",
     "productName": "LearnLocal",
     "asar": true,
+    "icon": "build/icon.svg",
     "directories": { "output": "release" },
     "files": ["out/**/*", "package.json"],
     "publish": { "provider": "github", "owner": "escaper01", "repo": "learn_local" },

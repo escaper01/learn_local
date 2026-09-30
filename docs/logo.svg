@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LearnLocal logo">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2029"/>
+      <stop offset="1" stop-color="#0c1015"/>
+    </linearGradient>
+    <linearGradient id="lGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc267"/>
+      <stop offset="1" stop-color="#ff9d0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect x="104" y="130" width="76" height="252" rx="22" fill="url(#lGrad)"/>
+  <rect x="104" y="308" width="212" height="74" rx="22" fill="url(#lGrad)"/>
+  <rect x="344" y="308" width="64" height="74" rx="16" fill="#fff4e3"/>
+</svg>

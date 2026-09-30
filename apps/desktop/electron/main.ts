@@ -73,7 +73,7 @@ function createWindow(): void {
     height: 900,
     minWidth: 1060,
     minHeight: 680,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#16171a",
     title: "LearnLocal",
     show: false,
     webPreferences: {

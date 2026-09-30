@@ -5,6 +5,7 @@ import type { AppErrorShape, CoursePromptRequest, CourseView, CustomThemeRecord,
 
 import { SafeMarkdown } from "./SafeMarkdown";
 import { applyThemeTokens, BUILT_IN_THEMES, TOKEN_GROUPS, type ThemeDefinition } from "./themes";
+import logoUrl from "./assets/logo.svg";
 
 loader.config({ monaco });
 
@@ -27,7 +28,7 @@ function initialThemeId(): string {
   const legacy = localStorage.getItem("learnlocal.theme");
   if (legacy === "light") return "medium-light";
   if (legacy === "dark") return "leetcode-dark";
-  return "medium-light";
+  return "leetcode-dark";
 }
 
 function isSupportedLanguage(value: string): value is "java" {
@@ -894,9 +895,9 @@ export default function App() {
   return (
     <main className="app-shell">
       <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
-        <div className="brand"><span className="brand-mark">L</span><span>LearnLocal</span></div>
+        <div className="brand"><img className="brand-mark" src={logoUrl} alt="" /><span>LearnLocal</span></div>
         <button type="button" className="sidebar-toggle" aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={() => setSidebarCollapsed((current) => !current)}>
-          <span aria-hidden="true">{sidebarCollapsed ? "»" : "«"}</span><span>Collapse</span>
+          <span aria-hidden="true">{sidebarCollapsed ? "»" : "«"}</span>
         </button>
         <nav>
           <button className={`nav-item ${view === "dashboard" ? "active" : ""}`} onClick={() => setView("dashboard")}><span className="nav-icon">⌂</span><span className="nav-label">Dashboard</span></button>
@@ -1399,7 +1400,7 @@ export default function App() {
         <div className="modal-backdrop onboarding-backdrop">
           <section className="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
             <div className="onboarding-progress" aria-label={`Onboarding step ${onboardingStep + 1} of 2`}><i className="active"/><i className={onboardingStep >= 1 ? "active" : ""}/></div>
-            {onboardingStep === 0 && <><span className="onboarding-mark">L</span><div className="eyebrow">WELCOME TO LEARNLOCAL</div><h2 id="onboarding-title">Learn programming privately, on your computer</h2><p>Courses, code, settings, and progress stay on this device. LearnLocal does not require an account and does not send your work to an AI service.</p><div className="onboarding-points"><span>✓ Portable LearnPack courses</span><span>✓ Disposable, network-disabled runtimes</span><span>✓ Progress stored locally</span></div></>}
+            {onboardingStep === 0 && <><img className="onboarding-mark" src={logoUrl} alt="" /><div className="eyebrow">WELCOME TO LEARNLOCAL</div><h2 id="onboarding-title">Learn programming privately, on your computer</h2><p>Courses, code, settings, and progress stay on this device. LearnLocal does not require an account and does not send your work to an AI service.</p><div className="onboarding-points"><span>✓ Portable LearnPack courses</span><span>✓ Disposable, network-disabled runtimes</span><span>✓ Progress stored locally</span></div></>}
             {onboardingStep === 1 && <><div className="eyebrow">ENVIRONMENT CHECK</div><h2 id="onboarding-title">{provider?.available ? "Your local runner is ready" : "Finish setting up Docker"}</h2><p>{provider?.available ? `Docker ${provider.version ?? ""} is available. Install the Java runtime when you run your first exercise.` : "LearnLocal needs Docker Desktop or Docker Engine to run code safely. You can still browse courses and generate prompts before installing it."}</p><div className={`onboarding-status ${provider?.available ? "ready" : "warning"}`}><span>{provider?.available ? "✓" : "!"}</span><div><strong>{provider?.available ? "Sandbox provider detected" : "Docker is not available yet"}</strong><small>{provider?.message ?? "Checking the local environment…"}</small></div></div></>}
             <footer><button className="ghost-button" disabled={onboardingStep === 0} onClick={() => setOnboardingStep((step) => Math.max(0, step - 1))}>Back</button>{onboardingStep < 1 ? <button className="submit-button" onClick={() => setOnboardingStep((step) => step + 1)}>Continue</button> : <button className="submit-button" onClick={finishOnboarding}>Start learning</button>}</footer>
           </section>
