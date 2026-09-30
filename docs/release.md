@@ -11,8 +11,8 @@ There are two separate GitHub Actions workflows: **Package desktop apps** (manua
    git tag v0.2.0
    git push origin v0.2.0
    ```
-4. Pushing the tag triggers **Release Windows build** (`.github/workflows/release.yml`) on `windows-latest`. It runs `npm run release:win`, which builds the NSIS installer and calls `electron-builder --publish always`. electron-builder creates the release as a **draft** by default — nothing public happens automatically.
-5. Open the repository's **Releases** page, review the draft (edit the auto-generated notes if you want), confirm the `.exe` and `latest.yml` assets are attached, then click **Publish release** yourself. This is the explicit owner action that makes the release public.
+4. Pushing the tag triggers **Release Windows build** (`.github/workflows/release.yml`) on `windows-latest`. It runs `npm run release:win`, which builds the NSIS installer and calls `electron-builder --publish always`. electron-builder creates the release as a **draft** by default — nothing public happens automatically. The workflow then runs `npm run curriculum:package` and attaches the resulting archive to the same draft release as `javaCourse.zip`, so a fresh install has a course to import immediately.
+5. Open the repository's **Releases** page, review the draft (edit the auto-generated notes if you want), confirm the `.exe`, `latest.yml`, and `javaCourse.zip` assets are attached, then click **Publish release** yourself. This is the explicit owner action that makes the release public.
 6. Smoke-test the published installer: first launch, Docker detection, Java installation, the canonical LearnPack import, Run/Submit/cancel, restart persistence, runtime removal, settings import/export, and diagnostics export.
 
 The Windows build is currently **unsigned** — no code-signing certificate is configured, so Windows SmartScreen will warn installers came from an unrecognized publisher until a user clicks through it. To sign it later, add a certificate via the `CSC_LINK`/`CSC_KEY_PASSWORD` repository secrets and remove the `CSC_IDENTITY_AUTO_DISCOVERY: "false"` override in `release.yml` — no other workflow changes are needed.

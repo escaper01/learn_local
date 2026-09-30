@@ -22,3 +22,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run release:win
+      - name: Package the Java curriculum for the release
+        shell: bash
+        run: |
+          npm run curriculum:package
+          cp javaCourse.learnpack javaCourse.zip
+      - name: Attach curriculum archive to the release
+        shell: bash
+        run: gh release upload "${{ github.ref_name }}" javaCourse.zip --clobber
