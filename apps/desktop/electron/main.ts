@@ -43,6 +43,14 @@ import { buildCoursePrompt } from "@learnlocal/prompt-generator";
 const docker = new DockerProvider();
 let attempts: AttemptRepository | undefined;
 
+// electron-builder's Windows "portable" target sets PORTABLE_EXECUTABLE_DIR to the folder
+// holding the portable .exe itself (not its temp extraction directory). Redirect userData
+// there before anything reads app.getPath("userData"), so a portable copy is fully
+// self-contained: courses, progress, and settings travel with the executable.
+if (process.env.PORTABLE_EXECUTABLE_DIR) {
+  app.setPath("userData", join(process.env.PORTABLE_EXECUTABLE_DIR, "LearnLocal-Data"));
+}
+
 // Electron/Chromium GPU compositing can produce a fully rendered but visually blank
 // window on some Windows driver combinations. Monaco does not require GPU rendering.
 if (process.platform === "win32") app.disableHardwareAcceleration();

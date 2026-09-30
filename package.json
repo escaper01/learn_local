@@ -46,8 +46,9 @@
     "directories": { "output": "release" },
     "files": ["out/**/*", "package.json"],
     "publish": { "provider": "github", "owner": "escaper01", "repo": "learn_local" },
-    "win": { "target": ["nsis"], "artifactName": "LearnLocal-${version}-${arch}.${ext}" },
+    "win": { "target": ["nsis", "portable"], "artifactName": "LearnLocal-${version}-${arch}.${ext}" },
     "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "deleteAppDataOnUninstall": false },
+    "portable": { "artifactName": "LearnLocal-Portable-${version}-${arch}.${ext}" },
     "mac": { "target": ["dmg"], "category": "public.app-category.education" },
     "linux": { "target": ["AppImage"], "category": "Education" }
   }
