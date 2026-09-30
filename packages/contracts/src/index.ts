@@ -96,6 +96,11 @@ export interface RuntimeSummary {
   message?: string;
 }
 
+export interface RuntimeInstallProgressEvent {
+  runtimeId: RuntimeSummary["id"];
+  line: string;
+}
+
 export const runtimeRequestSchema = z
   .object({ runtimeId: z.enum(["java-21", "python-3"]) })
   .strict();
@@ -268,6 +273,37 @@ export const quizSubmitSchema = z.object({
   choiceIndex: z.number().int().min(0).max(11)
 }).strict();
 
+export const themeTokensSchema = z.record(z.string().max(24), z.string().max(40));
+export const monacoRuleSchema = z.object({
+  token: z.string().max(60),
+  foreground: z.string().max(20).optional(),
+  fontStyle: z.string().max(40).optional()
+}).strict();
+export const monacoColorsSchema = z.record(z.string().max(60), z.string().max(20));
+
+export const themeSaveSchema = z.object({
+  name: z.string().min(1).max(120),
+  colorScheme: z.enum(["dark", "light"]),
+  baseThemeId: z.string().max(120).nullable(),
+  tokens: themeTokensSchema,
+  monacoRules: z.array(monacoRuleSchema).max(60),
+  monacoColors: monacoColorsSchema
+}).strict();
+
+export const themeUpdateSchema = themeSaveSchema.extend({ id: z.string().min(1).max(64) }).strict();
+export const themeIdSchema = z.object({ id: z.string().min(1).max(64) }).strict();
+
+export interface CustomThemeRecord {
+  id: string;
+  name: string;
+  colorScheme: "dark" | "light";
+  baseThemeId: string | null;
+  tokens: Record<string, string>;
+  monacoRules: z.infer<typeof monacoRuleSchema>[];
+  monacoColors: Record<string, string>;
+  createdAt: string;
+}
+
 export const timeTrackingStartSchema = z.object({
   language: z.enum(["java", "python"]).optional(),
   courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional(),
@@ -319,6 +355,7 @@ export interface LearnLocalApi {
     verify(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
     update(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary>;
     remove(runtimeId: RuntimeSummary["id"], removeLearningData?: boolean): Promise<RuntimeSummary>;
+    onInstallProgress(listener: (event: RuntimeInstallProgressEvent) => void): () => void;
   };
   settings: {
     list(context?: { language?: "java" | "python"; courseId?: string }): Promise<ResolvedSetting[]>;
@@ -355,6 +392,12 @@ export interface LearnLocalApi {
     stop(input: z.infer<typeof timeTrackingSessionSchema>): Promise<void>;
     summary(): Promise<TimeTrackingSummary>;
   };
+  themes: {
+    list(): Promise<CustomThemeRecord[]>;
+    save(input: z.infer<typeof themeSaveSchema>): Promise<CustomThemeRecord[]>;
+    update(input: z.infer<typeof themeUpdateSchema>): Promise<CustomThemeRecord[]>;
+    remove(input: z.infer<typeof themeIdSchema>): Promise<CustomThemeRecord[]>;
+  };
   environment: {
     status(): Promise<ProviderStatus>;
   };
@@ -386,6 +429,7 @@ export const IPC_CHANNELS = {
   runtimesVerify: "runtimes:verify",
   runtimesUpdate: "runtimes:update",
   runtimesRemove: "runtimes:remove",
+  runtimesInstallProgress: "runtimes:install-progress",
   settingsList: "settings:list",
   settingsSet: "settings:set",
   settingsReset: "settings:reset",
@@ -409,6 +453,10 @@ export const IPC_CHANNELS = {
   timeTrackingHeartbeat: "timeTracking:heartbeat",
   timeTrackingStop: "timeTracking:stop",
   timeTrackingSummary: "timeTracking:summary",
+  themesList: "themes:list",
+  themesSave: "themes:save",
+  themesUpdate: "themes:update",
+  themesRemove: "themes:remove",
   environmentStatus: "environment:status",
   executionStart: "execution:start",
   executionCancel: "execution:cancel",

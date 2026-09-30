@@ -18,6 +18,9 @@ import {
   promptTemplateRemoveSchema,
   timeTrackingStartSchema,
   timeTrackingSessionSchema,
+  themeSaveSchema,
+  themeUpdateSchema,
+  themeIdSchema,
   runtimeRemoveRequestSchema,
   runtimeRequestSchema,
   settingMutationSchema,
@@ -26,7 +29,8 @@ import {
   workspaceReadSchema,
   workspaceWriteSchema,
   toAppError,
-  type ExecutionFinishedEvent
+  type ExecutionFinishedEvent,
+  type RuntimeInstallProgressEvent
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
 import { importLearnPack, listImportedCourses, loadImportedCourse, removeImportedCourse, scaffoldLearnPackFromManifest, toCourseView } from "@learnlocal/learnpack";
@@ -156,7 +160,10 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.runtimesInstall, async (event, input: unknown) => {
     assertTrustedSender(event);
     const { runtimeId } = runtimeRequestSchema.parse(input);
-    return docker.installManagedRuntime(runtimeId);
+    const sender = event.sender;
+    return docker.installManagedRuntime(runtimeId, (line) => {
+      if (!sender.isDestroyed()) sender.send(IPC_CHANNELS.runtimesInstallProgress, { runtimeId, line } satisfies RuntimeInstallProgressEvent);
+    });
   });
 
   ipcMain.handle(IPC_CHANNELS.runtimesVerify, async (event, input: unknown) => {
@@ -168,7 +175,10 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.runtimesUpdate, async (event, input: unknown) => {
     assertTrustedSender(event);
     const { runtimeId } = runtimeRequestSchema.parse(input);
-    return docker.updateManagedRuntime(runtimeId);
+    const sender = event.sender;
+    return docker.updateManagedRuntime(runtimeId, (line) => {
+      if (!sender.isDestroyed()) sender.send(IPC_CHANNELS.runtimesInstallProgress, { runtimeId, line } satisfies RuntimeInstallProgressEvent);
+    });
   });
 
   ipcMain.handle(IPC_CHANNELS.runtimesRemove, async (event, input: unknown) => {
@@ -394,6 +404,29 @@ function registerIpc(): void {
   ipcMain.handle(IPC_CHANNELS.timeTrackingSummary, (event) => {
     assertTrustedSender(event);
     return attempts?.studyTimeSummary() ?? { todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [], perModule: [] };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.themesList, (event) => {
+    assertTrustedSender(event);
+    return attempts?.listCustomThemes() ?? [];
+  });
+
+  ipcMain.handle(IPC_CHANNELS.themesSave, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const theme = themeSaveSchema.parse(input);
+    return attempts?.saveCustomTheme(`theme_${randomUUID()}`, theme) ?? [];
+  });
+
+  ipcMain.handle(IPC_CHANNELS.themesUpdate, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { id, ...theme } = themeUpdateSchema.parse(input);
+    return attempts?.updateCustomTheme(id, theme) ?? [];
+  });
+
+  ipcMain.handle(IPC_CHANNELS.themesRemove, (event, input: unknown) => {
+    assertTrustedSender(event);
+    const { id } = themeIdSchema.parse(input);
+    return attempts?.removeCustomTheme(id) ?? [];
   });
 
   ipcMain.handle(IPC_CHANNELS.environmentStatus, async (event) => {

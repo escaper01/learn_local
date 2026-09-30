@@ -4,7 +4,8 @@ import {
   type ExecutionFinishedEvent,
   type ExecutionProgressEvent,
   type LearnLocalApi,
-  type RunRequest
+  type RunRequest,
+  type RuntimeInstallProgressEvent
 } from "@learnlocal/contracts";
 
 const api: LearnLocalApi = {
@@ -19,7 +20,12 @@ const api: LearnLocalApi = {
     install: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesInstall, { runtimeId }),
     verify: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesVerify, { runtimeId }),
     update: (runtimeId) => ipcRenderer.invoke(IPC_CHANNELS.runtimesUpdate, { runtimeId }),
-    remove: (runtimeId, removeLearningData = false) => ipcRenderer.invoke(IPC_CHANNELS.runtimesRemove, { runtimeId, removeLearningData })
+    remove: (runtimeId, removeLearningData = false) => ipcRenderer.invoke(IPC_CHANNELS.runtimesRemove, { runtimeId, removeLearningData }),
+    onInstallProgress: (listener) => {
+      const handler = (_event: Electron.IpcRendererEvent, value: RuntimeInstallProgressEvent) => listener(value);
+      ipcRenderer.on(IPC_CHANNELS.runtimesInstallProgress, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.runtimesInstallProgress, handler);
+    }
   },
   settings: {
     list: (context = {}) => ipcRenderer.invoke(IPC_CHANNELS.settingsList, context),
@@ -55,6 +61,12 @@ const api: LearnLocalApi = {
     heartbeat: (input) => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingHeartbeat, input),
     stop: (input) => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingStop, input),
     summary: () => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingSummary)
+  },
+  themes: {
+    list: () => ipcRenderer.invoke(IPC_CHANNELS.themesList),
+    save: (input) => ipcRenderer.invoke(IPC_CHANNELS.themesSave, input),
+    update: (input) => ipcRenderer.invoke(IPC_CHANNELS.themesUpdate, input),
+    remove: (input) => ipcRenderer.invoke(IPC_CHANNELS.themesRemove, input)
   },
   environment: {
     status: () => ipcRenderer.invoke(IPC_CHANNELS.environmentStatus)

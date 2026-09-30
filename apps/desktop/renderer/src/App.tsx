@@ -1,13 +1,34 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, CourseView, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, PromptHistoryItem, PromptTemplate, ResolvedSetting, RuntimeSummary, SettingScope, SettingValue, SourceFile, TimeTrackingSummary, ValidationIssue } from "@learnlocal/contracts";
+import type { AppErrorShape, CoursePromptRequest, CourseView, CustomThemeRecord, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, PromptHistoryItem, PromptTemplate, ResolvedSetting, RuntimeSummary, SettingValue, SourceFile, TimeTrackingSummary, ValidationIssue } from "@learnlocal/contracts";
 
 import { SafeMarkdown } from "./SafeMarkdown";
+import { applyThemeTokens, BUILT_IN_THEMES, TOKEN_GROUPS, type ThemeDefinition } from "./themes";
 
 loader.config({ monaco });
 
-type Theme = "dark" | "light";
+function customThemeToDefinition(theme: CustomThemeRecord): ThemeDefinition {
+  return {
+    id: theme.id,
+    name: theme.name,
+    colorScheme: theme.colorScheme,
+    builtIn: false,
+    tokens: theme.tokens,
+    monacoBase: theme.colorScheme === "dark" ? "vs-dark" : "vs",
+    monacoRules: theme.monacoRules,
+    monacoColors: theme.monacoColors
+  };
+}
+
+function initialThemeId(): string {
+  const saved = localStorage.getItem("learnlocal.activeThemeId");
+  if (saved) return saved;
+  const legacy = localStorage.getItem("learnlocal.theme");
+  if (legacy === "light") return "medium-light";
+  if (legacy === "dark") return "leetcode-dark";
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "medium-light" : "leetcode-dark";
+}
 
 function isSupportedLanguage(value: string): value is "java" | "python" {
   return value === "java" || value === "python";
@@ -26,12 +47,6 @@ function exerciseIcon(type: string, completed: boolean): string {
   if (type === "project") return "◆";
   if (type === "output") return "▶";
   return "⌘";
-}
-
-function initialTheme(): Theme {
-  const saved = localStorage.getItem("learnlocal.theme");
-  if (saved === "dark" || saved === "light") return saved;
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
 const STARTER_CODE = `public class Solution {
@@ -173,7 +188,14 @@ export default function App() {
   const [view, setView] = useState<"lesson" | "dashboard" | "courses">("courses");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem("learnlocal.sidebarCollapsed") === "1");
   const [topicModalTab, setTopicModalTab] = useState<"lessons" | "milestones">("lessons");
-  const [theme, setTheme] = useState<Theme>(initialTheme);
+  const [courseCardView, setCourseCardView] = useState<"detailed" | "compact">(() => localStorage.getItem("learnlocal.courseCardView") === "compact" ? "compact" : "detailed");
+  const [activeThemeId, setActiveThemeId] = useState<string>(initialThemeId);
+  const [customThemes, setCustomThemes] = useState<CustomThemeRecord[]>([]);
+  const [showAppearance, setShowAppearance] = useState(false);
+  const [editingTheme, setEditingTheme] = useState<ThemeDefinition | null>(null);
+  const [editingThemeSourceId, setEditingThemeSourceId] = useState<string | null>(null);
+  const allThemes: ThemeDefinition[] = [...BUILT_IN_THEMES, ...customThemes.map(customThemeToDefinition)];
+  const activeTheme = allThemes.find((theme) => theme.id === activeThemeId) ?? BUILT_IN_THEMES[0]!;
   const [language, setLanguage] = useState<"java" | "python">("java");
   const [source, setSource] = useState(STARTER_CODE);
   const [sourceFiles, setSourceFiles] = useState<SourceFile[]>([]);
@@ -196,10 +218,10 @@ export default function App() {
   const [runtimeOperationLabel, setRuntimeOperationLabel] = useState("Working");
   const [runtimeOffer, setRuntimeOffer] = useState<RuntimeSummary | null>(null);
   const [runtimeOfferBusy, setRuntimeOfferBusy] = useState(false);
+  const [installLogLines, setInstallLogLines] = useState<string[]>([]);
   const [hintCountdown, setHintCountdown] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<ResolvedSetting[]>([]);
-  const [settingsScope, setSettingsScope] = useState<SettingScope>("global");
   const [settingsSearch, setSettingsSearch] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
   const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
@@ -263,14 +285,28 @@ export default function App() {
   }, [lessonPaneWidth, resizingPanes]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.colorScheme = theme;
-    localStorage.setItem("learnlocal.theme", theme);
-  }, [theme]);
+    applyThemeTokens(activeTheme);
+    const rules: monaco.editor.ITokenThemeRule[] = activeTheme.monacoRules.map((rule) => ({
+      token: rule.token,
+      ...(rule.foreground !== undefined ? { foreground: rule.foreground } : {}),
+      ...(rule.fontStyle !== undefined ? { fontStyle: rule.fontStyle } : {})
+    }));
+    monaco.editor.defineTheme("learnlocal-active", { base: activeTheme.monacoBase, inherit: true, rules, colors: activeTheme.monacoColors });
+    monaco.editor.setTheme("learnlocal-active");
+    localStorage.setItem("learnlocal.activeThemeId", activeThemeId);
+  }, [activeTheme, activeThemeId]);
+
+  useEffect(() => {
+    void window.learnLocal.themes.list().then(setCustomThemes).catch(() => {});
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("learnlocal.sidebarCollapsed", sidebarCollapsed ? "1" : "0");
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem("learnlocal.courseCardView", courseCardView);
+  }, [courseCardView]);
 
   useEffect(() => {
     // Seed the live topbar timer with today's true backend total once; after this it only
@@ -323,6 +359,9 @@ export default function App() {
     const stopProgress = window.learnLocal.execution.onProgress((event) => {
       if (event.executionId === activeRef.current) setExecutionPhase(event.message);
     });
+    const stopInstallProgress = window.learnLocal.runtimes.onInstallProgress((event) => {
+      setInstallLogLines((current) => [...current, ...event.line.split("\n").filter(Boolean)].slice(-200));
+    });
     const stopFinished = window.learnLocal.execution.onFinished((event) => {
       if (event.executionId !== activeRef.current) return;
       if ("result" in event) {
@@ -344,7 +383,7 @@ export default function App() {
       setActiveExecution(null);
       setActiveAction(null);
     });
-    return () => { stopProgress(); stopFinished(); };
+    return () => { stopProgress(); stopFinished(); stopInstallProgress(); };
   }, []);
 
   useEffect(() => { activeCourseRef.current = activeCourse; }, [activeCourse]);
@@ -479,6 +518,7 @@ export default function App() {
   const runRuntimeOperation = async (runtime: RuntimeSummary, action: "install" | "verify" | "update" | "remove") => {
     setRuntimeOperation(runtime.id);
     setRuntimeOperationLabel(action === "install" ? "Installing" : action === "verify" ? "Verifying" : action === "update" ? "Updating" : "Removing");
+    setInstallLogLines([]);
     setError(null);
     try {
       if (action === "verify") await window.learnLocal.runtimes.verify(runtime.id);
@@ -509,6 +549,7 @@ export default function App() {
   const installOfferedRuntime = async () => {
     if (!runtimeOffer) return;
     setRuntimeOfferBusy(true);
+    setInstallLogLines([]);
     try {
       await window.learnLocal.runtimes.install(runtimeOffer.id);
       setRuntimeOffer(null);
@@ -682,35 +723,98 @@ export default function App() {
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
+  const duplicateTheme = async (source: ThemeDefinition) => {
+    try {
+      const saved = await window.learnLocal.themes.save({
+        name: `${source.name} copy`,
+        colorScheme: source.colorScheme,
+        baseThemeId: source.id,
+        tokens: source.tokens,
+        monacoRules: source.monacoRules,
+        monacoColors: source.monacoColors
+      });
+      setCustomThemes(saved);
+      const created = saved.find((candidate) => candidate.baseThemeId === source.id && candidate.name === `${source.name} copy`);
+      if (created) {
+        setEditingThemeSourceId(created.id);
+        setEditingTheme(customThemeToDefinition(created));
+      }
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const startCustomizing = (theme: ThemeDefinition) => {
+    setEditingThemeSourceId(theme.builtIn ? null : theme.id);
+    setEditingTheme({ ...theme, tokens: { ...theme.tokens } });
+  };
+
+  const updateEditingToken = (key: string, value: string) => {
+    setEditingTheme((current) => current ? { ...current, tokens: { ...current.tokens, [key]: value } } : current);
+    if (editingTheme) applyThemeTokens({ tokens: { ...editingTheme.tokens, [key]: value }, colorScheme: editingTheme.colorScheme });
+  };
+
+  const saveEditingTheme = async () => {
+    if (!editingTheme) return;
+    try {
+      const payload = {
+        name: editingTheme.name,
+        colorScheme: editingTheme.colorScheme,
+        baseThemeId: editingThemeSourceId ?? editingTheme.id,
+        tokens: editingTheme.tokens,
+        monacoRules: editingTheme.monacoRules,
+        monacoColors: editingTheme.monacoColors
+      };
+      const saved = editingThemeSourceId
+        ? await window.learnLocal.themes.update({ id: editingThemeSourceId, ...payload })
+        : await window.learnLocal.themes.save(payload);
+      setCustomThemes(saved);
+      if (editingThemeSourceId) setActiveThemeId(editingThemeSourceId);
+      setEditingTheme(null);
+      setEditingThemeSourceId(null);
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const cancelEditingTheme = () => {
+    applyThemeTokens(activeTheme);
+    setEditingTheme(null);
+    setEditingThemeSourceId(null);
+  };
+
+  const deleteCustomTheme = async (id: string) => {
+    if (!window.confirm("Delete this custom theme? This cannot be undone.")) return;
+    try {
+      const remaining = await window.learnLocal.themes.remove({ id });
+      setCustomThemes(remaining);
+      if (activeThemeId === id) setActiveThemeId("leetcode-dark");
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
   const openSettings = async () => {
     setShowSettings(true);
-    setSettingsScope("global");
     try { setSettings(await window.learnLocal.settings.list()); }
     catch (value) { setError(friendlyError(value)); }
   };
 
-  const settingsContext = (scope: SettingScope) => scope === "global" ? {} : scope === "language" ? { language } : { language, ...(activeCourse ? { courseId: activeCourse.summary.id } : {}) };
-  const settingsScopeId = (scope: SettingScope) => scope === "global" ? null : scope === "language" ? language : activeCourse?.summary.id ?? null;
-
-  const changeSettingsScope = async (scope: SettingScope) => {
-    if (scope === "course" && !activeCourse) return;
-    setSettingsScope(scope);
-    try { setSettings(await window.learnLocal.settings.list(settingsContext(scope))); }
-    catch (reason) { setError(friendlyError(reason)); }
-  };
-
   const updateSetting = async (setting: ResolvedSetting, value: SettingValue) => {
     try {
-      await window.learnLocal.settings.set({ key: setting.key, value, scope: settingsScope, scopeId: settingsScopeId(settingsScope) });
-      setSettings(await window.learnLocal.settings.list(settingsContext(settingsScope)));
+      await window.learnLocal.settings.set({ key: setting.key, value, scope: "global", scopeId: null });
+      setSettings(await window.learnLocal.settings.list());
     }
     catch (reason) { setError(friendlyError(reason)); }
   };
 
+  const adjustEditorFontSize = (delta: number) => {
+    if (!editorFontSizeSetting) return;
+    const current = typeof editorFontSizeSetting.value === "number" ? editorFontSizeSetting.value : 14;
+    const min = editorFontSizeSetting.min ?? 12;
+    const max = editorFontSizeSetting.max ?? 24;
+    const next = Math.min(max, Math.max(min, current + delta));
+    if (next !== current) void updateSetting(editorFontSizeSetting, next);
+  };
+
   const resetSetting = async (setting: ResolvedSetting) => {
     try {
-      await window.learnLocal.settings.reset({ key: setting.key, scope: settingsScope, scopeId: settingsScopeId(settingsScope) });
-      setSettings(await window.learnLocal.settings.list(settingsContext(settingsScope)));
+      await window.learnLocal.settings.reset({ key: setting.key, scope: "global", scopeId: null });
+      setSettings(await window.learnLocal.settings.list());
     }
     catch (reason) { setError(friendlyError(reason)); }
   };
@@ -770,7 +874,8 @@ export default function App() {
     } catch (reason) { setError(friendlyError(reason)); }
   };
 
-  const editorFontSize = settings.find((setting) => setting.key === "editor.fontSize")?.value;
+  const editorFontSizeSetting = settings.find((setting) => setting.key === "editor.fontSize");
+  const editorFontSize = editorFontSizeSetting?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
   const showStudyTimer = settings.find((setting) => setting.key === "timeTracking.reminderEnabled")?.value !== false;
   const hintDelaySeconds = Number(settings.find((setting) => setting.key === "learning.hintDelaySeconds")?.value ?? 0);
@@ -823,7 +928,7 @@ export default function App() {
         <nav>
           <button className={`nav-item ${view === "dashboard" ? "active" : ""}`} onClick={() => setView("dashboard")}><span className="nav-icon">⌂</span><span className="nav-label">Dashboard</span></button>
           <button className={`nav-item ${view === "courses" ? "active" : ""}`} onClick={() => setView("courses")}><span className="nav-icon">◫</span><span className="nav-label">My courses</span>{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
-          {activeCourse && <button className={`nav-item ${view === "lesson" ? "active" : ""}`} onClick={() => setView("lesson")}><span className="nav-icon">⌁</span><span className="nav-label">Course</span></button>}
+          {activeCourse && <button className={`nav-item nav-item-child ${view === "lesson" ? "active" : ""}`} title={activeCourse.summary.title} onClick={() => setView("lesson")}><span className="nav-icon">⌁</span><span className="nav-label">{activeCourse.summary.title}</span></button>}
           <button className="nav-item" onClick={() => void openRuntimes()}><span className="nav-icon">⌘</span><span className="nav-label">Languages</span></button>
           <button className="nav-item" onClick={() => void openPromptGenerator()}><span className="nav-icon">✦</span><span className="nav-label">Generate prompt</span></button>
           <button className="nav-item" onClick={() => void importCourse()} disabled={importing}><span className="nav-icon">↗</span><span className="nav-label">{importing ? "Validating…" : "Import course"}</span></button>
@@ -850,12 +955,12 @@ export default function App() {
             <button
               className="theme-toggle"
               type="button"
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-              onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
+              aria-label="Choose a theme"
+              title="Choose a theme"
+              onClick={() => setShowAppearance(true)}
             >
-              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-              {theme === "dark" ? "Light" : "Dark"}
+              <span aria-hidden="true">{activeTheme.colorScheme === "dark" ? "☾" : "☀"}</span>
+              {activeTheme.name}
             </button>
             {showStudyTimer && <div className={`study-timer ${studySessionId ? "active" : ""}`} title="Time studied today"><span aria-hidden="true">⏱</span><b>{formatDuration(studySeconds)}</b></div>}
             <div className="progress-chip"><span>{activeCourse ? "Course progress" : "Exercises completed"}</span><b>{activeCourse ? `${completedCourseExercises} / ${courseExercises.length}` : learningSummary.completedExercises}</b></div>
@@ -917,13 +1022,18 @@ export default function App() {
                   <button className={language === "java" ? "active" : ""} onClick={() => switchLanguage("java")}>Java</button>
                   <button className={language === "python" ? "active" : ""} onClick={() => switchLanguage("python")}>Python</button>
                 </div>}
+                <div className="font-zoom" aria-label="Editor font size">
+                  <button type="button" onClick={() => adjustEditorFontSize(-1)} aria-label="Decrease font size">−</button>
+                  <span>{typeof editorFontSize === "number" ? editorFontSize : 14}px</span>
+                  <button type="button" onClick={() => adjustEditorFontSize(1)} aria-label="Increase font size">+</button>
+                </div>
                 <button className="ghost-button" onClick={resetExerciseWorkspace} disabled={Boolean(activeAction)}>Reset</button>
               </div>
             </div>
             <div className="editor-wrap">
               <Editor
                 language={activeCourse?.summary.language ?? language}
-                theme={theme === "dark" ? "vs-dark" : "light"}
+                theme="learnlocal-active"
                 value={source}
                 onChange={(value) => editSource(value ?? "")}
                 options={{
@@ -1060,10 +1170,19 @@ export default function App() {
       )}
       {view === "courses" && (
         <section className="content-view courses-view">
-          <header><div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div><button className="run-button" onClick={() => void importCourse()}>Import course folder</button></header>
-          <div className="course-grid">
+          <header>
+            <div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div>
+            <div className="courses-header-actions">
+              <div className="course-view-toggle" role="group" aria-label="Course list view">
+                <button type="button" className={courseCardView === "detailed" ? "active" : ""} onClick={() => setCourseCardView("detailed")}>Detailed</button>
+                <button type="button" className={courseCardView === "compact" ? "active" : ""} onClick={() => setCourseCardView("compact")}>Compact</button>
+              </div>
+              <button className="run-button" onClick={() => void importCourse()}>Import course folder</button>
+            </div>
+          </header>
+          <div className={`course-grid ${courseCardView}`}>
             {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Build your first learning path</h2><p>Generate a course prompt for any language, create the referenced JSON files, then import that course folder.</p><button className="submit-button" onClick={() => void openPromptGenerator()}>Generate course prompt</button></article>}
-            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><div className="course-actions"><button className="run-button" onClick={() => void openImportedCourse(course)}>Continue course</button><button type="button" className="course-remove" disabled={Boolean(activeAction)} onClick={() => openCourseRemoval(course)}>Remove</button></div></article>)}
+            {courses.map((course) => <article className={`course-card imported ${courseCardView}`} key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2>{courseCardView === "detailed" && <p>{course.description}</p>}<div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><div className="course-actions"><button className="run-button" onClick={() => void openImportedCourse(course)}>Continue course</button><button type="button" className="course-remove" disabled={Boolean(activeAction)} onClick={() => openCourseRemoval(course)}>Remove</button></div></article>)}
           </div>
         </section>
       )}
@@ -1147,6 +1266,7 @@ export default function App() {
                       </> : <button className="runtime-install" disabled={Boolean(runtimeOperation)} onClick={() => void runRuntimeOperation(runtime, "install")}>{busy ? "Working…" : runtime.status === "broken" ? "Repair" : "Install"}</button>}
                     </div>
                     {runtime.status === "ready" && <button className="runtime-remove-data" disabled={Boolean(runtimeOperation)} onClick={() => void removeRuntimeAndData(runtime)}>Remove all data</button>}
+                    {busy && installLogLines.length > 0 && <pre className="install-log">{installLogLines.join("\n")}</pre>}
                   </article>
                 );
               })}
@@ -1164,6 +1284,7 @@ export default function App() {
             <div className="eyebrow">RUNTIME NEEDED</div>
             <h2 id="runtime-offer-title">Install {runtimeOffer.displayName} to run this course's code?</h2>
             <p>This course's exercises run in a disposable, network-disabled {runtimeOffer.displayName} container. You can keep reading and browsing without it, but Run/Submit need it installed first.</p>
+            {runtimeOfferBusy && <pre className="install-log">{installLogLines.length ? installLogLines.join("\n") : "Starting…"}</pre>}
             {error?.category === "runtime" && <div className="runtime-error"><strong>{error.message}</strong><span>{error.code}</span></div>}
             <div className="import-failure-actions">
               <button className="ghost-button" disabled={runtimeOfferBusy} onClick={() => setRuntimeOffer(null)}>Not now, continue in study mode</button>
@@ -1178,27 +1299,98 @@ export default function App() {
             <button className="modal-close" aria-label="Close settings" onClick={() => setShowSettings(false)}>×</button>
             <div className="eyebrow">CUSTOMIZATION</div>
             <h2 id="settings-title">Settings</h2>
-            <p>Values are validated and stored locally. Sandbox and Electron security policy remain locked.</p>
-            <div className="settings-toolbar"><div className="settings-scopes"><button className={settingsScope === "global" ? "active" : ""} onClick={() => void changeSettingsScope("global")}>Global</button><button className={settingsScope === "language" ? "active" : ""} onClick={() => void changeSettingsScope("language")}>{language === "java" ? "Java" : "Python"}</button><button className={settingsScope === "course" ? "active" : ""} disabled={!activeCourse} title={activeCourse ? activeCourse.summary.title : "Open an imported course to edit course settings"} onClick={() => void changeSettingsScope("course")}>Course</button></div><input type="search" value={settingsSearch} placeholder="Search settings" aria-label="Search settings" onChange={(event) => setSettingsSearch(event.target.value)} /></div>
-            <div className="settings-scope-note">Editing <strong>{settingsScope}</strong> settings{settingsScope === "language" ? ` for ${language}` : settingsScope === "course" && activeCourse ? ` for ${activeCourse.summary.title}` : ""}. More specific values override broader ones.</div>
+            <p>Values are validated and stored locally, and apply globally across every course and language. Sandbox and Electron security policy remain locked.</p>
+            <div className="settings-toolbar"><input type="search" value={settingsSearch} placeholder="Search settings" aria-label="Search settings" onChange={(event) => setSettingsSearch(event.target.value)} /></div>
             <div className="settings-list">
               {settings.filter((setting) => `${setting.label} ${setting.description} ${setting.category}`.toLowerCase().includes(settingsSearch.toLowerCase())).map((setting) => (
                 <label className="setting-row" key={setting.key}>
-                  <span className="setting-copy"><strong>{setting.label}</strong><small>{setting.description}</small><i>{setting.source}</i></span>
+                  <span className="setting-copy"><strong>{setting.label}</strong><small>{setting.description}</small></span>
                   <span className="setting-control">
                     {setting.type === "boolean" && <input type="checkbox" checked={setting.value === true} onChange={(event) => void updateSetting(setting, event.target.checked)} />}
                     {setting.type === "number" && <input type="number" min={setting.min} max={setting.max} value={Number(setting.value)} onChange={(event) => void updateSetting(setting, Number(event.target.value))} />}
                     {setting.type === "enum" && <select value={String(setting.value)} onChange={(event) => void updateSetting(setting, event.target.value)}>{setting.options?.map((option) => <option key={option}>{option}</option>)}</select>}
                     {setting.type === "string" && <textarea value={String(setting.value)} placeholder="No custom instructions" onChange={(event) => void updateSetting(setting, event.target.value)} />}
-                    {setting.source === settingsScope && <button type="button" onClick={() => void resetSetting(setting)}>Reset override</button>}
+                    {setting.source === "global" && <button type="button" onClick={() => void resetSetting(setting)}>Reset to default</button>}
                   </span>
                 </label>
               ))}
             </div>
             <div className="settings-actions">
-              <button className="run-button" onClick={() => void window.learnLocal.settings.importProfile().then(() => window.learnLocal.settings.list(settingsContext(settingsScope)).then(setSettings))}>Import profile</button>
+              <button className="run-button" onClick={() => void window.learnLocal.settings.importProfile().then(() => window.learnLocal.settings.list().then(setSettings))}>Import profile</button>
               <button className="run-button" onClick={() => void window.learnLocal.settings.exportProfile()}>Export profile</button>
               <button className="submit-button" onClick={() => setShowSettings(false)}>Done</button>
+            </div>
+          </section>
+        </div>
+      )}
+      {showAppearance && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowAppearance(false)}>
+          <section className="settings-modal appearance-modal" role="dialog" aria-modal="true" aria-labelledby="appearance-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Close appearance" onClick={() => setShowAppearance(false)}>×</button>
+            <div className="eyebrow">APPEARANCE</div>
+            <h2 id="appearance-title">Theme</h2>
+            <p>Pick a theme, or duplicate one to customize your own colors for the reading pane, quiz, and code editor.</p>
+            <div className="theme-grid">
+              {allThemes.map((themeOption) => (
+                <article className={`theme-card ${themeOption.id === activeThemeId ? "active" : ""}`} key={themeOption.id}>
+                  <button type="button" className="theme-card-preview" style={{ background: themeOption.tokens.bg, color: themeOption.tokens.text, borderColor: themeOption.tokens.border }} onClick={() => setActiveThemeId(themeOption.id)}>
+                    <span className="theme-swatch-dots">
+                      <i style={{ background: themeOption.tokens.accent }} />
+                      <i style={{ background: themeOption.tokens.success }} />
+                      <i style={{ background: themeOption.tokens.danger }} />
+                    </span>
+                    <code style={{ color: themeOption.tokens["code-text"], background: themeOption.tokens["code-bg"] }}>const x = 1;</code>
+                  </button>
+                  <div className="theme-card-footer">
+                    <span>{themeOption.name}{!themeOption.builtIn && <i> · custom</i>}</span>
+                    <div className="theme-card-actions">
+                      <button type="button" onClick={() => startCustomizing(themeOption)}>Customize</button>
+                      <button type="button" onClick={() => void duplicateTheme(themeOption)}>Duplicate</button>
+                      {!themeOption.builtIn && <button type="button" onClick={() => void deleteCustomTheme(themeOption.id)}>Delete</button>}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+      {editingTheme && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={cancelEditingTheme}>
+          <section className="settings-modal theme-editor-modal" role="dialog" aria-modal="true" aria-labelledby="theme-editor-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" aria-label="Cancel" onClick={cancelEditingTheme}>×</button>
+            <div className="eyebrow">CUSTOMIZE THEME</div>
+            <h2 id="theme-editor-title">
+              <input value={editingTheme.name} onChange={(event) => setEditingTheme((current) => current ? { ...current, name: event.target.value } : current)} aria-label="Theme name" />
+            </h2>
+            <p>Changes preview live across the app. Save to keep this as one of your themes.</p>
+            <div className="theme-editor-layout">
+              <div className="theme-editor-groups">
+                {TOKEN_GROUPS.map((group) => (
+                  <div className="theme-editor-group" key={group.label}>
+                    <strong>{group.label}</strong>
+                    {group.keys.map((key) => (
+                      <label className="theme-editor-row" key={key}>
+                        <span>{key}</span>
+                        <input type="color" value={/^#[0-9a-fA-F]{6}$/.test(editingTheme.tokens[key] ?? "") ? editingTheme.tokens[key] : "#000000"} onChange={(event) => updateEditingToken(key, event.target.value)} />
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="theme-editor-preview" style={{ background: editingTheme.tokens.bg, color: editingTheme.tokens.text, borderColor: editingTheme.tokens.border }}>
+                <div className="eyebrow" style={{ color: editingTheme.tokens.accent }}>PREVIEW</div>
+                <h2 style={{ color: editingTheme.tokens["text-strong"] }}>Introducing arrays</h2>
+                <p style={{ color: editingTheme.tokens["text-muted"] }}>Arrays hold a fixed number of values.</p>
+                <pre style={{ color: editingTheme.tokens["code-text"], background: editingTheme.tokens["code-bg"] }}>int[] xs = {"{1, 2, 3}"};</pre>
+                <div className="theme-editor-preview-choice" style={{ borderColor: editingTheme.tokens.border, background: editingTheme.tokens.surface }}>Which is an array literal?</div>
+                <div className="theme-editor-preview-choice active" style={{ borderColor: editingTheme.tokens.accent, background: editingTheme.tokens["accent-soft-bg"], color: editingTheme.tokens["accent-soft-text"] }}>int[] xs = {"{1, 2, 3}"};</div>
+                <button type="button" style={{ background: editingTheme.tokens.accent, color: editingTheme.tokens["accent-contrast"] }}>Submit solution</button>
+              </div>
+            </div>
+            <div className="settings-actions">
+              <button className="ghost-button" onClick={cancelEditingTheme}>Cancel</button>
+              <button className="submit-button" onClick={() => void saveEditingTheme()}>Save theme</button>
             </div>
           </section>
         </div>

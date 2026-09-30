@@ -23,7 +23,7 @@ describe("local database", () => {
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-"));
     const repository = new AttemptRepository(join(directory, "test.sqlite"));
     try {
-      expect(repository.health()).toMatchObject({ integrity: "ok", schemaVersion: 5 });
+      expect(repository.health()).toMatchObject({ integrity: "ok", schemaVersion: 6 });
       repository.record("exercise", "run", passingResult("exec_00000000-0000-0000-0000-000000000001"));
       expect(repository.learningSummary()).toMatchObject({ totalAttempts: 1, completedExercises: 0 });
       expect(repository.isExerciseCompleted("exercise")).toBe(false);
@@ -139,6 +139,30 @@ describe("local database", () => {
       expect(afterRemoval.perCourse.find((entry) => entry.courseId === "java-course")).toBeUndefined();
 
       repository.stopAllOpenStudySessions();
+    } finally {
+      repository.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("persists, updates, and removes custom themes, enforcing the cap", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-themes-"));
+    const repository = new AttemptRepository(join(directory, "test.sqlite"));
+    try {
+      const theme = { name: "My Theme", colorScheme: "dark" as const, baseThemeId: "leetcode-dark", tokens: { bg: "#000000" }, monacoRules: [{ token: "comment", foreground: "888888" }], monacoColors: {} };
+      const afterSave = repository.saveCustomTheme("theme_1", theme);
+      expect(afterSave).toMatchObject([{ id: "theme_1", name: "My Theme", colorScheme: "dark", tokens: { bg: "#000000" } }]);
+
+      const afterUpdate = repository.updateCustomTheme("theme_1", { ...theme, name: "Renamed" });
+      expect(afterUpdate).toMatchObject([{ id: "theme_1", name: "Renamed" }]);
+
+      for (let index = 0; index < 25; index += 1) repository.saveCustomTheme(`bulk-${index}`, theme);
+      const themes = repository.listCustomThemes();
+      expect(themes.length).toBe(20);
+      expect(themes.some((candidate) => candidate.id === "theme_1")).toBe(false);
+
+      const remaining = repository.removeCustomTheme(themes[0]!.id);
+      expect(remaining.length).toBe(19);
     } finally {
       repository.close();
       await rm(directory, { recursive: true, force: true });

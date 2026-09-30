@@ -14,6 +14,7 @@ interface ProcessCaptureOptions {
   timeoutMs: number;
   maxOutputBytes: number;
   executionId?: string;
+  onOutput?: (chunk: string) => void;
 }
 
 interface RuntimeDefinition {
@@ -122,12 +123,12 @@ export class DockerProvider implements SandboxProvider {
     return Promise.all(RUNTIME_CATALOG.map((runtime) => this.inspectManagedRuntime(runtime)));
   }
 
-  async installManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
-    return this.provisionManagedRuntime(runtimeId, "installing");
+  async installManagedRuntime(runtimeId: RuntimeSummary["id"], onOutput?: (chunk: string) => void): Promise<RuntimeSummary> {
+    return this.provisionManagedRuntime(runtimeId, "installing", onOutput);
   }
 
-  async updateManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
-    return this.provisionManagedRuntime(runtimeId, "updating");
+  async updateManagedRuntime(runtimeId: RuntimeSummary["id"], onOutput?: (chunk: string) => void): Promise<RuntimeSummary> {
+    return this.provisionManagedRuntime(runtimeId, "updating", onOutput);
   }
 
   async verifyManagedRuntime(runtimeId: RuntimeSummary["id"]): Promise<RuntimeSummary> {
@@ -148,17 +149,21 @@ export class DockerProvider implements SandboxProvider {
     }
   }
 
-  private async provisionManagedRuntime(runtimeId: RuntimeSummary["id"], state: "installing" | "updating"): Promise<RuntimeSummary> {
+  private async provisionManagedRuntime(runtimeId: RuntimeSummary["id"], state: "installing" | "updating", onOutput: (chunk: string) => void = () => {}): Promise<RuntimeSummary> {
     const runtime = this.runtimeDefinition(runtimeId);
     this.runtimeStates.set(runtimeId, state);
     try {
       const provider = await this.detect();
       if (!provider.available) throw new AppError("PROVIDER_NOT_RUNNING", "runtime", provider.message);
-      const pulled = await this.capture(["pull", runtime.approvedReference], { timeoutMs: 300_000, maxOutputBytes: 512_000 });
+      onOutput(`Pulling ${runtime.approvedReference}...\n`);
+      const pulled = await this.capture(["pull", runtime.approvedReference], { timeoutMs: 300_000, maxOutputBytes: 512_000, onOutput });
       if (pulled.exitCode !== 0 || pulled.timedOut) throw new AppError("RUNTIME_PULL_FAILED", "runtime", `Docker could not download ${runtime.displayName}.`, { diagnostics: pulled.stderr });
-      const tagged = await this.capture(["tag", runtime.approvedReference, runtime.localReference], { timeoutMs: 10_000, maxOutputBytes: 16_000 });
+      onOutput(`Registering ${runtime.displayName} for LearnLocal...\n`);
+      const tagged = await this.capture(["tag", runtime.approvedReference, runtime.localReference], { timeoutMs: 10_000, maxOutputBytes: 16_000, onOutput });
       if (tagged.exitCode !== 0) throw new AppError("RUNTIME_TAG_FAILED", "runtime", `Docker could not register ${runtime.displayName} for LearnLocal.`, { diagnostics: tagged.stderr });
+      onOutput(`Verifying ${runtime.displayName} with a smoke test...\n`);
       await this.smokeTestRuntime(runtime);
+      onOutput(`${runtime.displayName} is ready.\n`);
       this.validationDates.set(runtimeId, new Date().toISOString());
       this.runtimeStates.set(runtimeId, "ready");
       return this.inspectManagedRuntime(runtime);
@@ -387,6 +392,7 @@ export class DockerProvider implements SandboxProvider {
       }
 
       const append = (target: "stdout" | "stderr", chunk: Buffer) => {
+        options.onOutput?.(chunk.toString("utf8"));
         const remaining = options.maxOutputBytes - outputBytes;
         if (remaining <= 0) {
           outputTruncated = true;

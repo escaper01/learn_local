@@ -1,10 +1,11 @@
 import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { AppError, type CoursePromptRequest, type ExecutionAction, type ExecutionResult, type LearningSummary, type PromptHistoryItem, type PromptTemplate, type SettingScope, type SettingValue, type TimeTrackingSummary } from "@learnlocal/contracts";
+import { AppError, type CoursePromptRequest, type CustomThemeRecord, type ExecutionAction, type ExecutionResult, type LearningSummary, type PromptHistoryItem, type PromptTemplate, type SettingScope, type SettingValue, type TimeTrackingSummary } from "@learnlocal/contracts";
 
 const MAX_PROMPT_TEMPLATES = 20;
 const MAX_PROMPT_HISTORY = 10;
+const MAX_CUSTOM_THEMES = 20;
 const STUDY_SESSION_STALE_MS = 2 * 60_000;
 const DURATION_SECONDS_SQL = "CAST((julianday(COALESCE(ended_at, last_heartbeat_at)) - julianday(started_at)) * 86400 AS INTEGER)";
 
@@ -411,6 +412,53 @@ export class AttemptRepository {
     };
   }
 
+  private themeFromRow(row: Record<string, unknown>): CustomThemeRecord {
+    return {
+      id: String(row.id),
+      name: String(row.name),
+      colorScheme: String(row.color_scheme) as "dark" | "light",
+      baseThemeId: row.base_theme_id === null ? null : String(row.base_theme_id),
+      tokens: JSON.parse(String(row.tokens_json)) as Record<string, string>,
+      monacoRules: JSON.parse(String(row.monaco_rules_json)) as CustomThemeRecord["monacoRules"],
+      monacoColors: JSON.parse(String(row.monaco_colors_json)) as Record<string, string>,
+      createdAt: String(row.created_at)
+    };
+  }
+
+  listCustomThemes(): CustomThemeRecord[] {
+    const rows = this.database.prepare("SELECT * FROM custom_themes ORDER BY created_at DESC").all() as Array<Record<string, unknown>>;
+    return rows.map((row) => this.themeFromRow(row));
+  }
+
+  saveCustomTheme(id: string, theme: Omit<CustomThemeRecord, "id" | "createdAt">): CustomThemeRecord[] {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.database.prepare(`
+        INSERT INTO custom_themes (id, name, color_scheme, base_theme_id, tokens_json, monaco_rules_json, monaco_colors_json, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(id, theme.name, theme.colorScheme, theme.baseThemeId, JSON.stringify(theme.tokens), JSON.stringify(theme.monacoRules), JSON.stringify(theme.monacoColors), new Date().toISOString());
+      this.database.prepare(`DELETE FROM custom_themes WHERE id NOT IN (SELECT id FROM custom_themes ORDER BY created_at DESC LIMIT ${MAX_CUSTOM_THEMES})`).run();
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+    return this.listCustomThemes();
+  }
+
+  updateCustomTheme(id: string, theme: Omit<CustomThemeRecord, "id" | "createdAt">): CustomThemeRecord[] {
+    this.database.prepare(`
+      UPDATE custom_themes SET name = ?, color_scheme = ?, base_theme_id = ?, tokens_json = ?, monaco_rules_json = ?, monaco_colors_json = ?
+      WHERE id = ?
+    `).run(theme.name, theme.colorScheme, theme.baseThemeId, JSON.stringify(theme.tokens), JSON.stringify(theme.monacoRules), JSON.stringify(theme.monacoColors), id);
+    return this.listCustomThemes();
+  }
+
+  removeCustomTheme(id: string): CustomThemeRecord[] {
+    this.database.prepare("DELETE FROM custom_themes WHERE id = ?").run(id);
+    return this.listCustomThemes();
+  }
+
   private migrate(): void {
     this.database.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -553,6 +601,29 @@ export class AttemptRepository {
         this.database.exec(`
           ALTER TABLE study_sessions ADD COLUMN module_id TEXT;
           INSERT INTO schema_migrations (version, applied_at) VALUES (5, datetime('now'));
+        `);
+        this.database.exec("COMMIT");
+      } catch (error) {
+        this.database.exec("ROLLBACK");
+        throw error;
+      }
+    }
+    if (Number(version.version) < 6) {
+      this.database.exec("BEGIN IMMEDIATE");
+      try {
+        this.database.exec(`
+          CREATE TABLE IF NOT EXISTS custom_themes (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            color_scheme TEXT NOT NULL CHECK (color_scheme IN ('dark', 'light')),
+            base_theme_id TEXT,
+            tokens_json TEXT NOT NULL,
+            monaco_rules_json TEXT NOT NULL,
+            monaco_colors_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+          );
+
+          INSERT INTO schema_migrations (version, applied_at) VALUES (6, datetime('now'));
         `);
         this.database.exec("COMMIT");
       } catch (error) {
