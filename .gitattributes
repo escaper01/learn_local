@@ -1,0 +1,13 @@
+# Force LF line endings for all tracked text so checkouts are byte-identical
+# across platforms. Without this, Windows git checkouts (core.autocrlf=true,
+# the default on GitHub's windows-latest runner) rewrite LF to CRLF, which
+# breaks exact-string checks against course content (e.g. lesson markdown
+# expected to start with "# Title\n") and would corrupt LearnPack hashing.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.learnpack binary
