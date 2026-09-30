@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const executionActionSchema = z.enum(["run", "submit"]);
 export type ExecutionAction = z.infer<typeof executionActionSchema>;
-export const supportedLanguageSchema = z.enum(["java", "python"]);
+export const supportedLanguageSchema = z.enum(["java"]);
 export type SupportedLanguage = z.infer<typeof supportedLanguageSchema>;
 export const languageIdSchema = z.string().regex(/^[a-z][a-z0-9-]{0,39}$/);
 
@@ -63,7 +63,7 @@ export interface TestResult {
 export interface ExecutionResult {
   executionId: string;
   status: "finished" | "compile-error" | "runtime-error" | "timed-out" | "cancelled";
-  language: "java" | "python";
+  language: "java";
   runtimeVersion: string;
   compile: CompileResult;
   tests: TestResult[];
@@ -83,8 +83,8 @@ export interface ProviderStatus {
 }
 
 export interface RuntimeSummary {
-  id: "java-21" | "python-3";
-  language: "java" | "python";
+  id: "java-21";
+  language: "java";
   displayName: string;
   version: string;
   providerId: "docker";
@@ -102,7 +102,7 @@ export interface RuntimeInstallProgressEvent {
 }
 
 export const runtimeRequestSchema = z
-  .object({ runtimeId: z.enum(["java-21", "python-3"]) })
+  .object({ runtimeId: z.enum(["java-21"]) })
   .strict();
 export const runtimeRemoveRequestSchema = runtimeRequestSchema.extend({ removeLearningData: z.boolean().default(false) }).strict();
 
@@ -124,7 +124,7 @@ export interface ResolvedSetting {
 }
 
 export const settingsContextSchema = z.object({
-  language: z.enum(["java", "python"]).optional(),
+  language: z.enum(["java"]).optional(),
   courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional()
 }).strict();
 
@@ -186,9 +186,9 @@ export interface LearningSummary {
   mastery: Array<{ exerciseId: string; confidence: number; attempts: number }>;
 }
 
-export const workspaceReadSchema = z.object({ language: z.enum(["java", "python"]) }).strict();
+export const workspaceReadSchema = z.object({ language: z.enum(["java"]) }).strict();
 export const workspaceWriteSchema = z.object({
-  language: z.enum(["java", "python"]),
+  language: z.enum(["java"]),
   content: z.string().max(500_000)
 }).strict();
 
@@ -305,7 +305,7 @@ export interface CustomThemeRecord {
 }
 
 export const timeTrackingStartSchema = z.object({
-  language: z.enum(["java", "python"]).optional(),
+  language: z.enum(["java"]).optional(),
   courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/).optional(),
   moduleId: z.string().min(1).max(160).optional(),
   exerciseId: z.string().min(1).max(160).optional()
@@ -358,7 +358,7 @@ export interface LearnLocalApi {
     onInstallProgress(listener: (event: RuntimeInstallProgressEvent) => void): () => void;
   };
   settings: {
-    list(context?: { language?: "java" | "python"; courseId?: string }): Promise<ResolvedSetting[]>;
+    list(context?: { language?: "java"; courseId?: string }): Promise<ResolvedSetting[]>;
     set(input: z.infer<typeof settingMutationSchema>): Promise<ResolvedSetting[]>;
     reset(input: z.infer<typeof settingResetSchema>): Promise<ResolvedSetting[]>;
     exportProfile(): Promise<{ status: "saved" | "cancelled" }>;
@@ -378,13 +378,13 @@ export interface LearnLocalApi {
     revealHint(input: z.infer<typeof hintRevealSchema>): Promise<{ hint: string; revealedCount: number }>;
   };
   workspace: {
-    read(language: "java" | "python"): Promise<{ content: string | null }>;
-    write(language: "java" | "python", content: string): Promise<void>;
+    read(language: "java"): Promise<{ content: string | null }>;
+    write(language: "java", content: string): Promise<void>;
     readExercise(input: z.infer<typeof exerciseWorkspaceSchema>): Promise<{ files: SourceFile[] }>;
     writeExercise(input: z.infer<typeof exerciseWorkspaceWriteSchema>): Promise<void>;
   };
   diagnostics: {
-    export(): Promise<{ status: "saved" | "cancelled" }>;
+    export(rendererContext?: { activeThemeId?: string; sidebarCollapsed?: boolean; courseCardView?: "detailed" | "compact" }): Promise<{ status: "saved" | "cancelled" }>;
   };
   timeTracking: {
     start(input: z.infer<typeof timeTrackingStartSchema>): Promise<{ sessionId: string }>;

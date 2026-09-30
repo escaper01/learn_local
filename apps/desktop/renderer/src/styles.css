@@ -545,15 +545,15 @@ code { padding: 2px 5px; border-radius: 4px; color: var(--code-text); background
   --text-muted: #6b6b6b;
   --text-faint: #8a8a8a;
 
-  --accent: #1a8917;
-  --accent-strong: #12730f;
+  --accent: #b8552e;
+  --accent-strong: #96431f;
   --accent-contrast: #ffffff;
-  --accent-soft-bg: #e6f4e6;
-  --accent-soft-text: #12730f;
+  --accent-soft-bg: #f6e7de;
+  --accent-soft-text: #8a3d1e;
 
-  --success: #1a8917;
-  --success-strong: #12730f;
-  --success-bg: #e6f4e6;
+  --success: #1f7a34;
+  --success-strong: #175f28;
+  --success-bg: #e6f2e8;
 
   --danger: #b3261e;
   --danger-strong: #8f1d17;

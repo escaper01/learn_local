@@ -54,7 +54,7 @@ const api: LearnLocalApi = {
     writeExercise: (input) => ipcRenderer.invoke(IPC_CHANNELS.workspaceExerciseWrite, input)
   },
   diagnostics: {
-    export: () => ipcRenderer.invoke(IPC_CHANNELS.diagnosticsExport)
+    export: (rendererContext) => ipcRenderer.invoke(IPC_CHANNELS.diagnosticsExport, rendererContext ?? {})
   },
   timeTracking: {
     start: (input) => ipcRenderer.invoke(IPC_CHANNELS.timeTrackingStart, input),

@@ -38,8 +38,8 @@ describe("local database", () => {
       expect(repository.revealedHintCount("course:exercise")).toBe(0);
       expect(repository.revealHint("course:exercise", 0)).toBe(1);
       expect(repository.revealHint("course:exercise", 0)).toBe(1);
-      repository.writeWorkspace("python", "def answer(): return 42\n");
-      expect(repository.readWorkspace("python")).toContain("42");
+      repository.writeWorkspace("java", "class Solution { static int answer() { return 42; } }\n");
+      expect(repository.readWorkspace("java")).toContain("42");
       repository.writeWorkspaceFiles("course:test", [{ path: "main.py", content: "import helper" }, { path: "helper.py", content: "answer = 42" }]);
       expect(repository.readWorkspaceFiles("course:test")).toEqual([
         { path: "helper.py", content: "answer = 42" },
@@ -51,19 +51,19 @@ describe("local database", () => {
     }
   });
 
-  it("removes only the selected language learning data", async () => {
+  it("removes only the selected courses' learning data when removing a language", async () => {
     const directory = await mkdtemp(join(tmpdir(), "learnlocal-db-remove-"));
     const repository = new AttemptRepository(join(directory, "test.sqlite"));
     try {
-      repository.record("java-course:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000011"));
-      repository.record("python-course:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000012"));
-      repository.writeWorkspaceFiles("java-course@1.0.0:exercise", [{ path: "Main.java", content: "class Main {}" }]);
-      repository.writeWorkspaceFiles("python-course@1.0.0:exercise", [{ path: "main.py", content: "pass" }]);
-      repository.removeLanguageLearningData("java", ["java-course"]);
-      expect(repository.isExerciseCompleted("java-course:exercise")).toBe(false);
-      expect(repository.isExerciseCompleted("python-course:exercise")).toBe(true);
-      expect(repository.readWorkspaceFiles("java-course@1.0.0:exercise")).toEqual([]);
-      expect(repository.readWorkspaceFiles("python-course@1.0.0:exercise")).toHaveLength(1);
+      repository.record("java-course-a:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000011"));
+      repository.record("java-course-b:exercise", "submit", passingResult("exec_00000000-0000-0000-0000-000000000012"));
+      repository.writeWorkspaceFiles("java-course-a@1.0.0:exercise", [{ path: "Main.java", content: "class Main {}" }]);
+      repository.writeWorkspaceFiles("java-course-b@1.0.0:exercise", [{ path: "Main.java", content: "class Main {}" }]);
+      repository.removeLanguageLearningData("java", ["java-course-a"]);
+      expect(repository.isExerciseCompleted("java-course-a:exercise")).toBe(false);
+      expect(repository.isExerciseCompleted("java-course-b:exercise")).toBe(true);
+      expect(repository.readWorkspaceFiles("java-course-a@1.0.0:exercise")).toEqual([]);
+      expect(repository.readWorkspaceFiles("java-course-b@1.0.0:exercise")).toHaveLength(1);
     } finally {
       repository.close();
       await rm(directory, { recursive: true, force: true });
@@ -127,7 +127,7 @@ describe("local database", () => {
 
       // Starting a second session auto-closes any still-open session first.
       repository.startStudySession("session_2", { language: "java", courseId: "java-course", moduleId: "m1", exerciseId: "ex-2" });
-      repository.startStudySession("session_3", { language: "python", courseId: null, moduleId: null, exerciseId: null });
+      repository.startStudySession("session_3", { language: "java", courseId: null, moduleId: null, exerciseId: null });
 
       const summary = repository.studyTimeSummary();
       expect(summary.todaySeconds).toBeGreaterThanOrEqual(0);

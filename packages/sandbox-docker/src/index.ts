@@ -36,15 +36,6 @@ export const RUNTIME_CATALOG: readonly RuntimeDefinition[] = Object.freeze([
     approvedReference: "eclipse-temurin@sha256:c7d5863b5dd8f26b90c64f1d80cc2b0e5a5e4642f8db9955a370d348edd8f438",
     localReference: "learnlocal/runtime-java-21:1",
     smokeCommand: ["java", "-version"]
-  },
-  {
-    id: "python-3",
-    language: "python",
-    displayName: "Python 3.13",
-    version: "3.13",
-    approvedReference: "python@sha256:2325bb286ec344af3e5898cc224b5844e2707ac6e26b1632516fd3edc84a5e26",
-    localReference: "learnlocal/runtime-python-3:1",
-    smokeCommand: ["python", "--version"]
   }
 ]);
 

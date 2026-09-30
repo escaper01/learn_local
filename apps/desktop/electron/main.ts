@@ -36,7 +36,6 @@ import { AttemptRepository } from "@learnlocal/database";
 import { importLearnPack, listImportedCourses, loadImportedCourse, removeImportedCourse, scaffoldLearnPackFromManifest, toCourseView } from "@learnlocal/learnpack";
 import { EXECUTION_POLICY, type FunctionEntrypoint, type FunctionValue, type OutputTestDefinition } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
-import { python3Adapter, PYTHON_SUM_EXERCISE } from "@learnlocal/runner-python";
 import { DockerProvider } from "@learnlocal/sandbox-docker";
 import { createSettingsProfile, parseSettingsProfile, resolveSettings, validateSettingValue } from "@learnlocal/settings-core";
 import { buildCoursePrompt } from "@learnlocal/prompt-generator";
@@ -66,7 +65,7 @@ function createWindow(): void {
     height: 900,
     minWidth: 1060,
     minHeight: 680,
-    backgroundColor: "#0c1015",
+    backgroundColor: "#ffffff",
     title: "LearnLocal",
     show: false,
     webPreferences: {
@@ -186,7 +185,7 @@ function registerIpc(): void {
     const { runtimeId, removeLearningData } = runtimeRemoveRequestSchema.parse(input);
     const removed = await docker.removeManagedRuntime(runtimeId);
     if (removeLearningData) {
-      const language = runtimeId === "java-21" ? "java" : "python";
+      const language = "java" as const;
       const courseRoot = join(app.getPath("userData"), "courses");
       const matchingCourses = (await listImportedCourses(courseRoot)).filter((course) => course.language === language);
       attempts?.removeLanguageLearningData(language, matchingCourses.map((course) => course.id));
@@ -206,9 +205,9 @@ function registerIpc(): void {
     const mutation = settingMutationSchema.parse(input);
     const scopeId = mutation.scope === "global" ? "" : mutation.scopeId;
     if (!scopeId && mutation.scope !== "global") throw new AppError("SETTING_SCOPE_INVALID", "validation", "Language and course settings require a scope identifier.");
-    if (mutation.scope === "language" && scopeId !== "java" && scopeId !== "python") throw new AppError("SETTING_SCOPE_INVALID", "validation", "Unknown language scope.");
+    if (mutation.scope === "language" && scopeId !== "java") throw new AppError("SETTING_SCOPE_INVALID", "validation", "Unknown language scope.");
     attempts?.setSetting(mutation.key, mutation.scope, scopeId ?? "", validateSettingValue(mutation.key, mutation.value));
-    const context = mutation.scope === "language" ? { language: scopeId as "java" | "python" } : mutation.scope === "course" ? { courseId: scopeId ?? undefined } : {};
+    const context = mutation.scope === "language" ? { language: scopeId as "java" } : mutation.scope === "course" ? { courseId: scopeId ?? undefined } : {};
     return resolveSettings(attempts?.listSettings() ?? [], context);
   });
 
@@ -358,24 +357,43 @@ function registerIpc(): void {
     attempts?.writeWorkspaceFiles(importedWorkspaceId(request.courseId, request.version, request.exerciseId), request.files);
   });
 
-  ipcMain.handle(IPC_CHANNELS.diagnosticsExport, async (event) => {
+  ipcMain.handle(IPC_CHANNELS.diagnosticsExport, async (event, input: unknown) => {
     assertTrustedSender(event);
+    const rendererContext = (input ?? {}) as { activeThemeId?: string; sidebarCollapsed?: boolean; courseCardView?: string };
     const selected = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender)!, {
       title: "Export LearnLocal diagnostics",
       defaultPath: `learnlocal-diagnostics-${new Date().toISOString().slice(0, 10)}.json`,
       filters: [{ name: "JSON", extensions: ["json"] }]
     });
     if (selected.canceled || !selected.filePath) return { status: "cancelled" as const };
+    const courseRoot = join(app.getPath("userData"), "courses");
+    const courses = await listImportedCourses(courseRoot);
+    const settings = resolveSettings(attempts?.listSettings() ?? []);
+    const customThemes = attempts?.listCustomThemes() ?? [];
     const diagnostics = {
       format: "learnlocal-diagnostics",
-      schemaVersion: "1.0.0",
+      schemaVersion: "1.1.0",
       createdAt: new Date().toISOString(),
-      application: { version: app.getVersion(), electron: process.versions.electron, node: process.versions.node },
+      application: { version: app.getVersion(), electron: process.versions.electron, node: process.versions.node, packaged: app.isPackaged },
       platform: { os: process.platform, architecture: process.arch },
       provider: await docker.detect(),
       runtimes: await docker.listRuntimes(),
       database: attempts?.health(),
-      learning: attempts?.learningSummary()
+      learning: attempts?.learningSummary(),
+      timeTracking: attempts?.studyTimeSummary(),
+      courses: courses.map((course) => ({ id: course.id, version: course.version, title: course.title, language: course.language, languageVersion: course.languageVersion, moduleCount: course.moduleCount, lessonCount: course.lessonCount, exerciseCount: course.exerciseCount, importedAt: course.importedAt })),
+      settings: Object.fromEntries(settings.map((setting) => [setting.key, setting.value])),
+      appearance: {
+        activeThemeId: rendererContext.activeThemeId ?? null,
+        sidebarCollapsed: rendererContext.sidebarCollapsed ?? null,
+        courseCardView: rendererContext.courseCardView ?? null,
+        customThemeCount: customThemes.length,
+        customThemeNames: customThemes.map((theme) => theme.name)
+      },
+      prompts: {
+        templateCount: attempts?.listPromptTemplates().length ?? 0,
+        historyCount: attempts?.listPromptHistory().length ?? 0
+      }
     };
     await writeFile(selected.filePath, JSON.stringify(diagnostics, null, 2), "utf8");
     return { status: "saved" as const };
@@ -485,11 +503,10 @@ function registerIpc(): void {
             maxOutputKb: Math.min(exercise.limits?.maxOutputKb ?? EXECUTION_POLICY.maxOutputKb, EXECUTION_POLICY.maxOutputKb)
           };
           if (exercise.type === "function" || (exercise.type === "debug" && exercise.entrypoint)) {
-            const fallback = request.language === "java" ? { className: "Solution", name: "sum" } : { name: "sum_values" };
-            const className = exercise.entrypoint?.className ?? fallback.className;
+            const className = exercise.entrypoint?.className ?? "Solution";
             importedEntrypoint = {
               ...(className ? { className } : {}),
-              name: exercise.entrypoint?.name ?? fallback.name,
+              name: exercise.entrypoint?.name ?? "sum",
               parameters: exercise.entrypoint?.parameters ?? [{ name: "values", type: "int[]" }],
               returns: exercise.entrypoint?.returns ?? "int"
             };
@@ -508,15 +525,14 @@ function registerIpc(): void {
           }
           exerciseId = `${request.courseId}:${exercise.id}`;
         } else {
-          exerciseId = request.language === "java" ? SUM_EXERCISE.id : PYTHON_SUM_EXERCISE.id;
+          exerciseId = SUM_EXERCISE.id;
         }
-        if (request.language === "java") {
-          if (useOutputHarness && outputTests) {
-            const workspace = await java21Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
-            workspaceDirectory = workspace.directory;
-            const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
-            result = java21Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
-          } else {
+        if (useOutputHarness && outputTests) {
+          const workspace = await java21Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
+          workspaceDirectory = workspace.directory;
+          const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
+          result = java21Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
+        } else {
           const tests = importedTests ?? (request.action === "submit"
             ? [...SUM_EXERCISE.publicTests, ...SUM_EXERCISE.hiddenTests]
             : SUM_EXERCISE.publicTests);
@@ -524,22 +540,6 @@ function registerIpc(): void {
           workspaceDirectory = workspace.directory;
           const raw = await docker.execute({ executionId, runtimeId: "java-21", imageReference: java21Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
           result = java21Adapter.parseExecution(executionId, raw, tests, startedAt);
-          }
-        } else {
-          if (useOutputHarness && outputTests) {
-            const workspace = await python3Adapter.buildOutputWorkspace(executionSource, outputTests, importedSourceFiles);
-            workspaceDirectory = workspace.directory;
-            const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
-            result = python3Adapter.parseOutputExecution(executionId, raw, outputTests, startedAt);
-          } else {
-          const tests = importedTests ?? (request.action === "submit"
-            ? [...PYTHON_SUM_EXERCISE.publicTests, ...PYTHON_SUM_EXERCISE.hiddenTests]
-            : PYTHON_SUM_EXERCISE.publicTests);
-          const workspace = await python3Adapter.buildWorkspace(executionSource, tests, importedEntrypoint, importedSourceFiles);
-          workspaceDirectory = workspace.directory;
-          const raw = await docker.execute({ executionId, runtimeId: "python-3", imageReference: python3Adapter.imageReference, workspace, limits: executionLimits, onPhase: reportPhase });
-          result = python3Adapter.parseExecution(executionId, raw, tests, startedAt);
-          }
         }
         attempts?.record(exerciseId, request.action, result);
         if (!sender.isDestroyed()) {

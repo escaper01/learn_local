@@ -134,13 +134,13 @@ export class AttemptRepository {
     }
   }
 
-  readWorkspace(language: "java" | "python"): string | null {
-    const row = this.database.prepare("SELECT content FROM workspace_files WHERE workspace_id = ? AND path = ?").get(`builtin-${language}`, language === "java" ? "Solution.java" : "solution.py") as { content?: unknown } | undefined;
+  readWorkspace(language: "java"): string | null {
+    const row = this.database.prepare("SELECT content FROM workspace_files WHERE workspace_id = ? AND path = ?").get(`builtin-${language}`, "Solution.java") as { content?: unknown } | undefined;
     return typeof row?.content === "string" ? row.content : null;
   }
 
-  writeWorkspace(language: "java" | "python", content: string): void {
-    const path = language === "java" ? "Solution.java" : "solution.py";
+  writeWorkspace(language: "java", content: string): void {
+    const path = "Solution.java";
     this.database.prepare(`
       INSERT INTO workspace_files (workspace_id, path, content, updated_at)
       VALUES (?, ?, ?, ?)
@@ -174,9 +174,9 @@ export class AttemptRepository {
     }
   }
 
-  removeLanguageLearningData(language: "java" | "python", courseIds: readonly string[]): void {
+  removeLanguageLearningData(language: "java", courseIds: readonly string[]): void {
     const exercisePatterns = courseIds.map((courseId) => `${courseId}:%`);
-    const builtInExercise = language === "java" ? "java-arrays-sum" : "python-lists-sum";
+    const builtInExercise = "java-arrays-sum";
     const clauses = ["exercise_id = ?", ...exercisePatterns.map(() => "exercise_id LIKE ? ESCAPE '\\'")].join(" OR ");
     const values = [builtInExercise, ...exercisePatterns];
     this.database.exec("BEGIN IMMEDIATE");

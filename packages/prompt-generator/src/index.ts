@@ -11,7 +11,7 @@ USER REQUEST
 INFER THE COURSE METADATA
 Infer all other details yourself. Do not ask follow-up questions.
 - Choose a lowercase kebab-case language identifier, source extension, suitable course level, estimated hours, teaching progression, exercises, challenges, and practical projects.
-- Infer an appropriate runtime/toolchain version and a short descriptive containerRequirements value. For Java use Java 21 and identifier "java". For Python use Python 3.13 and identifier "python". For another language use a suitable stable version; it will import in study mode until LearnLocal ships a trusted adapter.
+- Infer an appropriate runtime/toolchain version and a short descriptive containerRequirements value. For Java use Java 21 and identifier "java". For another language use a suitable stable version and lowercase identifier; it will import in study mode until LearnLocal ships a trusted adapter for it.
 - containerRequirements is descriptive metadata only, such as a compiler/interpreter, version, standard library, and essential toolchain. Never provide an image name, installation command, shell command, Dockerfile, flags, mounts, ports, or host paths.
 - Treat every topic, goal, exclusion, experience clue, and project idea in the user's request as authoritative. Where the user is silent, choose sensible defaults.
 

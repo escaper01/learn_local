@@ -27,16 +27,15 @@ function initialThemeId(): string {
   const legacy = localStorage.getItem("learnlocal.theme");
   if (legacy === "light") return "medium-light";
   if (legacy === "dark") return "leetcode-dark";
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? "medium-light" : "leetcode-dark";
+  return "medium-light";
 }
 
-function isSupportedLanguage(value: string): value is "java" | "python" {
-  return value === "java" || value === "python";
+function isSupportedLanguage(value: string): value is "java" {
+  return value === "java";
 }
 
 function languageBadge(value: string): string {
   if (value === "java") return "J";
-  if (value === "python") return "Py";
   return value.slice(0, 2).toUpperCase();
 }
 
@@ -56,27 +55,6 @@ const STARTER_CODE = `public class Solution {
   }
 }`;
 
-const SOLUTION_CODE = `public class Solution {
-  public static int sum(int[] values) {
-    int total = 0;
-    for (int value : values) {
-      total += value;
-    }
-    return total;
-  }
-}`;
-
-const PYTHON_STARTER_CODE = `def sum_values(values):
-    # Add every value and return the total.
-    return 0
-`;
-
-const PYTHON_SOLUTION_CODE = `def sum_values(values):
-    total = 0
-    for value in values:
-        total += value
-    return total
-`;
 
 const DEFAULT_LESSON_PANE_WIDTH = 75;
 
@@ -196,7 +174,7 @@ export default function App() {
   const [editingThemeSourceId, setEditingThemeSourceId] = useState<string | null>(null);
   const allThemes: ThemeDefinition[] = [...BUILT_IN_THEMES, ...customThemes.map(customThemeToDefinition)];
   const activeTheme = allThemes.find((theme) => theme.id === activeThemeId) ?? BUILT_IN_THEMES[0]!;
-  const [language, setLanguage] = useState<"java" | "python">("java");
+  const [language, setLanguage] = useState<"java">("java");
   const [source, setSource] = useState(STARTER_CODE);
   const [sourceFiles, setSourceFiles] = useState<SourceFile[]>([]);
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
@@ -248,7 +226,7 @@ export default function App() {
   const activeRef = useRef<string | null>(null);
   const activeActionRef = useRef<"run" | "submit" | null>(null);
   const activeCourseRef = useRef<CourseView | null>(null);
-  const hydratedLanguage = useRef<"java" | "python" | null>(null);
+  const hydratedLanguage = useRef<"java" | null>(null);
   const lessonPaneRef = useRef<HTMLElement | null>(null);
   const lessonGridRef = useRef<HTMLDivElement | null>(null);
   const [lessonPaneWidth, setLessonPaneWidth] = useState<number>(() => {
@@ -320,7 +298,7 @@ export default function App() {
     let sessionId: string | null = null;
     let cancelled = false;
     const courseLanguage = activeCourse?.summary.language;
-    const trackedLanguage = isSupportedLanguage(courseLanguage ?? language) ? (courseLanguage ?? language) as "java" | "python" : undefined;
+    const trackedLanguage = isSupportedLanguage(courseLanguage ?? language) ? (courseLanguage ?? language) as "java" : undefined;
     const moduleId = activeCourse?.modules.find((module) => module.lessons.some((lesson) => lesson.id === activeLesson.id))?.id;
     void window.learnLocal.timeTracking.start({ language: trackedLanguage, courseId: activeCourse?.summary.id, moduleId, exerciseId: activeImportedExercise?.id }).then((started) => {
       if (cancelled) { void window.learnLocal.timeTracking.stop({ sessionId: started.sessionId }); return; }
@@ -392,7 +370,7 @@ export default function App() {
     if (activeCourse) return;
     hydratedLanguage.current = null;
     void window.learnLocal.workspace.read(language).then(({ content }) => {
-      setSource(content ?? (language === "java" ? STARTER_CODE : PYTHON_STARTER_CODE));
+      setSource(content ?? STARTER_CODE);
       hydratedLanguage.current = language;
     });
   }, [language, activeCourse]);
@@ -571,22 +549,17 @@ export default function App() {
       setRuntimes(await window.learnLocal.runtimes.list());
       setCourses(await window.learnLocal.courses.list());
       setLearningSummary(await window.learnLocal.progress.summary());
-      if (activeCourse?.summary.language === runtime.language) switchLanguage(runtime.language === "java" ? "python" : "java");
-      if (activeCourse?.summary.language === runtime.language) setView("courses");
+      if (activeCourse?.summary.language === runtime.language) {
+        setActiveCourse(null);
+        setActiveLesson(null);
+        setActiveImportedExercise(null);
+        setSourceFiles([]);
+        setActiveFilePath(null);
+        setResult(null);
+        setView("courses");
+      }
     } catch (value) { setError(friendlyError(value)); }
     finally { setRuntimeOperation(null); }
-  };
-
-  const switchLanguage = (next: "java" | "python") => {
-    if (next === language || activeAction) return;
-    setLanguage(next);
-    setActiveCourse(null);
-    setActiveLesson(null);
-    setActiveImportedExercise(null);
-    setSourceFiles([]);
-    setActiveFilePath(null);
-    setResult(null);
-    setError(null);
   };
 
   const finishOnboarding = () => {
@@ -686,7 +659,7 @@ export default function App() {
 
   const resetExerciseWorkspace = () => {
     if (!activeImportedExercise) {
-      setSource(language === "java" ? STARTER_CODE : PYTHON_STARTER_CODE);
+      setSource(STARTER_CODE);
       return;
     }
     const files = activeImportedExercise.starterFiles;
@@ -821,7 +794,7 @@ export default function App() {
 
   const openPromptGenerator = async () => {
     setShowPrompt(true);
-    setPromptForm((current) => ({ ...current, language: activeCourse?.summary.language ?? (language === "java" ? "Java" : "Python") }));
+    setPromptForm((current) => ({ ...current, language: activeCourse?.summary.language ?? "Java" }));
     try {
       const [templates, history] = await Promise.all([window.learnLocal.prompts.listTemplates(), window.learnLocal.prompts.listHistory()]);
       setPromptTemplates(templates);
@@ -936,7 +909,7 @@ export default function App() {
         <div className="sidebar-spacer" />
         <nav>
           <button className="nav-item" onClick={() => void openSettings()}><span className="nav-icon">⚙</span><span className="nav-label">Settings</span></button>
-          <button className="nav-item" onClick={() => void window.learnLocal.diagnostics.export()}><span className="nav-icon">?</span><span className="nav-label">Export diagnostics</span></button>
+          <button className="nav-item" onClick={() => void window.learnLocal.diagnostics.export({ activeThemeId, sidebarCollapsed, courseCardView })}><span className="nav-icon">?</span><span className="nav-label">Export diagnostics</span></button>
         </nav>
         <StatusDot status={provider} />
       </aside>
@@ -1018,10 +991,6 @@ export default function App() {
             <div className="editor-toolbar">
               <div className="file-tabs">{sourceFiles.map((file) => <button type="button" className={`file-tab ${file.path === activeFilePath ? "active" : ""}`} key={file.path} onClick={() => selectFile(file.path)}><span className={`java-icon ${activeCourse?.summary.language ?? language}`}>{languageBadge(activeCourse?.summary.language ?? language)}</span>{file.path}</button>)}</div>
               <div className="toolbar-actions">
-                {!activeCourse && <div className="language-switch" aria-label="Exercise language">
-                  <button className={language === "java" ? "active" : ""} onClick={() => switchLanguage("java")}>Java</button>
-                  <button className={language === "python" ? "active" : ""} onClick={() => switchLanguage("python")}>Python</button>
-                </div>}
                 <div className="font-zoom" aria-label="Editor font size">
                   <button type="button" onClick={() => adjustEditorFontSize(-1)} aria-label="Decrease font size">−</button>
                   <span>{typeof editorFontSize === "number" ? editorFontSize : 14}px</span>
@@ -1429,11 +1398,10 @@ export default function App() {
       {onboardingStep >= 0 && (
         <div className="modal-backdrop onboarding-backdrop">
           <section className="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
-            <div className="onboarding-progress" aria-label={`Onboarding step ${onboardingStep + 1} of 3`}><i className="active"/><i className={onboardingStep >= 1 ? "active" : ""}/><i className={onboardingStep >= 2 ? "active" : ""}/></div>
+            <div className="onboarding-progress" aria-label={`Onboarding step ${onboardingStep + 1} of 2`}><i className="active"/><i className={onboardingStep >= 1 ? "active" : ""}/></div>
             {onboardingStep === 0 && <><span className="onboarding-mark">L</span><div className="eyebrow">WELCOME TO LEARNLOCAL</div><h2 id="onboarding-title">Learn programming privately, on your computer</h2><p>Courses, code, settings, and progress stay on this device. LearnLocal does not require an account and does not send your work to an AI service.</p><div className="onboarding-points"><span>✓ Portable LearnPack courses</span><span>✓ Disposable, network-disabled runtimes</span><span>✓ Progress stored locally</span></div></>}
-            {onboardingStep === 1 && <><div className="eyebrow">CHOOSE A STARTING LANGUAGE</div><h2 id="onboarding-title">What would you like to learn first?</h2><p>You can switch languages and import other courses at any time.</p><div className="onboarding-languages"><button className={language === "java" ? "active" : ""} onClick={() => switchLanguage("java")}><b>J</b><strong>Java 21</strong><small>Structured and widely used</small></button><button className={language === "python" ? "active" : ""} onClick={() => switchLanguage("python")}><b>Py</b><strong>Python 3.13</strong><small>Readable and beginner-friendly</small></button></div></>}
-            {onboardingStep === 2 && <><div className="eyebrow">ENVIRONMENT CHECK</div><h2 id="onboarding-title">{provider?.available ? "Your local runner is ready" : "Finish setting up Docker"}</h2><p>{provider?.available ? `Docker ${provider.version ?? ""} is available. Install a language runtime when you run your first exercise.` : "LearnLocal needs Docker Desktop or Docker Engine to run code safely. You can still browse courses and generate prompts before installing it."}</p><div className={`onboarding-status ${provider?.available ? "ready" : "warning"}`}><span>{provider?.available ? "✓" : "!"}</span><div><strong>{provider?.available ? "Sandbox provider detected" : "Docker is not available yet"}</strong><small>{provider?.message ?? "Checking the local environment…"}</small></div></div></>}
-            <footer><button className="ghost-button" disabled={onboardingStep === 0} onClick={() => setOnboardingStep((step) => Math.max(0, step - 1))}>Back</button>{onboardingStep < 2 ? <button className="submit-button" onClick={() => setOnboardingStep((step) => step + 1)}>Continue</button> : <button className="submit-button" onClick={finishOnboarding}>Start learning</button>}</footer>
+            {onboardingStep === 1 && <><div className="eyebrow">ENVIRONMENT CHECK</div><h2 id="onboarding-title">{provider?.available ? "Your local runner is ready" : "Finish setting up Docker"}</h2><p>{provider?.available ? `Docker ${provider.version ?? ""} is available. Install the Java runtime when you run your first exercise.` : "LearnLocal needs Docker Desktop or Docker Engine to run code safely. You can still browse courses and generate prompts before installing it."}</p><div className={`onboarding-status ${provider?.available ? "ready" : "warning"}`}><span>{provider?.available ? "✓" : "!"}</span><div><strong>{provider?.available ? "Sandbox provider detected" : "Docker is not available yet"}</strong><small>{provider?.message ?? "Checking the local environment…"}</small></div></div></>}
+            <footer><button className="ghost-button" disabled={onboardingStep === 0} onClick={() => setOnboardingStep((step) => Math.max(0, step - 1))}>Back</button>{onboardingStep < 1 ? <button className="submit-button" onClick={() => setOnboardingStep((step) => step + 1)}>Continue</button> : <button className="submit-button" onClick={finishOnboarding}>Start learning</button>}</footer>
           </section>
         </div>
       )}

@@ -10,7 +10,8 @@ describe("course prompt generator", () => {
     expect(prompt).toContain("Programming language: Python");
     expect(prompt).toContain("Learn files and functions for personal automation");
     expect(prompt).toContain("Do not ask follow-up questions");
-    expect(prompt).toContain("For Python use Python 3.13");
+    expect(prompt).toContain("For Java use Java 21");
+    expect(prompt).toContain("it will import in study mode until LearnLocal ships a trusted adapter");
     expect(prompt).toContain('"instructionMarkdown"');
     expect(prompt).toContain('"choices": ["First answer"');
     expect(prompt).toContain('"kind": "function"');
