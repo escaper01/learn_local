@@ -1,0 +1,81 @@
+{
+  "id": "module-37-mixed-signal-and-high-speed-layout",
+  "title": "Module 37: Mixed-Signal and High-Speed Layout",
+  "description": "preserve continuous reference paths and control geometry where edge rate makes interconnect a transmission line. Covers analog and digital partitioning, return current, clock routing, impedance, differential pairs, termination, ADC references, oscillators, USB, Ethernet, CAN.",
+  "lessons": [
+    {
+      "id": "m37-l01-mixed-signal-and-high-speed-layout-physical-model-an",
+      "title": "Mixed-Signal and High-Speed Layout: physical model and vocabulary",
+      "theoryFile": "lessons/module-37/m37-l01-mixed-signal-and-high-speed-layout-physical-model-an.md",
+      "exercises": []
+    },
+    {
+      "id": "m37-l02-mixed-signal-and-high-speed-layout-analysis-and-comp",
+      "title": "Mixed-Signal and High-Speed Layout: analysis and component judgment",
+      "theoryFile": "lessons/module-37/m37-l02-mixed-signal-and-high-speed-layout-analysis-and-comp.md",
+      "exercises": []
+    },
+    {
+      "id": "m37-l03-mixed-signal-and-high-speed-layout-measurement-desig",
+      "title": "Mixed-Signal and High-Speed Layout: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-37/m37-l03-mixed-signal-and-high-speed-layout-measurement-desig.md",
+      "exercises": []
+    },
+    {
+      "id": "m37-assessment",
+      "title": "Mixed-Signal and High-Speed Layout: assessment and deliberate practice",
+      "theoryFile": "lessons/module-37/m37-assessment.md",
+      "exercises": [
+        {
+          "id": "m37-concept-check",
+          "type": "multipleChoice",
+          "title": "Mixed-Signal and High-Speed Layout: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with analog and digital partitioning?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m37-worked-analysis",
+          "type": "designReview",
+          "title": "Mixed-Signal and High-Speed Layout: worked analysis",
+          "instructionMarkdown": "Critique an ADC and differential-pair layout, then redraw current return paths.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nDo not route a fast signal across a plane split: its return current must detour, increasing loop inductance and radiation. Keep differential geometry and reference consistent, minimize stubs, add nearby return vias at layer transitions, isolate noisy clocks from ADC inputs, and connect analog/digital grounds according to converter current flow rather than slogans.\n\nThe governing principle is: **preserve continuous reference paths and control geometry where edge rate makes interconnect a transmission line**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m37-fault-lab",
+          "type": "lab",
+          "title": "Mixed-Signal and High-Speed Layout: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **split-plane crossing, pair asymmetry, stub, reference via missing**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **split-plane crossing, pair asymmetry, stub, reference via missing** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

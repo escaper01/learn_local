@@ -1,0 +1,15 @@
+{
+  "id": "electronics-phase-2-project",
+  "title": "Passive sensor conditioning and timing board",
+  "descriptionMarkdown": "# Passive sensor conditioning and timing board\n\nIntegrate the theory and practical evidence from modules 6–10. Submit a safe, reproducible engineering package rather than only a working artifact.",
+  "learningObjectives": [
+    "Translate requirements into a circuit or system architecture",
+    "Use calculations and datasheet limits to select components",
+    "Plan safe measurements and objective verification",
+    "Diagnose at least one injected or simulated fault",
+    "Document evidence and revisions"
+  ],
+  "checkpointExerciseIds": [
+    "m10-phase-project"
+  ]
+}

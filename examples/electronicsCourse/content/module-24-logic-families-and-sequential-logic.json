@@ -1,0 +1,81 @@
+{
+  "id": "module-24-logic-families-and-sequential-logic",
+  "title": "Module 24: Logic Families and Sequential Logic",
+  "description": "prove voltage compatibility in both directions and synchronize asynchronous inputs. Covers CMOS, TTL, voltage thresholds, noise margin, fan-out, open drain, level shifting, flip-flops, counters, registers, state machines, metastability.",
+  "lessons": [
+    {
+      "id": "m24-l01-logic-families-and-sequential-logic-physical-model-a",
+      "title": "Logic Families and Sequential Logic: physical model and vocabulary",
+      "theoryFile": "lessons/module-24/m24-l01-logic-families-and-sequential-logic-physical-model-a.md",
+      "exercises": []
+    },
+    {
+      "id": "m24-l02-logic-families-and-sequential-logic-analysis-and-com",
+      "title": "Logic Families and Sequential Logic: analysis and component judgment",
+      "theoryFile": "lessons/module-24/m24-l02-logic-families-and-sequential-logic-analysis-and-com.md",
+      "exercises": []
+    },
+    {
+      "id": "m24-l03-logic-families-and-sequential-logic-measurement-desi",
+      "title": "Logic Families and Sequential Logic: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-24/m24-l03-logic-families-and-sequential-logic-measurement-desi.md",
+      "exercises": []
+    },
+    {
+      "id": "m24-assessment",
+      "title": "Logic Families and Sequential Logic: assessment and deliberate practice",
+      "theoryFile": "lessons/module-24/m24-assessment.md",
+      "exercises": [
+        {
+          "id": "m24-concept-check",
+          "type": "multipleChoice",
+          "title": "Logic Families and Sequential Logic: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with CMOS?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m24-worked-analysis",
+          "type": "schematic",
+          "title": "Logic Families and Sequential Logic: worked analysis",
+          "instructionMarkdown": "Interface a 5 V open-drain sensor to a 3.3 V MCU and design a debounced state input.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nAn open-drain 5 V-capable sensor can pull a 3.3 V MCU line low while the pull-up connects to 3.3 V, provided the sensor pin permits that voltage and sink current. Choose pull-up from rise-time capacitance and low-level sink limits. Synchronize asynchronous inputs with two flip-flops and debounce separately.\n\nThe governing principle is: **prove voltage compatibility in both directions and synchronize asynchronous inputs**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m24-fault-lab",
+          "type": "troubleshooting",
+          "title": "Logic Families and Sequential Logic: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **absolute maximum used as logic threshold, push-pull contention, unsynchronized input, reset omitted**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **absolute maximum used as logic threshold, push-pull contention, unsynchronized input, reset omitted** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

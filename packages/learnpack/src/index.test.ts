@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { join, resolve } from "node:path";
 import { cp, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { importLearnPack, inspectLearnPack, listImportedCourses, loadImportedCourse, normalizeArchivePath, removeImportedCourse, scaffoldLearnPackFromManifest, toCourseView, validateLearnPackContent } from "./index";
+import { importLearnPack, inspectLearnPack, listImportedCourses, loadImportedCourse, normalizeArchivePath, removeImportedCourse, toCourseView, validateLearnPackContent } from "./index";
 
 const JAVA_FOUNDATIONS_DIR = resolve(import.meta.dirname, "../../../learnpack-spec/examples/java-foundations");
+const ELECTRONICS_COURSE_DIR = resolve(import.meta.dirname, "../../../examples/electronicsCourse");
 
 function validEntries(): Map<string, unknown> {
   return new Map([
@@ -48,6 +49,17 @@ function validEntries(): Map<string, unknown> {
 }
 
 describe("LearnPack semantic validation", () => {
+  it("validates the complete electronics curriculum, guided solutions, and offline assets", async () => {
+    const pack = await inspectLearnPack(ELECTRONICS_COURSE_DIR);
+    expect(pack.summary).toMatchObject({ id: "electronics-engineering-foundations", moduleCount: 46, lessonCount: 184, exerciseCount: 147 });
+    expect(Object.keys(pack.assets)).toHaveLength(50);
+    const exercises = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises);
+    const guided = exercises.filter((exercise) => exercise.type !== "multipleChoice");
+    expect(guided.length).toBeGreaterThan(90);
+    expect(guided.every((exercise) => Boolean(exercise.solutionMarkdown?.trim()) && Boolean(exercise.checklist?.length))).toBe(true);
+    expect(pack.projects).toHaveProperty("projects/final-electronics-capstone.json");
+  });
+
   it("validates the complete Java developer academy", async () => {
     const root = resolve(import.meta.dirname, "../../../examples/javaCourse");
     const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8")) as { modules: string[]; projects: string[] };
@@ -160,25 +172,6 @@ describe("LearnPack semantic validation", () => {
     const file = join(await mkdtemp(resolve(tmpdir(), "learnlocal-notdir-")), "not-a-folder.json");
     await writeFile(file, "{}", "utf8");
     await expect(inspectLearnPack(file)).rejects.toMatchObject({ code: "PACK_NOT_DIRECTORY" });
-  });
-
-  it("creates referenced files from a valid manifest without overwriting existing work", async () => {
-    const directory = await mkdtemp(resolve(tmpdir(), "learnlocal-scaffold-"));
-    const manifestPath = join(directory, "manifest.json");
-    const manifest = validEntries().get("manifest.json") as Record<string, unknown>;
-    manifest.projects = ["projects/final-project.json"];
-    try {
-      await writeFile(manifestPath, JSON.stringify(manifest));
-      const first = await scaffoldLearnPackFromManifest(manifestPath);
-      expect(first).toMatchObject({ courseId: "java-foundations", created: 2, existing: 0 });
-      expect(await readFile(join(directory, "content", "01-basics.json"), "utf8")).toBe("{}\n");
-      await writeFile(join(directory, "content", "01-basics.json"), "{\"saved\":true}\n");
-      const second = await scaffoldLearnPackFromManifest(manifestPath);
-      expect(second).toMatchObject({ created: 0, existing: 2 });
-      expect(await readFile(join(directory, "content", "01-basics.json"), "utf8")).toBe("{\"saved\":true}\n");
-    } finally {
-      await rm(directory, { recursive: true, force: true });
-    }
   });
 
   it("inspects the canonical LearnPack archive without extracting it", async () => {

@@ -1,0 +1,99 @@
+{
+  "id": "module-05-measurement-instruments",
+  "title": "Module 5: Measurement Instruments",
+  "description": "connect instruments without changing or damaging the circuit and state the instrument's influence on the result. Covers DMM modes, continuity, burden voltage, oscilloscope bandwidth and sample rate, probe attenuation, triggering, logic analyzers, bench supplies, electronic loads.",
+  "lessons": [
+    {
+      "id": "m05-l01-measurement-instruments-physical-model-and-vocabular",
+      "title": "Measurement Instruments: physical model and vocabulary",
+      "theoryFile": "lessons/module-05/m05-l01-measurement-instruments-physical-model-and-vocabular.md",
+      "exercises": []
+    },
+    {
+      "id": "m05-l02-measurement-instruments-analysis-and-component-judgm",
+      "title": "Measurement Instruments: analysis and component judgment",
+      "theoryFile": "lessons/module-05/m05-l02-measurement-instruments-analysis-and-component-judgm.md",
+      "exercises": []
+    },
+    {
+      "id": "m05-l03-measurement-instruments-measurement-design-and-failu",
+      "title": "Measurement Instruments: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-05/m05-l03-measurement-instruments-measurement-design-and-failu.md",
+      "exercises": []
+    },
+    {
+      "id": "m05-assessment",
+      "title": "Measurement Instruments: assessment and deliberate practice",
+      "theoryFile": "lessons/module-05/m05-assessment.md",
+      "exercises": [
+        {
+          "id": "m05-concept-check",
+          "type": "multipleChoice",
+          "title": "Measurement Instruments: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with DMM modes?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m05-worked-analysis",
+          "type": "calculation",
+          "title": "Measurement Instruments: worked analysis",
+          "instructionMarkdown": "Measure a 3.3 V rail, 20 mA branch current, 100 kHz PWM duty cycle, and I²C transaction using the correct tools.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nMeasure the 3.3 V rail with a DMM in DC-voltage mode connected in parallel. Measure 20 mA by opening the branch and inserting the meter in series on an appropriate fused current range. Use a compensated ×10 probe and stable edge trigger for 100 kHz PWM. Use a logic analyzer with a shared low-voltage reference for I²C, then verify voltage levels with the oscilloscope.\n\nThe governing principle is: **connect instruments without changing or damaging the circuit and state the instrument's influence on the result**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m05-fault-lab",
+          "type": "lab",
+          "title": "Measurement Instruments: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **ammeter placed in parallel, grounded probe short, aliasing, false continuity beep**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **ammeter placed in parallel, grounded probe short, aliasing, false continuity beep** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        },
+        {
+          "id": "m05-phase-project",
+          "type": "project",
+          "title": "Safe measurement and LED characterization",
+          "instructionMarkdown": "Complete the phase project **Safe measurement and LED characterization**. Produce requirements, safety limits, calculations, schematic or block diagram, component choices, test plan, measured or simulated evidence, fault analysis, and a concise design review.",
+          "checklist": [
+            "Requirements and pass criteria are measurable.",
+            "Safety, power, thermal, and interface limits are documented.",
+            "Calculations and component selections cite evidence.",
+            "The test plan includes nominal, boundary, and fault cases.",
+            "Results include annotated diagrams or waveforms and a revision note."
+          ],
+          "hints": [
+            "Freeze measurable requirements before selecting components.",
+            "Review the current loops, return paths, fault states, and test access before layout or assembly."
+          ],
+          "solutionMarkdown": "## Reference project standard\n\nA passing project is not defined by matching one exact circuit. It is defined by traceable requirements and evidence. The reference architecture separates source protection, power conversion, sensing, control, interfaces, and loads. Each block states input/output ranges, safe states, and test points.\n\nThe calculation package includes nominal and worst-case values, power and thermal budgets, tolerance effects, and component-rating margins. The verification matrix maps every requirement to a test or inspection with objective pass criteria. The troubleshooting section includes at least one injected open, short or bias fault and the measurements that isolate it.\n\nA strong submission also records a discovered weakness and the revision made in response; engineering quality is demonstrated by the feedback loop, not by pretending the first version was perfect."
+        }
+      ]
+    }
+  ]
+}

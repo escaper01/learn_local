@@ -1,0 +1,81 @@
+{
+  "id": "module-18-bjt-transistors",
+  "title": "Module 18: BJT Transistors",
+  "description": "force switching margins and bias amplifiers against beta and temperature variation. Covers NPN, PNP, cutoff, forward active, saturation, beta variation, biasing, common emitter, emitter follower, switching, small signal.",
+  "lessons": [
+    {
+      "id": "m18-l01-bjt-transistors-physical-model-and-vocabulary",
+      "title": "BJT Transistors: physical model and vocabulary",
+      "theoryFile": "lessons/module-18/m18-l01-bjt-transistors-physical-model-and-vocabulary.md",
+      "exercises": []
+    },
+    {
+      "id": "m18-l02-bjt-transistors-analysis-and-component-judgment",
+      "title": "BJT Transistors: analysis and component judgment",
+      "theoryFile": "lessons/module-18/m18-l02-bjt-transistors-analysis-and-component-judgment.md",
+      "exercises": []
+    },
+    {
+      "id": "m18-l03-bjt-transistors-measurement-design-and-failure-evide",
+      "title": "BJT Transistors: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-18/m18-l03-bjt-transistors-measurement-design-and-failure-evide.md",
+      "exercises": []
+    },
+    {
+      "id": "m18-assessment",
+      "title": "BJT Transistors: assessment and deliberate practice",
+      "theoryFile": "lessons/module-18/m18-assessment.md",
+      "exercises": [
+        {
+          "id": "m18-concept-check",
+          "type": "multipleChoice",
+          "title": "BJT Transistors: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with NPN?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m18-worked-analysis",
+          "type": "schematic",
+          "title": "BJT Transistors: worked analysis",
+          "instructionMarkdown": "Design an NPN low-side relay driver and calculate base resistance for guaranteed saturation.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nFor a 12 V relay drawing 60 mA and a conservative forced β of 10, request 6 mA base current. From a 3.3 V GPIO with VBE(sat)≈0.8 V, Rb≈(3.3−0.8)/0.006=417 Ω; choose 390 or 430 Ω after checking GPIO limits. Add a coil flyback path and confirm transistor VCE and power ratings.\n\nThe governing principle is: **force switching margins and bias amplifiers against beta and temperature variation**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m18-fault-lab",
+          "type": "lab",
+          "title": "BJT Transistors: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **beta treated as fixed, no base-emitter discharge, insufficient base drive, collector/emitter reversed**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **beta treated as fixed, no base-emitter discharge, insufficient base drive, collector/emitter reversed** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "module-03-voltage-current-resistance-and-ohm-s-law",
+  "title": "Module 3: Voltage, Current, Resistance, and Ohm's Law",
+  "description": "use V = IR only across the element and operating region where the quantities are defined. Covers electric potential, current, resistance, conductance, Ohm's law, source and load, linearity, open circuits, short circuits, I-V curves.",
+  "lessons": [
+    {
+      "id": "m03-l01-voltage-current-resistance-and-ohm-s-law-physical-mo",
+      "title": "Voltage, Current, Resistance, and Ohm's Law: physical model and vocabulary",
+      "theoryFile": "lessons/module-03/m03-l01-voltage-current-resistance-and-ohm-s-law-physical-mo.md",
+      "exercises": []
+    },
+    {
+      "id": "m03-l02-voltage-current-resistance-and-ohm-s-law-analysis-an",
+      "title": "Voltage, Current, Resistance, and Ohm's Law: analysis and component judgment",
+      "theoryFile": "lessons/module-03/m03-l02-voltage-current-resistance-and-ohm-s-law-analysis-an.md",
+      "exercises": []
+    },
+    {
+      "id": "m03-l03-voltage-current-resistance-and-ohm-s-law-measurement",
+      "title": "Voltage, Current, Resistance, and Ohm's Law: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-03/m03-l03-voltage-current-resistance-and-ohm-s-law-measurement.md",
+      "exercises": []
+    },
+    {
+      "id": "m03-assessment",
+      "title": "Voltage, Current, Resistance, and Ohm's Law: assessment and deliberate practice",
+      "theoryFile": "lessons/module-03/m03-assessment.md",
+      "exercises": [
+        {
+          "id": "m03-concept-check",
+          "type": "multipleChoice",
+          "title": "Voltage, Current, Resistance, and Ohm's Law: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with electric potential?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m03-worked-analysis",
+          "type": "schematic",
+          "title": "Voltage, Current, Resistance, and Ohm's Law: worked analysis",
+          "instructionMarkdown": "A 9 V source drives an LED modeled at 2.0 V through a resistor. Choose a standard value for approximately 10 mA and check dissipation.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nThe resistor must drop 9−2 = 7 V at 10 mA, so R = 7/0.010 = 700 Ω. The next conservative E12 value is 750 Ω, giving about 9.33 mA. Resistor dissipation is I²R ≈ 0.065 W, so a 0.25 W part has comfortable margin. Recalculate using LED forward-voltage limits, not only 2.0 V typical.\n\nThe governing principle is: **use V = IR only across the element and operating region where the quantities are defined**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m03-fault-lab",
+          "type": "lab",
+          "title": "Voltage, Current, Resistance, and Ohm's Law: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **open load, shorted resistor, incorrect reference node, nonlinear device treated as a resistor**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **open load, shorted resistor, incorrect reference node, nonlinear device treated as a resistor** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

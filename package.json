@@ -13,17 +13,22 @@
     "dompurify": "3.4.15"
   },
   "scripts": {
+    "predev": "install-electron --no",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder --publish never",
     "release:win": "npm run build && electron-builder --win --publish always",
+    "prepreview": "install-electron --no",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "learnpack:example": "node scripts/generate-example-learnpack.mjs",
     "curriculum:package": "node scripts/package-java-curriculum.mjs",
+    "curriculum:electronics:build": "node scripts/build-electronics-curriculum.mjs && node scripts/build-electronics-technical-diagrams.mjs",
+    "curriculum:electronics:verify": "node scripts/verify-electronics-curriculum.mjs",
+    "curriculum:electronics:package": "node scripts/package-electronics-curriculum.mjs",
     "check": "npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {

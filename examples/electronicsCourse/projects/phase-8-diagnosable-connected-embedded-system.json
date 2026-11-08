@@ -1,0 +1,15 @@
+{
+  "id": "electronics-phase-8-project",
+  "title": "Diagnosable connected embedded system",
+  "descriptionMarkdown": "# Diagnosable connected embedded system\n\nIntegrate the theory and practical evidence from modules 40–46. Submit a safe, reproducible engineering package rather than only a working artifact.",
+  "learningObjectives": [
+    "Translate requirements into a circuit or system architecture",
+    "Use calculations and datasheet limits to select components",
+    "Plan safe measurements and objective verification",
+    "Diagnose at least one injected or simulated fault",
+    "Document evidence and revisions"
+  ],
+  "checkpointExerciseIds": [
+    "m46-phase-project"
+  ]
+}

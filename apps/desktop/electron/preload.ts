@@ -34,17 +34,10 @@ const api: LearnLocalApi = {
     exportProfile: () => ipcRenderer.invoke(IPC_CHANNELS.settingsExport),
     importProfile: () => ipcRenderer.invoke(IPC_CHANNELS.settingsImport)
   },
-  prompts: {
-    generate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsGenerate, input),
-    scaffold: () => ipcRenderer.invoke(IPC_CHANNELS.promptsScaffold),
-    listTemplates: () => ipcRenderer.invoke(IPC_CHANNELS.promptsListTemplates),
-    saveTemplate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsSaveTemplate, input),
-    removeTemplate: (input) => ipcRenderer.invoke(IPC_CHANNELS.promptsRemoveTemplate, input),
-    listHistory: () => ipcRenderer.invoke(IPC_CHANNELS.promptsListHistory)
-  },
   progress: {
     summary: () => ipcRenderer.invoke(IPC_CHANNELS.progressSummary),
     submitQuiz: (input) => ipcRenderer.invoke(IPC_CHANNELS.progressSubmitQuiz, input),
+    completeGuided: (input) => ipcRenderer.invoke(IPC_CHANNELS.progressCompleteGuided, input),
     revealHint: (input) => ipcRenderer.invoke(IPC_CHANNELS.progressRevealHint, input)
   },
   workspace: {

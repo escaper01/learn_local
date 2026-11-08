@@ -1,0 +1,81 @@
+{
+  "id": "module-44-embedded-system-architecture",
+  "title": "Module 44: Embedded-System Architecture",
+  "description": "allocate responsibilities and failure responses at explicit interfaces before choosing parts or code structure. Covers requirements, hardware-software partitioning, interfaces, timing, concurrency, watchdogs, bootloaders, diagnostics, fault containment, testability.",
+  "lessons": [
+    {
+      "id": "m44-l01-embedded-system-architecture-physical-model-and-voca",
+      "title": "Embedded-System Architecture: physical model and vocabulary",
+      "theoryFile": "lessons/module-44/m44-l01-embedded-system-architecture-physical-model-and-voca.md",
+      "exercises": []
+    },
+    {
+      "id": "m44-l02-embedded-system-architecture-analysis-and-component-",
+      "title": "Embedded-System Architecture: analysis and component judgment",
+      "theoryFile": "lessons/module-44/m44-l02-embedded-system-architecture-analysis-and-component-.md",
+      "exercises": []
+    },
+    {
+      "id": "m44-l03-embedded-system-architecture-measurement-design-and-",
+      "title": "Embedded-System Architecture: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-44/m44-l03-embedded-system-architecture-measurement-design-and-.md",
+      "exercises": []
+    },
+    {
+      "id": "m44-assessment",
+      "title": "Embedded-System Architecture: assessment and deliberate practice",
+      "theoryFile": "lessons/module-44/m44-assessment.md",
+      "exercises": [
+        {
+          "id": "m44-concept-check",
+          "type": "multipleChoice",
+          "title": "Embedded-System Architecture: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with requirements?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m44-worked-analysis",
+          "type": "firmware",
+          "title": "Embedded-System Architecture: worked analysis",
+          "instructionMarkdown": "Create a block architecture, interface control document, timing budget, and failure-mode table.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nThe architecture document assigns each function to hardware, bootloader, driver, service, or application state machine. Interfaces specify units, ranges, timing, ownership, timeout, and failure response. Timing and memory budgets include worst case. Watchdog recovery records reset cause, contains unsafe outputs, and preserves enough diagnostics without creating a reboot loop.\n\nThe governing principle is: **allocate responsibilities and failure responses at explicit interfaces before choosing parts or code structure**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m44-fault-lab",
+          "type": "troubleshooting",
+          "title": "Embedded-System Architecture: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **implicit interface, shared mutable state, watchdog without recovery policy, no observability**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **implicit interface, shared mutable state, watchdog without recovery policy, no observability** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

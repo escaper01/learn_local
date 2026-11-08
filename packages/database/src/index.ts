@@ -1,10 +1,8 @@
 import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { AppError, type CoursePromptRequest, type CustomThemeRecord, type ExecutionAction, type ExecutionResult, type LearningSummary, type PromptHistoryItem, type PromptTemplate, type SettingScope, type SettingValue, type TimeTrackingSummary } from "@learnlocal/contracts";
+import { AppError, type CustomThemeRecord, type ExecutionAction, type ExecutionResult, type LearningSummary, type SettingScope, type SettingValue, type TimeTrackingSummary } from "@learnlocal/contracts";
 
-const MAX_PROMPT_TEMPLATES = 20;
-const MAX_PROMPT_HISTORY = 10;
 const MAX_CUSTOM_THEMES = 20;
 const STUDY_SESSION_STALE_MS = 2 * 60_000;
 const DURATION_SECONDS_SQL = "CAST((julianday(COALESCE(ended_at, last_heartbeat_at)) - julianday(started_at)) * 86400 AS INTEGER)";
@@ -294,6 +292,10 @@ export class AttemptRepository {
     }
   }
 
+  recordGuidedCompletion(attemptId: string, exerciseId: string): void {
+    this.recordQuizAttempt(attemptId, exerciseId, -1, true);
+  }
+
   revealedHintCount(exerciseId: string): number {
     const row = this.database.prepare("SELECT COUNT(*) AS count FROM hint_reveals WHERE exercise_id = ?").get(exerciseId) as { count: number };
     return Number(row.count);
@@ -309,48 +311,6 @@ export class AttemptRepository {
       VALUES (?, ?, ?)
     `).run(exerciseId, hintIndex, new Date().toISOString());
     return this.revealedHintCount(exerciseId);
-  }
-
-  listPromptTemplates(): PromptTemplate[] {
-    const rows = this.database.prepare("SELECT id, name, form_json FROM prompt_templates ORDER BY created_at DESC").all() as Array<Record<string, unknown>>;
-    return rows.map((row) => ({ id: String(row.id), name: String(row.name), form: JSON.parse(String(row.form_json)) as CoursePromptRequest }));
-  }
-
-  savePromptTemplate(id: string, name: string, form: CoursePromptRequest): PromptTemplate[] {
-    this.database.exec("BEGIN IMMEDIATE");
-    try {
-      this.database.prepare("INSERT INTO prompt_templates (id, name, form_json, created_at) VALUES (?, ?, ?, ?)").run(id, name, JSON.stringify(form), new Date().toISOString());
-      this.database.prepare(`DELETE FROM prompt_templates WHERE id NOT IN (SELECT id FROM prompt_templates ORDER BY created_at DESC LIMIT ${MAX_PROMPT_TEMPLATES})`).run();
-      this.database.exec("COMMIT");
-    } catch (error) {
-      this.database.exec("ROLLBACK");
-      throw error;
-    }
-    return this.listPromptTemplates();
-  }
-
-  removePromptTemplate(id: string): PromptTemplate[] {
-    this.database.prepare("DELETE FROM prompt_templates WHERE id = ?").run(id);
-    return this.listPromptTemplates();
-  }
-
-  listPromptHistory(): PromptHistoryItem[] {
-    const rows = this.database.prepare("SELECT id, created_at, prompt, form_json FROM prompt_history ORDER BY created_at DESC").all() as Array<Record<string, unknown>>;
-    return rows.map((row) => ({ id: String(row.id), createdAt: String(row.created_at), prompt: String(row.prompt), form: JSON.parse(String(row.form_json)) as CoursePromptRequest }));
-  }
-
-  addPromptHistory(id: string, prompt: string, form: CoursePromptRequest): PromptHistoryItem[] {
-    this.database.exec("BEGIN IMMEDIATE");
-    try {
-      const now = new Date().toISOString();
-      this.database.prepare("INSERT INTO prompt_history (id, created_at, prompt, form_json) VALUES (?, ?, ?, ?)").run(id, now, prompt, JSON.stringify(form));
-      this.database.prepare(`DELETE FROM prompt_history WHERE id NOT IN (SELECT id FROM prompt_history ORDER BY created_at DESC LIMIT ${MAX_PROMPT_HISTORY})`).run();
-      this.database.exec("COMMIT");
-    } catch (error) {
-      this.database.exec("ROLLBACK");
-      throw error;
-    }
-    return this.listPromptHistory();
   }
 
   startStudySession(id: string, context: { language: string | null; courseId: string | null; moduleId: string | null; exerciseId: string | null }): void {
@@ -550,20 +510,6 @@ export class AttemptRepository {
       this.database.exec("BEGIN IMMEDIATE");
       try {
         this.database.exec(`
-          CREATE TABLE IF NOT EXISTS prompt_templates (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            form_json TEXT NOT NULL,
-            created_at TEXT NOT NULL
-          );
-
-          CREATE TABLE IF NOT EXISTS prompt_history (
-            id TEXT PRIMARY KEY,
-            created_at TEXT NOT NULL,
-            prompt TEXT NOT NULL,
-            form_json TEXT NOT NULL
-          );
-
           INSERT INTO schema_migrations (version, applied_at) VALUES (3, datetime('now'));
         `);
         this.database.exec("COMMIT");
@@ -624,6 +570,20 @@ export class AttemptRepository {
           );
 
           INSERT INTO schema_migrations (version, applied_at) VALUES (6, datetime('now'));
+        `);
+        this.database.exec("COMMIT");
+      } catch (error) {
+        this.database.exec("ROLLBACK");
+        throw error;
+      }
+    }
+    if (Number(version.version) < 7) {
+      this.database.exec("BEGIN IMMEDIATE");
+      try {
+        this.database.exec(`
+          DROP TABLE IF EXISTS prompt_history;
+          DROP TABLE IF EXISTS prompt_templates;
+          INSERT INTO schema_migrations (version, applied_at) VALUES (7, datetime('now'));
         `);
         this.database.exec("COMMIT");
       } catch (error) {

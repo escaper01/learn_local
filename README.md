@@ -65,7 +65,7 @@ Today, LearnLocal ships with trusted, sandboxed **Java 21** execution and a comp
 
 **Course content**
 - Import a course by pointing at its folder directly — no archive format to trust, validated against the LearnPack 1.0 schema (path traversal, symlink, and size-limit checks included).
-- Author a course with any AI assistant using the built-in prompt generator (language + topics + your own description), then scaffold and import the result.
+- Author or extend a course directly in the repository, using `examples/javaCourse/` as the reference curriculum, then import its folder.
 - Arbitrary-language course content is always importable for reading and quizzes; trusted code execution is available wherever a reviewed adapter exists (Java 21 today).
 
 **Runtime management**
@@ -78,7 +78,7 @@ Today, LearnLocal ships with trusted, sandboxed **Java 21** execution and a comp
 - Strict Electron sandboxing: no Node or raw IPC access from the renderer, validated IPC payloads, CSP, navigation guards.
 
 **Everything else**
-- Local SQLite storage for attempts, workspaces, settings, prompt templates/history, custom themes, and time tracking, with versioned migrations and automatic backup-before-migration.
+- Local SQLite storage for attempts, workspaces, settings, custom themes, and time tracking, with versioned migrations and automatic backup-before-migration.
 - Global settings (editor font size, hint delay, runtime auto-install offer, daily study goal, timer visibility) — one place, no per-course overrides to manage.
 - A diagnostics export that bundles application/platform info, Docker status, database health, learning and time-tracking summaries, imported course list, current settings, and appearance state into one JSON file for troubleshooting.
 - Cross-platform packaging (Windows/macOS/Linux) and CI.
@@ -125,10 +125,12 @@ Installer output is written to `release/`. The manual packaging workflow builds 
 
 The repository includes a small canonical import fixture at `learnpack-spec/examples/java-foundations/` and a full Java 21 developer academy under `examples/javaCourse/`. The academy contains 25 chapters, 152 sequential lessons, 208 knowledge checks and executable labs, five cumulative portfolio phases, and a production-minded capstone. It progresses from first compilation through the JVM, language fundamentals, algorithms, object design, testing, builds, concurrency, networking, SQL/JDBC, architecture, security, Spring/JPA, distributed systems, and operations.
 
+The repository also includes `examples/electronicsCourse/`, a 46-module, 184-lesson Electronics Engineering Foundations curriculum with offline circuit diagrams, component and instrument imagery, worked calculations, guided simulations and labs, troubleshooting investigations, phase projects, and a final system capstone. It covers safety, circuit analysis, passive and semiconductor components, AC and frequency response, analog and digital design, microcontrollers and protocols, power electronics, batteries and solar, schematics and PCB layout, signal integrity, EMI, RF, IoT, measurement, and engineering verification. Build, verify, and package it with `npm run curriculum:electronics:build`, `npm run curriculum:electronics:verify`, and `npm run curriculum:electronics:package`.
+
 Every file under `examples/javaCourse/` is independently authored curriculum and is the source of truth: `content/` holds the chapter structure and exercises, `lessons/` holds each lesson's long-form Markdown theory (referenced from the chapter JSON by `theoryFile`), and `projects/` holds the portfolio phases. There is no curriculum-content generator. The pack distinguishes runnable standard-library exercises from external database/framework/deployment work and reviewer-assessed portfolio requirements. Checkpoints test behavior; they do not certify professional mastery.
 
 **Importing a course**: in the app, click **Import course** and select a course's folder directly (for example `examples/javaCourse/`) — LearnLocal validates it against the LearnPack 1.0 schema on import. There is no archive/zip step; importing a folder directly is a deliberate security choice (a zip renamed to a custom extension is not a meaningful trust boundary).
 
 A packaged `javaCourse.learnpack` archive can still be built at the repository root with `npm run curriculum:package` for distribution or backup — it's a plain zip of the same source files, rebuilt with `node scripts/verify-java-curriculum.mjs`, which checks instructor reference solutions for all function labs, debug repairs, and project cases against the locally available Java 21 Docker image. Instructor fixtures are excluded from the pack. This verifies those cases, not every illustrative snippet or external framework integration.
 
-To author a course with any AI assistant, open **Generate prompt** in the app: choose the target language, optionally list topics to include, and describe what you want to learn or build. The AI infers the remaining course and runtime metadata and produces every LearnPack file in one response. Save the manifest, let LearnLocal scaffold its referenced paths, paste each JSON block into place, and import the folder — see the [LearnPack authoring guide](docs/learnpack-authoring.md) for the full format.
+To add a topic with Codex, Claude, or another coding agent, give it access to this repository and ask it to inspect `examples/javaCourse/`, the LearnPack schemas, and the [LearnPack authoring guide](docs/learnpack-authoring.md). The agent should edit the curriculum files directly, validate the references, and update the course version. Import the resulting course folder in LearnLocal to use it.

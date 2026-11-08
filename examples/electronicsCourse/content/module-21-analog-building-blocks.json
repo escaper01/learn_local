@@ -1,0 +1,81 @@
+{
+  "id": "module-21-analog-building-blocks",
+  "title": "Module 21: Analog Building Blocks",
+  "description": "compose reusable blocks from explicit thresholds, gains, impedances, and error sources. Covers comparators, hysteresis, oscillators, integrators, differentiators, instrumentation amplifiers, current sources, references, analog switches.",
+  "lessons": [
+    {
+      "id": "m21-l01-analog-building-blocks-physical-model-and-vocabulary",
+      "title": "Analog Building Blocks: physical model and vocabulary",
+      "theoryFile": "lessons/module-21/m21-l01-analog-building-blocks-physical-model-and-vocabulary.md",
+      "exercises": []
+    },
+    {
+      "id": "m21-l02-analog-building-blocks-analysis-and-component-judgme",
+      "title": "Analog Building Blocks: analysis and component judgment",
+      "theoryFile": "lessons/module-21/m21-l02-analog-building-blocks-analysis-and-component-judgme.md",
+      "exercises": []
+    },
+    {
+      "id": "m21-l03-analog-building-blocks-measurement-design-and-failur",
+      "title": "Analog Building Blocks: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-21/m21-l03-analog-building-blocks-measurement-design-and-failur.md",
+      "exercises": []
+    },
+    {
+      "id": "m21-assessment",
+      "title": "Analog Building Blocks: assessment and deliberate practice",
+      "theoryFile": "lessons/module-21/m21-assessment.md",
+      "exercises": [
+        {
+          "id": "m21-concept-check",
+          "type": "multipleChoice",
+          "title": "Analog Building Blocks: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with comparators?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m21-worked-analysis",
+          "type": "simulation",
+          "title": "Analog Building Blocks: worked analysis",
+          "instructionMarkdown": "Design a Schmitt trigger with separate upper and lower thresholds and predict its output waveform.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nChoose lower and upper switching thresholds first, then derive the positive-feedback divider from output high/low and reference voltage. Verify startup state and source impedance. A comparator with hysteresis is preferred to a general op-amp when propagation delay, input range, output type, and recovery from saturation matter.\n\nThe governing principle is: **compose reusable blocks from explicit thresholds, gains, impedances, and error sources**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m21-fault-lab",
+          "type": "lab",
+          "title": "Analog Building Blocks: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **op-amp used as slow comparator, hysteresis polarity wrong, reference loaded, integrator saturation**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **op-amp used as slow comparator, hysteresis polarity wrong, reference loaded, integrator saturation** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

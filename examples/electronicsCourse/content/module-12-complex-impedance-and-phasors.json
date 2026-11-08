@@ -1,0 +1,81 @@
+{
+  "id": "module-12-complex-impedance-and-phasors",
+  "title": "Module 12: Complex Impedance and Phasors",
+  "description": "use phasors for sinusoidal steady state while keeping transient behavior separate. Covers capacitive and inductive reactance, impedance, admittance, complex arithmetic, phase, RLC networks, resonance, Q factor.",
+  "lessons": [
+    {
+      "id": "m12-l01-complex-impedance-and-phasors-physical-model-and-voc",
+      "title": "Complex Impedance and Phasors: physical model and vocabulary",
+      "theoryFile": "lessons/module-12/m12-l01-complex-impedance-and-phasors-physical-model-and-voc.md",
+      "exercises": []
+    },
+    {
+      "id": "m12-l02-complex-impedance-and-phasors-analysis-and-component",
+      "title": "Complex Impedance and Phasors: analysis and component judgment",
+      "theoryFile": "lessons/module-12/m12-l02-complex-impedance-and-phasors-analysis-and-component.md",
+      "exercises": []
+    },
+    {
+      "id": "m12-l03-complex-impedance-and-phasors-measurement-design-and",
+      "title": "Complex Impedance and Phasors: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-12/m12-l03-complex-impedance-and-phasors-measurement-design-and.md",
+      "exercises": []
+    },
+    {
+      "id": "m12-assessment",
+      "title": "Complex Impedance and Phasors: assessment and deliberate practice",
+      "theoryFile": "lessons/module-12/m12-assessment.md",
+      "exercises": [
+        {
+          "id": "m12-concept-check",
+          "type": "multipleChoice",
+          "title": "Complex Impedance and Phasors: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with capacitive and inductive reactance?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m12-worked-analysis",
+          "type": "simulation",
+          "title": "Complex Impedance and Phasors: worked analysis",
+          "instructionMarkdown": "Find current magnitude and phase for a series 100 Ω and 1 µF network at 1 kHz.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nAt 1 kHz and 1 µF, Xc = 1/(2πfC) = 159.2 Ω, so Z = 100−j159.2 Ω. Magnitude is 188.0 Ω and angle is −57.9°. With 1 Vrms applied, current magnitude is 5.32 mA and current leads source voltage by 57.9°.\n\nThe governing principle is: **use phasors for sinusoidal steady state while keeping transient behavior separate**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m12-fault-lab",
+          "type": "troubleshooting",
+          "title": "Complex Impedance and Phasors: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **sign of j, degrees versus radians, series/parallel confusion, phasors applied to startup**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **sign of j, degrees versus radians, series/parallel confusion, phasors applied to startup** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

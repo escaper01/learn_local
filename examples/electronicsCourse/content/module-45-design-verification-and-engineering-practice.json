@@ -1,0 +1,81 @@
+{
+  "id": "module-45-design-verification-and-engineering-practice",
+  "title": "Module 45: Design Verification and Engineering Practice",
+  "description": "trace each requirement to objective evidence and preserve failures as design information. Covers requirements, acceptance criteria, simulation, prototypes, test plans, calibration, design reviews, revisions, documentation, maintainability.",
+  "lessons": [
+    {
+      "id": "m45-l01-design-verification-and-engineering-practice-physica",
+      "title": "Design Verification and Engineering Practice: physical model and vocabulary",
+      "theoryFile": "lessons/module-45/m45-l01-design-verification-and-engineering-practice-physica.md",
+      "exercises": []
+    },
+    {
+      "id": "m45-l02-design-verification-and-engineering-practice-analysi",
+      "title": "Design Verification and Engineering Practice: analysis and component judgment",
+      "theoryFile": "lessons/module-45/m45-l02-design-verification-and-engineering-practice-analysi.md",
+      "exercises": []
+    },
+    {
+      "id": "m45-l03-design-verification-and-engineering-practice-measure",
+      "title": "Design Verification and Engineering Practice: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-45/m45-l03-design-verification-and-engineering-practice-measure.md",
+      "exercises": []
+    },
+    {
+      "id": "m45-assessment",
+      "title": "Design Verification and Engineering Practice: assessment and deliberate practice",
+      "theoryFile": "lessons/module-45/m45-assessment.md",
+      "exercises": [
+        {
+          "id": "m45-concept-check",
+          "type": "multipleChoice",
+          "title": "Design Verification and Engineering Practice: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with requirements?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m45-worked-analysis",
+          "type": "shortAnswer",
+          "title": "Design Verification and Engineering Practice: worked analysis",
+          "instructionMarkdown": "Turn a vague product request into measurable requirements and a verification matrix.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nRewrite each vague goal as a measurable requirement with conditions and tolerance, then map it to analysis, inspection, simulation, or test. The verification matrix records method, equipment, configuration, pass criterion, result, and evidence link. A failed test creates a controlled issue and revision; it is never silently redefined as a pass.\n\nThe governing principle is: **trace each requirement to objective evidence and preserve failures as design information**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m45-fault-lab",
+          "type": "lab",
+          "title": "Design Verification and Engineering Practice: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **test mirrors implementation instead of requirement, pass criteria subjective, revision undocumented**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **test mirrors implementation instead of requirement, pass criteria subjective, revision undocumented** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

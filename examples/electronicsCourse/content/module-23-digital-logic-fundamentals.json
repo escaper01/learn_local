@@ -1,0 +1,81 @@
+{
+  "id": "module-23-digital-logic-fundamentals",
+  "title": "Module 23: Digital Logic Fundamentals",
+  "description": "derive logic from requirements and include timing rather than treating gates as instantaneous. Covers binary, hexadecimal, Boolean algebra, logic gates, truth tables, De Morgan, combinational logic, multiplexers, decoders, hazards, propagation delay.",
+  "lessons": [
+    {
+      "id": "m23-l01-digital-logic-fundamentals-physical-model-and-vocabu",
+      "title": "Digital Logic Fundamentals: physical model and vocabulary",
+      "theoryFile": "lessons/module-23/m23-l01-digital-logic-fundamentals-physical-model-and-vocabu.md",
+      "exercises": []
+    },
+    {
+      "id": "m23-l02-digital-logic-fundamentals-analysis-and-component-ju",
+      "title": "Digital Logic Fundamentals: analysis and component judgment",
+      "theoryFile": "lessons/module-23/m23-l02-digital-logic-fundamentals-analysis-and-component-ju.md",
+      "exercises": []
+    },
+    {
+      "id": "m23-l03-digital-logic-fundamentals-measurement-design-and-fa",
+      "title": "Digital Logic Fundamentals: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-23/m23-l03-digital-logic-fundamentals-measurement-design-and-fa.md",
+      "exercises": []
+    },
+    {
+      "id": "m23-assessment",
+      "title": "Digital Logic Fundamentals: assessment and deliberate practice",
+      "theoryFile": "lessons/module-23/m23-assessment.md",
+      "exercises": [
+        {
+          "id": "m23-concept-check",
+          "type": "multipleChoice",
+          "title": "Digital Logic Fundamentals: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with binary?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m23-worked-analysis",
+          "type": "schematic",
+          "title": "Digital Logic Fundamentals: worked analysis",
+          "instructionMarkdown": "Reduce a Boolean expression and design a multiplexer-based implementation with a truth table.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nCreate the complete truth table, mark only genuine don't-care conditions, simplify with Boolean algebra or a Karnaugh map, then verify every specified row. A multiplexer implementation assigns select inputs and maps each data input to 0, 1, or a remaining variable. Check propagation paths for static hazards.\n\nThe governing principle is: **derive logic from requirements and include timing rather than treating gates as instantaneous**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m23-fault-lab",
+          "type": "lab",
+          "title": "Digital Logic Fundamentals: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **active-low signal overlooked, don't-care misused, glitch ignored, arithmetic base error**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **active-low signal overlooked, don't-care misused, glitch ignored, arithmetic base error** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

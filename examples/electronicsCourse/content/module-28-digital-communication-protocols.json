@@ -1,0 +1,81 @@
+{
+  "id": "module-28-digital-communication-protocols",
+  "title": "Module 28: Digital Communication Protocols",
+  "description": "interpret electrical layer, timing, framing, ownership, and error recovery together. Covers UART, SPI, I2C, CAN, RS-232, RS-485, Ethernet, Wi-Fi, framing, addressing, arbitration, termination, CRC, retries.",
+  "lessons": [
+    {
+      "id": "m28-l01-digital-communication-protocols-physical-model-and-v",
+      "title": "Digital Communication Protocols: physical model and vocabulary",
+      "theoryFile": "lessons/module-28/m28-l01-digital-communication-protocols-physical-model-and-v.md",
+      "exercises": []
+    },
+    {
+      "id": "m28-l02-digital-communication-protocols-analysis-and-compone",
+      "title": "Digital Communication Protocols: analysis and component judgment",
+      "theoryFile": "lessons/module-28/m28-l02-digital-communication-protocols-analysis-and-compone.md",
+      "exercises": []
+    },
+    {
+      "id": "m28-l03-digital-communication-protocols-measurement-design-a",
+      "title": "Digital Communication Protocols: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-28/m28-l03-digital-communication-protocols-measurement-design-a.md",
+      "exercises": []
+    },
+    {
+      "id": "m28-assessment",
+      "title": "Digital Communication Protocols: assessment and deliberate practice",
+      "theoryFile": "lessons/module-28/m28-assessment.md",
+      "exercises": [
+        {
+          "id": "m28-concept-check",
+          "type": "multipleChoice",
+          "title": "Digital Communication Protocols: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with UART?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m28-worked-analysis",
+          "type": "firmware",
+          "title": "Digital Communication Protocols: worked analysis",
+          "instructionMarkdown": "Decode representative UART, SPI, I2C, and CAN captures and identify one fault in each.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nUART is asynchronous and decoded from idle level, start bit, data order, optional parity, and stop bits. SPI requires correct clock polarity/phase and chip-select framing. I²C uses open-drain lines, pull-ups, addresses, ACK/NACK, and repeated starts. CAN requires differential wiring, arbitration, bit timing, and one termination at each physical bus end.\n\nThe governing principle is: **interpret electrical layer, timing, framing, ownership, and error recovery together**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m28-fault-lab",
+          "type": "troubleshooting",
+          "title": "Digital Communication Protocols: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **voltage standard confused with protocol, missing common reference, wrong SPI mode, CAN termination absent**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **voltage standard confused with protocol, missing common reference, wrong SPI mode, CAN termination absent** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

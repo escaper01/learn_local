@@ -1,5 +1,5 @@
 import { lstat, mkdir, readFile, readdir, realpath, rm, rmdir, stat, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve } from "node:path";
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import { AppError, type CourseView, type ImportedCourseSummary, type ValidationIssue } from "@learnlocal/contracts";
@@ -13,6 +13,15 @@ const MAX_ENTRIES = 500;
 const FORBIDDEN_EXTENSIONS = new Set([
   ".app", ".bat", ".cmd", ".com", ".dll", ".dylib", ".exe", ".jar", ".msi", ".ps1", ".sh", ".so"
 ]);
+const COURSE_ASSET_MIME = new Map([
+  [".svg", "image/svg+xml"],
+  [".png", "image/png"],
+  [".jpg", "image/jpeg"],
+  [".jpeg", "image/jpeg"],
+  [".webp", "image/webp"]
+]);
+const GUIDED_EXERCISE_TYPES = new Set(["calculation", "shortAnswer", "schematic", "simulation", "lab", "firmware", "designReview", "troubleshooting"]);
+const MARKDOWN_IMAGE = /!\[[^\]]*\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g;
 
 export interface LearnPackAuthor { name: string }
 export interface LearnPackManifest {
@@ -37,7 +46,7 @@ export interface LearnPackManifest {
 
 export interface LearnPackExercise {
   id: string;
-  type: "output" | "function" | "debug" | "multipleChoice" | "project";
+  type: "output" | "function" | "debug" | "multipleChoice" | "project" | "calculation" | "shortAnswer" | "schematic" | "simulation" | "lab" | "firmware" | "designReview" | "troubleshooting";
   title: string;
   instructionMarkdown: string;
   starterFiles?: Array<{ path: string; content: string }>;
@@ -46,6 +55,8 @@ export interface LearnPackExercise {
   hints?: string[];
   choices?: string[];
   correctChoice?: number;
+  solutionMarkdown?: string;
+  checklist?: string[];
   limits?: { timeoutMs?: number; memoryMb?: number; maxOutputKb?: number };
 }
 
@@ -80,13 +91,7 @@ export interface ValidatedLearnPack {
   projects: Record<string, LearnPackProject>;
   summary: ImportedCourseSummary;
   warnings: ValidationIssue[];
-}
-
-export interface LearnPackScaffoldResult {
-  courseId: string;
-  root: string;
-  created: number;
-  existing: number;
+  assets: Record<string, string>;
 }
 
 const ajv = new Ajv2020({ allErrors: true, strict: true });
@@ -134,42 +139,6 @@ export function normalizeArchivePath(path: string): string {
   return path.replaceAll("\\", "/");
 }
 
-export async function scaffoldLearnPackFromManifest(manifestPath: string): Promise<LearnPackScaffoldResult> {
-  let value: unknown;
-  try {
-    value = JSON.parse(await readFile(manifestPath, "utf8")) as unknown;
-  } catch (error) {
-    throw new AppError("PACK_INVALID_JSON", "validation", "The selected manifest is not valid JSON.", {
-      diagnostics: error instanceof Error ? error.message : String(error)
-    });
-  }
-  if (!validateManifest(value)) {
-    throw new AppError("PACK_SCHEMA_INVALID", "validation", "manifest.json does not match LearnPack 1.0.", {
-      issues: schemaIssues(validateManifest.errors, "manifest.json")
-    });
-  }
-
-  const root = dirname(resolve(manifestPath));
-  const references = [...value.modules, ...value.projects];
-  let created = 0;
-  let existing = 0;
-  for (const reference of references) {
-    if (!isSafeArchivePath(reference)) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe manifest path: ${reference}`);
-    const target = resolve(root, ...reference.split("/"));
-    const targetRelative = relative(root, target);
-    if (!targetRelative || targetRelative.startsWith("..")) throw new AppError("PACK_PATH_TRAVERSAL", "validation", `Unsafe manifest path: ${reference}`);
-    await mkdir(dirname(target), { recursive: true });
-    try {
-      await writeFile(target, "{}\n", { encoding: "utf8", flag: "wx" });
-      created += 1;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-      existing += 1;
-    }
-  }
-  return { courseId: value.id, root, created, existing };
-}
-
 interface DirectoryFileEntry {
   relativePath: string;
   absolutePath: string;
@@ -206,7 +175,23 @@ async function collectDirectoryFiles(root: string): Promise<DirectoryFileEntry[]
   return results;
 }
 
-// JSON files are parsed; Markdown files are kept as text for lessons that reference them.
+function validateAsset(path: string, content: Buffer, mime: string): void {
+  if (!path.startsWith("assets/")) throw new AppError("PACK_ASSET_PATH_INVALID", "validation", `Course images must be stored under assets/: ${path}`);
+  if (mime === "image/svg+xml") {
+    const svg = content.toString("utf8");
+    if (!/^\s*<svg\b/i.test(svg) || /<\s*(script|foreignObject|iframe|object|embed)\b/i.test(svg) || /\bon[a-z]+\s*=/i.test(svg) || /(?:href|src)\s*=\s*["']\s*(?:https?:|data:|javascript:)/i.test(svg)) {
+      throw new AppError("PACK_ASSET_UNSAFE", "validation", `SVG contains unsupported active or external content: ${path}`);
+    }
+  } else if (mime === "image/png" && !content.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    throw new AppError("PACK_ASSET_INVALID", "validation", `Invalid PNG asset: ${path}`);
+  } else if (mime === "image/jpeg" && !(content[0] === 0xff && content[1] === 0xd8)) {
+    throw new AppError("PACK_ASSET_INVALID", "validation", `Invalid JPEG asset: ${path}`);
+  } else if (mime === "image/webp" && !(content.subarray(0, 4).toString("ascii") === "RIFF" && content.subarray(8, 12).toString("ascii") === "WEBP")) {
+    throw new AppError("PACK_ASSET_INVALID", "validation", `Invalid WebP asset: ${path}`);
+  }
+}
+
+// JSON files are parsed; Markdown and safe image assets are retained for referenced course content.
 async function readDirectoryEntries(rootPath: string): Promise<Map<string, unknown>> {
   let root;
   try {
@@ -243,6 +228,11 @@ async function readDirectoryEntries(rootPath: string): Promise<Map<string, unkno
       }
     } else if (fileExtension === ".md") {
       values.set(file.relativePath, (await readFile(file.absolutePath, "utf8")).replace(/^﻿/, ""));
+    } else if (COURSE_ASSET_MIME.has(fileExtension)) {
+      const content = await readFile(file.absolutePath);
+      const mime = COURSE_ASSET_MIME.get(fileExtension)!;
+      validateAsset(file.relativePath, content, mime);
+      values.set(file.relativePath, `data:${mime};base64,${content.toString("base64")}`);
     }
   }
 
@@ -280,6 +270,16 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
     else ids.set(id, location);
   };
   registerId(manifest.id, "manifest.json");
+  const assets = Object.fromEntries([...entries.entries()].filter(([path, value]) => path.startsWith("assets/") && typeof value === "string" && value.startsWith("data:image/"))) as Record<string, string>;
+  const validateMarkdownAssets = (markdown: string, file: string) => {
+    MARKDOWN_IMAGE.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = MARKDOWN_IMAGE.exec(markdown))) {
+      const reference = match[1]!;
+      if (!isSafeArchivePath(reference) || !reference.startsWith("assets/")) issues.push({ code: "PACK_ASSET_PATH_INVALID", severity: "error", file, message: `Markdown image must use a safe assets/ path: ${reference}` });
+      else if (!assets[reference]) issues.push({ code: "PACK_REFERENCE_MISSING", severity: "error", file, message: `Markdown image does not exist: ${reference}` });
+    }
+  };
 
   const modules: LearnPackModule[] = [];
   for (const modulePath of manifest.modules) {
@@ -308,6 +308,7 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
           else if (text.length > MAX_THEORY_CHARACTERS) issues.push({ code: "PACK_THEORY_TOO_LARGE", severity: "error", file: reference, message: `Lesson '${lesson.id}' theory exceeds ${MAX_THEORY_CHARACTERS} characters.` });
           else theoryMarkdown = text;
         }
+        validateMarkdownAssets(theoryMarkdown, lesson.theoryFile ?? modulePath);
         return { id: lesson.id, title: lesson.title, theoryMarkdown, exercises: lesson.exercises };
       })
     };
@@ -318,10 +319,16 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
       for (const exercise of lesson.exercises) {
         registerId(exercise.id, modulePath);
         const location = `${modulePath}#${exercise.id}`;
+        validateMarkdownAssets(exercise.instructionMarkdown, location);
+        if (exercise.solutionMarkdown) validateMarkdownAssets(exercise.solutionMarkdown, location);
+        const guided = GUIDED_EXERCISE_TYPES.has(exercise.type) || (exercise.type === "project" && Boolean(exercise.solutionMarkdown));
         if (exercise.type === "multipleChoice") {
           if (!exercise.choices || exercise.correctChoice === undefined || exercise.correctChoice >= exercise.choices.length) {
             issues.push({ code: "PACK_QUIZ_INVALID", severity: "error", file: modulePath, message: `Concept check '${exercise.id}' requires choices and a valid correctChoice.` });
           }
+        } else if (guided) {
+          if (!exercise.solutionMarkdown?.trim()) issues.push({ code: "PACK_SOLUTION_MISSING", severity: "error", file: modulePath, message: `Guided exercise '${exercise.id}' requires solutionMarkdown.` });
+          if (!exercise.checklist?.length) issues.push({ code: "PACK_CHECKLIST_MISSING", severity: "error", file: modulePath, message: `Guided exercise '${exercise.id}' requires a completion checklist.` });
         } else {
           if (!exercise.starterFiles?.length) issues.push({ code: "PACK_STARTER_MISSING", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' requires at least one starter file.` });
           if (!exercise.tests?.length) issues.push({ code: "PACK_TESTS_MISSING", severity: "error", file: modulePath, message: `Exercise '${exercise.id}' requires at least one declarative test.` });
@@ -373,6 +380,7 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
       continue;
     }
     projects[projectPath] = project;
+    validateMarkdownAssets(project.descriptionMarkdown, projectPath);
     registerId(project.id, projectPath);
     for (const exerciseId of project.checkpointExerciseIds) {
       const exercise = exerciseById.get(exerciseId);
@@ -399,7 +407,7 @@ export function validateLearnPackContent(entries: ReadonlyMap<string, unknown>, 
     exerciseCount: lessons.reduce((total, lesson) => total + lesson.exercises.length, 0),
     importedAt
   };
-  return { manifest, modules, projects, summary, warnings: issues.filter((issue) => issue.severity === "warning") };
+  return { manifest, modules, projects, summary, warnings: issues.filter((issue) => issue.severity === "warning"), assets };
 }
 
 export async function inspectLearnPack(path: string): Promise<ValidatedLearnPack> {
@@ -462,6 +470,7 @@ export async function loadImportedCourse(libraryDirectory: string, courseId: str
     const entries = new Map<string, unknown>([["manifest.json", stored.manifest]]);
     stored.manifest.modules.forEach((modulePath, index) => entries.set(modulePath, stored.modules[index]));
     Object.entries(stored.projects ?? {}).forEach(([projectPath, project]) => entries.set(projectPath, project));
+    Object.entries(stored.assets ?? {}).forEach(([assetPath, dataUrl]) => entries.set(assetPath, dataUrl));
     return validateLearnPackContent(entries, stored.summary.importedAt);
   } catch (error) {
     if (error instanceof AppError) throw error;
@@ -476,6 +485,7 @@ export function toCourseView(
 ): CourseView {
   return {
     summary: pack.summary,
+    assets: pack.assets,
     projects: Object.entries(pack.projects).map(([path, project]) => ({
       path,
       id: project.id,
@@ -502,6 +512,8 @@ export function toCourseView(
           hintCount: exercise.hints?.length ?? 0,
           completed: isCompleted(exercise.id),
           ...(exercise.choices ? { choices: exercise.choices } : {}),
+          ...(exercise.solutionMarkdown ? { solutionMarkdown: exercise.solutionMarkdown } : {}),
+          checklist: exercise.checklist ?? [],
           publicTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "public").length,
           hiddenTestCount: (exercise.tests ?? []).filter((test) => test.visibility === "hidden").length
         }))

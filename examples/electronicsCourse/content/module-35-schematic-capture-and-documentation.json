@@ -1,0 +1,81 @@
+{
+  "id": "module-35-schematic-capture-and-documentation",
+  "title": "Module 35: Schematic Capture and Documentation",
+  "description": "make intent reviewable by another engineer without relying on memory or PCB artwork. Covers symbols, references, nets, hierarchy, power flags, test points, connector pinouts, notes, BOM, ERC, datasheet traceability.",
+  "lessons": [
+    {
+      "id": "m35-l01-schematic-capture-and-documentation-physical-model-a",
+      "title": "Schematic Capture and Documentation: physical model and vocabulary",
+      "theoryFile": "lessons/module-35/m35-l01-schematic-capture-and-documentation-physical-model-a.md",
+      "exercises": []
+    },
+    {
+      "id": "m35-l02-schematic-capture-and-documentation-analysis-and-com",
+      "title": "Schematic Capture and Documentation: analysis and component judgment",
+      "theoryFile": "lessons/module-35/m35-l02-schematic-capture-and-documentation-analysis-and-com.md",
+      "exercises": []
+    },
+    {
+      "id": "m35-l03-schematic-capture-and-documentation-measurement-desi",
+      "title": "Schematic Capture and Documentation: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-35/m35-l03-schematic-capture-and-documentation-measurement-desi.md",
+      "exercises": []
+    },
+    {
+      "id": "m35-assessment",
+      "title": "Schematic Capture and Documentation: assessment and deliberate practice",
+      "theoryFile": "lessons/module-35/m35-assessment.md",
+      "exercises": [
+        {
+          "id": "m35-concept-check",
+          "type": "multipleChoice",
+          "title": "Schematic Capture and Documentation: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with symbols?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m35-worked-analysis",
+          "type": "designReview",
+          "title": "Schematic Capture and Documentation: worked analysis",
+          "instructionMarkdown": "Review a deliberately flawed schematic and produce a corrected block, BOM notes, and test-point plan.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nThe corrected schematic uses unique references, explicit connector pin numbers, net names that express function, visible supply and return intent, polarity and rating notes, decoupling at each IC, protection at external connectors, and test points on every rail and critical interface. ERC exceptions are documented rather than globally suppressed.\n\nThe governing principle is: **make intent reviewable by another engineer without relying on memory or PCB artwork**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m35-fault-lab",
+          "type": "lab",
+          "title": "Schematic Capture and Documentation: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **hidden power pin, ambiguous connector, missing ratings, inconsistent net names**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **hidden power pin, ambiguous connector, missing ratings, inconsistent net names** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

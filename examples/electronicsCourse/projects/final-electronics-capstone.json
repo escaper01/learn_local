@@ -1,0 +1,14 @@
+{
+  "id": "final-electronics-capstone",
+  "title": "Final Electronics Engineering Capstone",
+  "descriptionMarkdown": "# Final Electronics Engineering Capstone\n\nDesign a substantial low-voltage electronic system such as a solar environmental monitor, battery-powered controller, motor controller, measurement instrument, or industrial sensor node. Deliver measurable requirements, safety analysis, architecture, calculations, schematic, simulations, firmware design, PCB review, bring-up plan, verification matrix, annotated measurements, fault injection, EMI and thermal review, and a design defense.",
+  "learningObjectives": [
+    "Integrate analog, digital, embedded, power, layout, and troubleshooting skills",
+    "Produce traceable engineering evidence",
+    "Design safe states and fault containment",
+    "Defend tradeoffs and limitations honestly"
+  ],
+  "checkpointExerciseIds": [
+    "m46-final-capstone"
+  ]
+}

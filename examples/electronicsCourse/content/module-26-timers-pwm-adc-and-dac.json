@@ -1,0 +1,81 @@
+{
+  "id": "module-26-timers-pwm-adc-and-dac",
+  "title": "Module 26: Timers, PWM, ADC, and DAC",
+  "description": "budget clock counts, resolution, source impedance, acquisition time, reference error, and filtering. Covers timer prescalers, capture, compare, PWM frequency and resolution, ADC sampling and quantization, references, aliasing, DAC, reconstruction filters.",
+  "lessons": [
+    {
+      "id": "m26-l01-timers-pwm-adc-and-dac-physical-model-and-vocabulary",
+      "title": "Timers, PWM, ADC, and DAC: physical model and vocabulary",
+      "theoryFile": "lessons/module-26/m26-l01-timers-pwm-adc-and-dac-physical-model-and-vocabulary.md",
+      "exercises": []
+    },
+    {
+      "id": "m26-l02-timers-pwm-adc-and-dac-analysis-and-component-judgme",
+      "title": "Timers, PWM, ADC, and DAC: analysis and component judgment",
+      "theoryFile": "lessons/module-26/m26-l02-timers-pwm-adc-and-dac-analysis-and-component-judgme.md",
+      "exercises": []
+    },
+    {
+      "id": "m26-l03-timers-pwm-adc-and-dac-measurement-design-and-failur",
+      "title": "Timers, PWM, ADC, and DAC: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-26/m26-l03-timers-pwm-adc-and-dac-measurement-design-and-failur.md",
+      "exercises": []
+    },
+    {
+      "id": "m26-assessment",
+      "title": "Timers, PWM, ADC, and DAC: assessment and deliberate practice",
+      "theoryFile": "lessons/module-26/m26-assessment.md",
+      "exercises": [
+        {
+          "id": "m26-concept-check",
+          "type": "multipleChoice",
+          "title": "Timers, PWM, ADC, and DAC: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with timer prescalers?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m26-worked-analysis",
+          "type": "firmware",
+          "title": "Timers, PWM, ADC, and DAC: worked analysis",
+          "instructionMarkdown": "Choose timer counts for 20 kHz PWM and calculate ADC code and uncertainty for a sensor voltage.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nTimer frequency is fclk/(prescaler×(TOP+1)). At 48 MHz, prescaler 1 and TOP 2399 produce 20 kHz with 2400 duty steps. For an ideal 12-bit ADC with 3.3 V reference, code≈Vin/3.3×4095; 1.65 V gives about 2048. Include reference tolerance, offset, gain error, noise, and source-settling error.\n\nThe governing principle is: **budget clock counts, resolution, source impedance, acquisition time, reference error, and filtering**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m26-fault-lab",
+          "type": "lab",
+          "title": "Timers, PWM, ADC, and DAC: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **integer overflow, ADC source impedance too high, aliasing, PWM average mistaken for clean DC**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **integer overflow, ADC source impedance too high, aliasing, PWM average mistaken for clean DC** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

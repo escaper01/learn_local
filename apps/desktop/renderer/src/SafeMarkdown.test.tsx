@@ -62,4 +62,14 @@ describe("SafeMarkdown", () => {
     expect(html).not.toContain("<a ");
     expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
   });
+
+  it("renders only validated packaged course images", () => {
+    const dataUrl = "data:image/png;base64,iVBORw0KGgo=";
+    const html = renderToStaticMarkup(<SafeMarkdown value={'![Resistor network](assets/diagram.png "Measured network")'} assets={{ "assets/diagram.png": dataUrl }} />);
+    expect(html).toContain('<figure class="course-figure">');
+    expect(html).toContain(`src="${dataUrl}"`);
+    expect(html).toContain('alt="Resistor network"');
+    expect(html).toContain('<figcaption>Measured network</figcaption>');
+    expect(render("![remote](https://example.com/x.png)")).not.toContain("<img");
+  });
 });

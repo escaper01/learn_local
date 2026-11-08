@@ -141,35 +141,6 @@ export const settingResetSchema = z.object({
   scopeId: z.string().max(100).nullable()
 }).strict();
 
-export const coursePromptRequestSchema = z.object({
-  language: z.string().min(1).max(80),
-  learningRequest: z.string().min(3).max(8000),
-  topics: z.array(z.string().min(1).max(120)).max(40).optional()
-}).strict();
-export type CoursePromptRequest = z.infer<typeof coursePromptRequestSchema>;
-
-export interface PromptTemplate {
-  id: string;
-  name: string;
-  form: CoursePromptRequest;
-}
-
-export interface PromptHistoryItem {
-  id: string;
-  createdAt: string;
-  prompt: string;
-  form: CoursePromptRequest;
-}
-
-export const promptTemplateSaveSchema = z.object({
-  name: z.string().min(1).max(120),
-  form: coursePromptRequestSchema
-}).strict();
-
-export const promptTemplateRemoveSchema = z.object({
-  id: z.string().min(1).max(64)
-}).strict();
-
 export interface LearningSummary {
   totalAttempts: number;
   completedExercises: number;
@@ -226,6 +197,7 @@ export interface ImportedCourseSummary {
 
 export interface CourseView {
   summary: ImportedCourseSummary;
+  assets: Record<string, string>;
   projects: Array<{
     path: string;
     id: string;
@@ -252,6 +224,8 @@ export interface CourseView {
         hintCount: number;
         completed: boolean;
         choices?: string[];
+        solutionMarkdown?: string;
+        checklist: string[];
         publicTestCount: number;
         hiddenTestCount: number;
       }>;
@@ -271,6 +245,12 @@ export const quizSubmitSchema = z.object({
   version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
   exerciseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
   choiceIndex: z.number().int().min(0).max(11)
+}).strict();
+
+export const guidedExerciseCompleteSchema = z.object({
+  courseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+  version: z.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
+  exerciseId: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/)
 }).strict();
 
 export const themeTokensSchema = z.record(z.string().max(24), z.string().max(40));
@@ -364,17 +344,10 @@ export interface LearnLocalApi {
     exportProfile(): Promise<{ status: "saved" | "cancelled" }>;
     importProfile(): Promise<{ status: "imported" | "cancelled"; changed: number }>;
   };
-  prompts: {
-    generate(input: CoursePromptRequest): Promise<{ prompt: string }>;
-    scaffold(): Promise<{ status: "created" | "cancelled"; courseId?: string; created: number; existing: number }>;
-    listTemplates(): Promise<PromptTemplate[]>;
-    saveTemplate(input: z.infer<typeof promptTemplateSaveSchema>): Promise<PromptTemplate[]>;
-    removeTemplate(input: z.infer<typeof promptTemplateRemoveSchema>): Promise<PromptTemplate[]>;
-    listHistory(): Promise<PromptHistoryItem[]>;
-  };
   progress: {
     summary(): Promise<LearningSummary>;
     submitQuiz(input: z.infer<typeof quizSubmitSchema>): Promise<{ correct: boolean }>;
+    completeGuided(input: z.infer<typeof guidedExerciseCompleteSchema>): Promise<void>;
     revealHint(input: z.infer<typeof hintRevealSchema>): Promise<{ hint: string; revealedCount: number }>;
   };
   workspace: {
@@ -435,14 +408,9 @@ export const IPC_CHANNELS = {
   settingsReset: "settings:reset",
   settingsExport: "settings:export",
   settingsImport: "settings:import",
-  promptsGenerate: "prompts:generate",
-  promptsScaffold: "prompts:scaffold",
-  promptsListTemplates: "prompts:list-templates",
-  promptsSaveTemplate: "prompts:save-template",
-  promptsRemoveTemplate: "prompts:remove-template",
-  promptsListHistory: "prompts:list-history",
   progressSummary: "progress:summary",
   progressSubmitQuiz: "progress:submit-quiz",
+  progressCompleteGuided: "progress:complete-guided",
   progressRevealHint: "progress:reveal-hint",
   workspaceRead: "workspace:read",
   workspaceWrite: "workspace:write",

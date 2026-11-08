@@ -1,0 +1,81 @@
+{
+  "id": "module-20-operational-amplifiers",
+  "title": "Module 20: Operational Amplifiers",
+  "description": "verify input common-mode range, output swing, loop gain, slew rate, and capacitive-load stability. Covers ideal model, open-loop gain, negative feedback, common mode, output swing, offset, bias current, slew rate, GBW, noise, stability, decoupling.",
+  "lessons": [
+    {
+      "id": "m20-l01-operational-amplifiers-physical-model-and-vocabulary",
+      "title": "Operational Amplifiers: physical model and vocabulary",
+      "theoryFile": "lessons/module-20/m20-l01-operational-amplifiers-physical-model-and-vocabulary.md",
+      "exercises": []
+    },
+    {
+      "id": "m20-l02-operational-amplifiers-analysis-and-component-judgme",
+      "title": "Operational Amplifiers: analysis and component judgment",
+      "theoryFile": "lessons/module-20/m20-l02-operational-amplifiers-analysis-and-component-judgme.md",
+      "exercises": []
+    },
+    {
+      "id": "m20-l03-operational-amplifiers-measurement-design-and-failur",
+      "title": "Operational Amplifiers: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-20/m20-l03-operational-amplifiers-measurement-design-and-failur.md",
+      "exercises": []
+    },
+    {
+      "id": "m20-assessment",
+      "title": "Operational Amplifiers: assessment and deliberate practice",
+      "theoryFile": "lessons/module-20/m20-assessment.md",
+      "exercises": [
+        {
+          "id": "m20-concept-check",
+          "type": "multipleChoice",
+          "title": "Operational Amplifiers: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with ideal model?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m20-worked-analysis",
+          "type": "simulation",
+          "title": "Operational Amplifiers: worked analysis",
+          "instructionMarkdown": "Design a non-inverting 11× sensor amplifier and test whether a chosen op-amp can deliver the required output at frequency.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nFor non-inverting gain 11, choose 1+Rf/Rg=11, for example Rg=10 kΩ and Rf=100 kΩ. Verify common-mode range at the input, output swing at the required load, GBW comfortably above 11 times signal bandwidth, and slew rate above 2πfVpeak. Check offset and bias-current error against the sensor budget.\n\nThe governing principle is: **verify input common-mode range, output swing, loop gain, slew rate, and capacitive-load stability**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m20-fault-lab",
+          "type": "troubleshooting",
+          "title": "Operational Amplifiers: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **rail-to-rail assumed, gain-bandwidth ignored, positive feedback accidental, supply decoupling absent**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **rail-to-rail assumed, gain-bandwidth ignored, positive feedback accidental, supply decoupling absent** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

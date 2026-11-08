@@ -1,0 +1,99 @@
+{
+  "id": "module-10-inductors-magnetics-and-rl-circuits",
+  "title": "Module 10: Inductors, Magnetics, and RL Circuits",
+  "description": "check peak current, saturation, copper loss, switching stress, and magnetic energy. Covers magnetic field, inductance, saturation, DCR, core loss, stored energy, flyback, transformers, relays, solenoids, RL transient.",
+  "lessons": [
+    {
+      "id": "m10-l01-inductors-magnetics-and-rl-circuits-physical-model-a",
+      "title": "Inductors, Magnetics, and RL Circuits: physical model and vocabulary",
+      "theoryFile": "lessons/module-10/m10-l01-inductors-magnetics-and-rl-circuits-physical-model-a.md",
+      "exercises": []
+    },
+    {
+      "id": "m10-l02-inductors-magnetics-and-rl-circuits-analysis-and-com",
+      "title": "Inductors, Magnetics, and RL Circuits: analysis and component judgment",
+      "theoryFile": "lessons/module-10/m10-l02-inductors-magnetics-and-rl-circuits-analysis-and-com.md",
+      "exercises": []
+    },
+    {
+      "id": "m10-l03-inductors-magnetics-and-rl-circuits-measurement-desi",
+      "title": "Inductors, Magnetics, and RL Circuits: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-10/m10-l03-inductors-magnetics-and-rl-circuits-measurement-desi.md",
+      "exercises": []
+    },
+    {
+      "id": "m10-assessment",
+      "title": "Inductors, Magnetics, and RL Circuits: assessment and deliberate practice",
+      "theoryFile": "lessons/module-10/m10-assessment.md",
+      "exercises": [
+        {
+          "id": "m10-concept-check",
+          "type": "multipleChoice",
+          "title": "Inductors, Magnetics, and RL Circuits: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with magnetic field?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m10-worked-analysis",
+          "type": "schematic",
+          "title": "Inductors, Magnetics, and RL Circuits: worked analysis",
+          "instructionMarkdown": "Select a flyback diode for a 12 V relay coil and explain current decay after switch-off.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nAt switch-off the coil current initially continues in the same direction. A reverse-biased diode across the energized coil becomes forward biased and provides a decay loop. Select repetitive current at least the coil current and reverse voltage above supply with margin. A plain diode gives slow release; a diode-plus-Zener raises clamp voltage and releases faster while increasing switch stress.\n\nThe governing principle is: **check peak current, saturation, copper loss, switching stress, and magnetic energy**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m10-fault-lab",
+          "type": "lab",
+          "title": "Inductors, Magnetics, and RL Circuits: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **missing flyback path, saturated core, underspecified current rating, transformer ratio inversion**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **missing flyback path, saturated core, underspecified current rating, transformer ratio inversion** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        },
+        {
+          "id": "m10-phase-project",
+          "type": "project",
+          "title": "Passive sensor conditioning and timing board",
+          "instructionMarkdown": "Complete the phase project **Passive sensor conditioning and timing board**. Produce requirements, safety limits, calculations, schematic or block diagram, component choices, test plan, measured or simulated evidence, fault analysis, and a concise design review.",
+          "checklist": [
+            "Requirements and pass criteria are measurable.",
+            "Safety, power, thermal, and interface limits are documented.",
+            "Calculations and component selections cite evidence.",
+            "The test plan includes nominal, boundary, and fault cases.",
+            "Results include annotated diagrams or waveforms and a revision note."
+          ],
+          "hints": [
+            "Freeze measurable requirements before selecting components.",
+            "Review the current loops, return paths, fault states, and test access before layout or assembly."
+          ],
+          "solutionMarkdown": "## Reference project standard\n\nA passing project is not defined by matching one exact circuit. It is defined by traceable requirements and evidence. The reference architecture separates source protection, power conversion, sensing, control, interfaces, and loads. Each block states input/output ranges, safe states, and test points.\n\nThe calculation package includes nominal and worst-case values, power and thermal budgets, tolerance effects, and component-rating margins. The verification matrix maps every requirement to a test or inspection with objective pass criteria. The troubleshooting section includes at least one injected open, short or bias fault and the measurements that isolate it.\n\nA strong submission also records a discovered weakness and the revision made in response; engineering quality is demonstrated by the feedback loop, not by pretending the first version was perfect."
+        }
+      ]
+    }
+  ]
+}

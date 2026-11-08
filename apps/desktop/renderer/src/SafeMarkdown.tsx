@@ -53,20 +53,29 @@ function inlineMarkdown(text: string): ReactNode[] {
 }
 
 const TABLE_SEPARATOR = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?$/;
-const BLOCK_START = /^(#{1,6}\s+|[-*]\s+|\d+\.\s+|```|>|\|)|^(-{3,}|\*{3,})$/;
+const BLOCK_START = /^(#{1,6}\s+|[-*]\s+|\d+\.\s+|```|>|\||!\[)|^(-{3,}|\*{3,})$/;
 
 function tableCells(line: string): string[] {
   const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
   return trimmed.split(/(?<!\\)\|/).map((cell) => cell.trim().replaceAll("\\|", "|"));
 }
 
-export function SafeMarkdown({ value, className = "" }: { value: string; className?: string }) {
+export function SafeMarkdown({ value, className = "", assets = {} }: { value: string; className?: string; assets?: Record<string, string> | undefined }) {
   const lines = value.replaceAll("\r\n", "\n").split("\n");
   const blocks: ReactNode[] = [];
   for (let index = 0; index < lines.length;) {
     const line = lines[index] ?? "";
     const trimmed = line.trim();
     if (!trimmed) { index += 1; continue; }
+    const image = /^!\[([^\]]*)\]\((assets\/[A-Za-z0-9._/-]+)(?:\s+"([^"]*)")?\)$/.exec(trimmed);
+    if (image) {
+      const source = assets[image[2]!];
+      blocks.push(source
+        ? <figure className="course-figure" key={`image-${index}`}><img src={source} alt={image[1] ?? ""} loading="lazy" />{image[3] && <figcaption>{image[3]}</figcaption>}</figure>
+        : <p className="course-image-missing" key={`image-${index}`}>Image unavailable: {image[1] || image[2]}</p>);
+      index += 1;
+      continue;
+    }
     if (trimmed.startsWith("```")) {
       const language = trimmed.slice(3).trim();
       const code: string[] = [];

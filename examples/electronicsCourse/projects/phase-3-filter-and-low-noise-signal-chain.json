@@ -1,0 +1,15 @@
+{
+  "id": "electronics-phase-3-project",
+  "title": "Filter and low-noise signal chain",
+  "descriptionMarkdown": "# Filter and low-noise signal chain\n\nIntegrate the theory and practical evidence from modules 11–16. Submit a safe, reproducible engineering package rather than only a working artifact.",
+  "learningObjectives": [
+    "Translate requirements into a circuit or system architecture",
+    "Use calculations and datasheet limits to select components",
+    "Plan safe measurements and objective verification",
+    "Diagnose at least one injected or simulated fault",
+    "Document evidence and revisions"
+  ],
+  "checkpointExerciseIds": [
+    "m16-phase-project"
+  ]
+}

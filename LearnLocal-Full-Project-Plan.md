@@ -172,8 +172,8 @@ The LearnPack must never be allowed to choose arbitrary host bindings.
 | Tests | Visible and hidden declarative tests |
 | Hints | Ordered progressive hints |
 | Projects | Mini-projects and one milestone project per course section |
-| AI integration | External prompt generator and import flow |
-| Customization | Typed settings, scoped profiles, editable prompt templates, import/export |
+| Curriculum authoring | Repository-first editing with LearnPack validation and folder import |
+| Customization | Typed settings, scoped profiles, and import/export |
 | Accounts | None |
 | Cloud | None |
 | Runtime management | Install, repair, update, remove, disk-usage view |
@@ -352,7 +352,6 @@ learnlocal/
 │           │   ├── exercises/
 │           │   ├── projects/
 │           │   ├── progress/
-│           │   ├── prompt-generator/
 │           │   ├── settings/
 │           │   └── runtimes/
 │           └── styles/
@@ -368,7 +367,6 @@ learnlocal/
 │   │   ├── migrations/
 │   │   └── fixtures/
 │   ├── learning-core/
-│   ├── prompt-generator/
 │   ├── settings-core/
 │   ├── database/
 │   │   ├── migrations/
@@ -570,47 +568,11 @@ Failures must identify the file, JSON path, error code, and suggested correction
 
 ---
 
-## 10. AI prompt generator
+## 10. Repository-first curriculum authoring
 
-### 10.1 Inputs
+Curriculum authors and coding agents work directly in the repository. They inspect the existing course progression, LearnPack schemas, lesson Markdown, assessments, and projects before making changes. `examples/javaCourse/` remains the source of truth, and `docs/learnpack-authoring.md` defines the workflow.
 
-- Language and desired runtime version.
-- Current experience.
-- Goals.
-- Topics to include.
-- Topics to skip.
-- Time per day.
-- Target duration.
-- Preferred balance: theory, practice, projects, interview exercises.
-- Desired project themes.
-- Accessibility and explanation preferences.
-- Optional custom instructions.
-
-### 10.2 Generated prompt sections
-
-1. Role and learning objective.
-2. Learner profile.
-3. Curriculum design requirements.
-4. Required exercise distribution.
-5. Project requirements.
-6. Hint rules.
-7. Visible/hidden test rules.
-8. LearnPack schema and allowed values.
-9. Security prohibitions.
-10. Output rules.
-11. Self-checklist for the AI before it returns the pack.
-
-### 10.3 Reliability strategy
-
-Large courses may exceed an AI response limit. Support three generation modes:
-
-- **Single-file starter course:** small course returned as one JSON document.
-- **Manifest-first generation:** AI returns the outline and manifest, then the user generates modules one at a time.
-- **Folder generation:** AI or local script produces all files and packages them into `.learnpack`.
-
-The recommended mode for a full course is manifest-first because each module can be validated independently.
-
-### 10.4 Import repair loop
+### 10.1 Import repair loop
 
 When validation fails, LearnLocal should generate a repair prompt containing:
 
@@ -625,7 +587,7 @@ This keeps LearnLocal AI-independent while making almost-correct content easy to
 
 ## 11. Settings and customization system
 
-LearnLocal should be highly customizable, but it must separate **user preferences** from **security policy**. A user should be able to change how the application teaches, looks, generates prompts, stores data, and presents results. A setting must not make it possible for a course file or renderer compromise to obtain privileged container access.
+LearnLocal should be highly customizable, but it must separate **user preferences** from **security policy**. A user should be able to change how the application teaches, looks, stores data, and presents results. A setting must not make it possible for a course file or renderer compromise to obtain privileged container access.
 
 ### 11.1 Settings principles
 
@@ -879,8 +841,6 @@ Add the following tables:
 settings_definitions
 settings_values
 settings_profiles
-prompt_templates
-prompt_template_versions
 keyboard_shortcuts
 ```
 
@@ -1271,8 +1231,6 @@ app_settings
 settings_definitions
 settings_values
 settings_profiles
-prompt_templates
-prompt_template_versions
 keyboard_shortcuts
 runtime_installations
 runtime_operations
@@ -1384,12 +1342,11 @@ Concept
 - Cleanup and diagnostics.
 - Advanced custom port setting, if a sidecar is enabled.
 
-#### Settings and Prompt Templates
+#### Settings
 
 - Searchable settings catalog.
 - Global, language, and course scopes.
 - Inherited-value indicators.
-- Prompt template editor and live preview.
 - Import/export with a change preview.
 - Reset individual values, categories, or an entire profile.
 
@@ -1572,12 +1529,11 @@ Each language adapter must pass the same conformance suite:
 ### 22.4 End-to-end tests
 
 - First launch to first passed Java exercise.
-- Generate prompt to import course.
+- Import a repository-authored course.
 - Import invalid AI JSON and create repair prompt.
 - Install Python without affecting Java.
 - Remove Java runtime while preserving course progress.
 - Reinstall Java and continue at the same exercise.
-- Customize the Java course prompt, restart, generate a preview, and restore the built-in default.
 
 ### 22.5 Security tests
 
@@ -1672,22 +1628,20 @@ Exit criteria:
 
 - The UI contains no language-specific conditionals outside adapter-driven presentation metadata.
 
-### Phase 5 — Prompt generator and projects
+### Phase 5 — Curriculum authoring and projects
 
 Deliverables:
 
-- Personalized prompt builder.
 - Settings registry and scoped profiles.
-- Prompt Template Manager, preview, versioning, and reset.
 - Settings import/export with a diff preview.
-- Manifest-first course workflow.
+- Repository-first course workflow.
 - Repair prompts.
 - Multi-file mini-projects.
 - Checkpoints and project progress.
 
 Exit criteria:
 
-- A new learner can generate, import, and finish an AI-created mini-course without editing app files manually.
+- A coding agent can add a topic by following the repository guidance, and a learner can import and finish the resulting course.
 
 ### Phase 6 — Packaging and beta
 

@@ -1,0 +1,81 @@
+{
+  "id": "module-11-ac-fundamentals",
+  "title": "Module 11: AC Fundamentals",
+  "description": "state exactly which amplitude convention is being used and relate time-domain measurements to energy. Covers period, frequency, phase, amplitude, peak, peak-to-peak, RMS, duty cycle, offset, sine, square, triangle, pulses, harmonics.",
+  "lessons": [
+    {
+      "id": "m11-l01-ac-fundamentals-physical-model-and-vocabulary",
+      "title": "AC Fundamentals: physical model and vocabulary",
+      "theoryFile": "lessons/module-11/m11-l01-ac-fundamentals-physical-model-and-vocabulary.md",
+      "exercises": []
+    },
+    {
+      "id": "m11-l02-ac-fundamentals-analysis-and-component-judgment",
+      "title": "AC Fundamentals: analysis and component judgment",
+      "theoryFile": "lessons/module-11/m11-l02-ac-fundamentals-analysis-and-component-judgment.md",
+      "exercises": []
+    },
+    {
+      "id": "m11-l03-ac-fundamentals-measurement-design-and-failure-evide",
+      "title": "AC Fundamentals: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-11/m11-l03-ac-fundamentals-measurement-design-and-failure-evide.md",
+      "exercises": []
+    },
+    {
+      "id": "m11-assessment",
+      "title": "AC Fundamentals: assessment and deliberate practice",
+      "theoryFile": "lessons/module-11/m11-assessment.md",
+      "exercises": [
+        {
+          "id": "m11-concept-check",
+          "type": "multipleChoice",
+          "title": "AC Fundamentals: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with period?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m11-worked-analysis",
+          "type": "calculation",
+          "title": "AC Fundamentals: worked analysis",
+          "instructionMarkdown": "Convert a 2 V peak sine and a 5 V 25% duty-cycle pulse into the relevant RMS and average values.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nA 2 V-peak sine has Vrms = 2/√2 = 1.414 V and Vpp = 4 V. A unipolar 5 V pulse at 25% duty has average 1.25 V and RMS 5√0.25 = 2.50 V. RMS expresses heating equivalence; average and RMS answer different questions.\n\nThe governing principle is: **state exactly which amplitude convention is being used and relate time-domain measurements to energy**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m11-fault-lab",
+          "type": "lab",
+          "title": "AC Fundamentals: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **peak confused with RMS, frequency-period inversion, phase without reference, bandwidth ignored**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **peak confused with RMS, frequency-period inversion, phase without reference, bandwidth ignored** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

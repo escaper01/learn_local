@@ -1,0 +1,15 @@
+{
+  "id": "electronics-phase-5-project",
+  "title": "Microcontroller data-acquisition controller",
+  "descriptionMarkdown": "# Microcontroller data-acquisition controller\n\nIntegrate the theory and practical evidence from modules 23–29. Submit a safe, reproducible engineering package rather than only a working artifact.",
+  "learningObjectives": [
+    "Translate requirements into a circuit or system architecture",
+    "Use calculations and datasheet limits to select components",
+    "Plan safe measurements and objective verification",
+    "Diagnose at least one injected or simulated fault",
+    "Document evidence and revisions"
+  ],
+  "checkpointExerciseIds": [
+    "m29-phase-project"
+  ]
+}

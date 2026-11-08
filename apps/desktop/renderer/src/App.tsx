@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import type { AppErrorShape, CoursePromptRequest, CourseView, CustomThemeRecord, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, PromptHistoryItem, PromptTemplate, ResolvedSetting, RuntimeSummary, SettingValue, SourceFile, TimeTrackingSummary, ValidationIssue } from "@learnlocal/contracts";
+import type { AppErrorShape, CourseView, CustomThemeRecord, ExecutionResult, ImportedCourseSummary, LearningSummary, ProviderStatus, ResolvedSetting, RuntimeSummary, SettingValue, SourceFile, TimeTrackingSummary, ValidationIssue } from "@learnlocal/contracts";
 
 import { SafeMarkdown } from "./SafeMarkdown";
 import { applyThemeTokens, BUILT_IN_THEMES, TOKEN_GROUPS, type ThemeDefinition } from "./themes";
@@ -58,11 +58,6 @@ const STARTER_CODE = `public class Solution {
 
 
 const DEFAULT_LESSON_PANE_WIDTH = 75;
-
-const DEFAULT_PROMPT_FORM: CoursePromptRequest = {
-  language: "Java",
-  learningRequest: "Teach me from the fundamentals through functions, collections, debugging, testing, and practical projects."
-};
 
 function friendlyError(error: unknown): AppErrorShape {
   if (typeof error === "object" && error && "message" in error) {
@@ -202,14 +197,6 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<ResolvedSetting[]>([]);
   const [settingsSearch, setSettingsSearch] = useState("");
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [promptForm, setPromptForm] = useState<CoursePromptRequest>(DEFAULT_PROMPT_FORM);
-  const [generatedPrompt, setGeneratedPrompt] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [scaffoldMessage, setScaffoldMessage] = useState("");
-  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
-  const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>([]);
-  const [topicDraft, setTopicDraft] = useState("");
   const [learningSummary, setLearningSummary] = useState<LearningSummary>({ totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [], mastery: [] });
   const [timeSummary, setTimeSummary] = useState<TimeTrackingSummary>({ todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, perCourse: [], perModule: [] });
   const [studySessionId, setStudySessionId] = useState<string | null>(null);
@@ -219,6 +206,8 @@ export default function App() {
   const [activeImportedExercise, setActiveImportedExercise] = useState<CourseView["modules"][number]["lessons"][number]["exercises"][number] | null>(null);
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [quizCorrect, setQuizCorrect] = useState<boolean | null>(null);
+  const [solutionRevealed, setSolutionRevealed] = useState(false);
+  const [checkedGuidedItems, setCheckedGuidedItems] = useState<boolean[]>([]);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [error, setError] = useState<AppErrorShape | null>(null);
   const [activeExecution, setActiveExecution] = useState<string | null>(null);
@@ -615,6 +604,8 @@ export default function App() {
     }
     setSelectedChoice(null);
     setQuizCorrect(null);
+    setSolutionRevealed(false);
+    setCheckedGuidedItems(exercise.checklist.map(() => false));
     setResult(null);
     setView("lesson");
   };
@@ -627,6 +618,8 @@ export default function App() {
     setSource("");
     setSelectedChoice(null);
     setQuizCorrect(null);
+    setSolutionRevealed(false);
+    setCheckedGuidedItems([]);
     setResult(null);
     setView("lesson");
     window.requestAnimationFrame(() => lessonPaneRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
@@ -680,6 +673,18 @@ export default function App() {
         setActiveCourse(updated);
         setActiveImportedExercise((current) => current ? { ...current, completed: true } : current);
       }
+      setLearningSummary(await window.learnLocal.progress.summary());
+    } catch (reason) { setError(friendlyError(reason)); }
+  };
+
+  const completeGuidedExercise = async () => {
+    if (!activeCourse || !activeImportedExercise || !solutionRevealed || checkedGuidedItems.some((checked) => !checked)) return;
+    try {
+      await window.learnLocal.progress.completeGuided({ courseId: activeCourse.summary.id, version: activeCourse.summary.version, exerciseId: activeImportedExercise.id });
+      const updated = await window.learnLocal.courses.open(activeCourse.summary.id, activeCourse.summary.version);
+      activeCourseRef.current = updated;
+      setActiveCourse(updated);
+      setActiveImportedExercise((current) => current ? { ...current, completed: true } : current);
       setLearningSummary(await window.learnLocal.progress.summary());
     } catch (reason) { setError(friendlyError(reason)); }
   };
@@ -793,61 +798,6 @@ export default function App() {
     catch (reason) { setError(friendlyError(reason)); }
   };
 
-  const openPromptGenerator = async () => {
-    setShowPrompt(true);
-    setPromptForm((current) => ({ ...current, language: activeCourse?.summary.language ?? "Java" }));
-    try {
-      const [templates, history] = await Promise.all([window.learnLocal.prompts.listTemplates(), window.learnLocal.prompts.listHistory()]);
-      setPromptTemplates(templates);
-      setPromptHistory(history);
-    } catch (reason) { setError(friendlyError(reason)); }
-  };
-
-  const generatePrompt = async () => {
-    try {
-      const generated = await window.learnLocal.prompts.generate(promptForm);
-      setGeneratedPrompt(generated.prompt);
-      setCopied(false);
-      setPromptHistory(await window.learnLocal.prompts.listHistory());
-    } catch (reason) { setError(friendlyError(reason)); }
-  };
-
-  const addTopic = () => {
-    const value = topicDraft.trim();
-    if (!value) return;
-    setPromptForm((current) => (current.topics ?? []).includes(value) ? current : { ...current, topics: [...(current.topics ?? []), value] });
-    setTopicDraft("");
-  };
-
-  const removeTopic = (topic: string) => {
-    setPromptForm((current) => ({ ...current, topics: (current.topics ?? []).filter((item) => item !== topic) }));
-  };
-
-  const savePromptTemplate = async () => {
-    const name = window.prompt("Template name", `${promptForm.language} course`)?.trim();
-    if (!name) return;
-    try { setPromptTemplates(await window.learnLocal.prompts.saveTemplate({ name, form: promptForm })); }
-    catch (reason) { setError(friendlyError(reason)); }
-  };
-
-  const removePromptTemplate = async (id: string) => {
-    try { setPromptTemplates(await window.learnLocal.prompts.removeTemplate({ id })); }
-    catch (reason) { setError(friendlyError(reason)); }
-  };
-
-  const copyPrompt = async () => {
-    await navigator.clipboard.writeText(generatedPrompt);
-    setCopied(true);
-  };
-
-  const scaffoldFromManifest = async () => {
-    setScaffoldMessage("");
-    try {
-      const result = await window.learnLocal.prompts.scaffold();
-      if (result.status === "created") setScaffoldMessage(`${result.created} file${result.created === 1 ? "" : "s"} created, ${result.existing} preserved for ${result.courseId}.`);
-    } catch (reason) { setError(friendlyError(reason)); }
-  };
-
   const editorFontSizeSetting = settings.find((setting) => setting.key === "editor.fontSize");
   const editorFontSize = editorFontSizeSetting?.value;
   const editorWordWrap = settings.find((setting) => setting.key === "editor.wordWrap")?.value;
@@ -904,7 +854,6 @@ export default function App() {
           <button className={`nav-item ${view === "courses" ? "active" : ""}`} onClick={() => setView("courses")}><span className="nav-icon">◫</span><span className="nav-label">My courses</span>{courses.length > 0 && <b className="nav-count">{courses.length}</b>}</button>
           {activeCourse && <button className={`nav-item nav-item-child ${view === "lesson" ? "active" : ""}`} title={activeCourse.summary.title} onClick={() => setView("lesson")}><span className="nav-icon">⌁</span><span className="nav-label">{activeCourse.summary.title}</span></button>}
           <button className="nav-item" onClick={() => void openRuntimes()}><span className="nav-icon">⌘</span><span className="nav-label">Languages</span></button>
-          <button className="nav-item" onClick={() => void openPromptGenerator()}><span className="nav-icon">✦</span><span className="nav-label">Generate prompt</span></button>
           <button className="nav-item" onClick={() => void importCourse()} disabled={importing}><span className="nav-icon">↗</span><span className="nav-label">{importing ? "Validating…" : "Import course"}</span></button>
         </nav>
         <div className="sidebar-spacer" />
@@ -950,11 +899,11 @@ export default function App() {
           <article className="lesson-pane" ref={lessonPaneRef}>
             <div className="eyebrow">{(activeImportedExercise?.type ?? "lesson").toUpperCase()} · {(activeCourse?.summary.language ?? language).toUpperCase()} {activeCourse?.summary.languageVersion ?? ""}</div>
             <h1>{activeImportedExercise?.title ?? activeLesson?.title ?? "Choose a lesson"}</h1>
-            <SafeMarkdown className="lede" value={activeImportedExercise?.instructionMarkdown ?? "Read the lesson carefully, then open an assessment from the course topics panel when you are ready."}/>
+            <SafeMarkdown className="lede" assets={activeCourse?.assets} value={activeImportedExercise?.instructionMarkdown ?? "Read the lesson carefully, then open an assessment from the course topics panel when you are ready."}/>
             {lessonNavigation("top")}
             <div className="concept-card">
               <span className="concept-icon">∑</span>
-              <div>{!activeLesson?.theoryMarkdown.trimStart().startsWith("# ") && <strong>{activeLesson?.title ?? "Course lesson"}</strong>}<SafeMarkdown value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
+              <div>{!activeLesson?.theoryMarkdown.trimStart().startsWith("# ") && <strong>{activeLesson?.title ?? "Course lesson"}</strong>}<SafeMarkdown assets={activeCourse?.assets} value={activeLesson?.theoryMarkdown ?? "Lesson material appears after you select a task."}/></div>
             </div>
             {(activeImportedExercise?.hints ?? []).map((hint, index) => <details className="hint" key={`${index}-${hint}`} open><summary>Hint {index + 1} of {activeImportedExercise?.hintCount ?? 0}</summary><p>{hint}</p></details>)}
             {activeImportedExercise && activeImportedExercise.hints.length < activeImportedExercise.hintCount && (
@@ -979,12 +928,26 @@ export default function App() {
 
           {activeImportedExercise && (activeImportedExercise.type === "multipleChoice" ? (
             <section className="quiz-pane">
-              <div className="quiz-heading"><span>CONCEPT CHECK</span><strong>{activeImportedExercise.title}</strong><SafeMarkdown value={activeImportedExercise.instructionMarkdown}/></div>
+              <div className="quiz-heading"><span>CONCEPT CHECK</span><strong>{activeImportedExercise.title}</strong><SafeMarkdown assets={activeCourse?.assets} value={activeImportedExercise.instructionMarkdown}/></div>
               <div className="quiz-choices">{activeImportedExercise.choices?.map((choice, index) => <button key={choice} className={`${selectedChoice === index ? "selected" : ""} ${quizCorrect !== null && selectedChoice === index ? quizCorrect ? "correct" : "incorrect" : ""}`} disabled={quizCorrect === true} onClick={() => { setSelectedChoice(index); setQuizCorrect(null); }}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
               {quizCorrect !== null && <div className={`quiz-feedback ${quizCorrect ? "correct" : "incorrect"}`}><strong>{quizCorrect ? "Correct" : "Not quite"}</strong><p>{quizCorrect ? "Concept check completed. Your progress was saved." : "Review the lesson and try another answer."}</p></div>}
               <div className="quiz-actions">
                 <button className="submit-button" disabled={selectedChoice === null || quizCorrect === true} onClick={() => void submitQuiz()}>{quizCorrect === false ? "Try again" : "Check answer"}</button>
                 {quizCorrect === true && nextStep && <button type="button" className="next-step-button" onClick={() => goToCourseStep(nextStep)}>Next →</button>}
+              </div>
+            </section>
+          ) : activeImportedExercise.solutionMarkdown ? (
+            <section className="guided-pane">
+              <header><span>{activeImportedExercise.type.replace(/([A-Z])/g, " $1").toUpperCase()}</span><strong>Complete the work before opening the solution</strong></header>
+              <div className="guided-checklist">
+                {activeImportedExercise.checklist.map((item, index) => <label key={item}><input type="checkbox" checked={checkedGuidedItems[index] ?? false} onChange={(event) => setCheckedGuidedItems((current) => current.map((checked, itemIndex) => itemIndex === index ? event.target.checked : checked))}/><span>{item}</span></label>)}
+              </div>
+              {!solutionRevealed ? <button type="button" className="run-button" onClick={() => setSolutionRevealed(true)}>Reveal worked solution</button> : (
+                <article className="guided-solution"><div className="eyebrow">WORKED SOLUTION AND EXPECTED EVIDENCE</div><SafeMarkdown assets={activeCourse?.assets} value={activeImportedExercise.solutionMarkdown}/></article>
+              )}
+              <div className="quiz-actions">
+                <button type="button" className="submit-button" disabled={!solutionRevealed || checkedGuidedItems.some((checked) => !checked) || activeImportedExercise.completed} onClick={() => void completeGuidedExercise()}>{activeImportedExercise.completed ? "Completed" : "Mark complete"}</button>
+                {activeImportedExercise.completed && nextStep && <button type="button" className="next-step-button" onClick={() => goToCourseStep(nextStep)}>Next →</button>}
               </div>
             </section>
           ) : (
@@ -1084,7 +1047,7 @@ export default function App() {
                 {activeCourse.projects.map((project) => (
                   <article key={project.id}>
                     <strong>{project.title}</strong>
-                    <SafeMarkdown value={project.descriptionMarkdown}/>
+                    <SafeMarkdown assets={activeCourse?.assets} value={project.descriptionMarkdown}/>
                     <button className="submit-button" type="button" onClick={() => { setShowTopicPanel(false); void selectProject(project); }}>Open next checkpoint</button>
                   </article>
                 ))}
@@ -1151,7 +1114,7 @@ export default function App() {
             </div>
           </header>
           <div className={`course-grid ${courseCardView}`}>
-            {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Build your first learning path</h2><p>Generate a course prompt for any language, create the referenced JSON files, then import that course folder.</p><button className="submit-button" onClick={() => void openPromptGenerator()}>Generate course prompt</button></article>}
+            {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Import your first learning path</h2><p>Choose a LearnPack course folder containing a manifest.json file.</p><button className="submit-button" onClick={() => void importCourse()}>Import course folder</button></article>}
             {courses.map((course) => <article className={`course-card imported ${courseCardView}`} key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2>{courseCardView === "detailed" && <p>{course.description}</p>}<div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><div className="course-actions"><button className="run-button" onClick={() => void openImportedCourse(course)}>Continue course</button><button type="button" className="course-remove" disabled={Boolean(activeAction)} onClick={() => openCourseRemoval(course)}>Remove</button></div></article>)}
           </div>
         </section>
@@ -1365,43 +1328,12 @@ export default function App() {
           </section>
         </div>
       )}
-      {showPrompt && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowPrompt(false)}>
-          <section className="prompt-modal" role="dialog" aria-modal="true" aria-labelledby="prompt-title" onMouseDown={(event) => event.stopPropagation()}>
-            <button className="modal-close" aria-label="Close prompt generator" onClick={() => setShowPrompt(false)}>×</button>
-            <div className="eyebrow">PROVIDER-INDEPENDENT</div>
-            <h2 id="prompt-title">Course Prompt Generator</h2>
-            <p>Describe your goal, then paste the prompt into any AI assistant. Save its manifest first, let LearnLocal create the referenced files, and paste each JSON block into its matching file.</p>
-            <div className="prompt-layout">
-              <div className="prompt-form">
-                <div className="prompt-template-bar"><select aria-label="Load prompt template" defaultValue="" onChange={(event) => { const template = promptTemplates.find((candidate) => candidate.id === event.target.value); if (template) setPromptForm(template.form); event.target.value = ""; }}><option value="">Load template…</option>{promptTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button type="button" onClick={() => void savePromptTemplate()}>Save current</button></div>
-                {promptTemplates.length > 0 && <div className="prompt-template-chips">{promptTemplates.map((template) => <span key={template.id}><button type="button" onClick={() => setPromptForm(template.form)}>{template.name}</button><button type="button" aria-label={`Delete ${template.name} template`} onClick={() => void removePromptTemplate(template.id)}>×</button></span>)}</div>}
-                <label className="wide">Programming language<input value={promptForm.language} placeholder="Java, Python, Rust, C#, …" onChange={(event) => setPromptForm({ ...promptForm, language: event.target.value })} /></label>
-                <label className="wide">Topics to include (optional)
-                  <div className="prompt-topics">
-                    {(promptForm.topics ?? []).map((topic) => <span className="topic-chip" key={topic}>{topic}<button type="button" aria-label={`Remove ${topic}`} onClick={() => removeTopic(topic)}>×</button></span>)}
-                    <input value={topicDraft} placeholder="Add a topic, press Enter" onChange={(event) => setTopicDraft(event.target.value)} onKeyDown={(event) => { if (event.key !== "Enter") return; event.preventDefault(); addTopic(); }} />
-                  </div>
-                </label>
-                <label className="wide">What do you want to learn or build?<textarea className="prompt-request" placeholder="Describe your goal in your own words. You can also mention anything to exclude, your experience, or a project idea. The AI will infer the remaining course details." value={promptForm.learningRequest} onChange={(event) => setPromptForm({ ...promptForm, learningRequest: event.target.value })} /></label>
-                <button className="submit-button prompt-generate" onClick={() => void generatePrompt()}>Generate LearnPack prompt</button>
-              </div>
-              <div className="prompt-preview">
-                {generatedPrompt ? <textarea readOnly value={generatedPrompt} aria-label="Generated course prompt" /> : <div><span>✦</span><strong>Your prompt will appear here</strong><p>It will include the LearnPack schema contract and locked security rules.</p></div>}
-                {generatedPrompt && <><aside className="prompt-pack-note"><strong>After generation</strong><span>Save manifest.json, create its referenced files, paste each JSON block, then use Import course folder and select that folder.</span></aside><button className="run-button" onClick={() => void copyPrompt()}>{copied ? "Copied" : "Copy prompt"}</button></>}
-              </div>
-            </div>
-            <div className="manifest-scaffold"><div><strong>Have a manifest.json?</strong><span>Create every referenced content and project file beside it. Existing files are never overwritten.</span>{scaffoldMessage && <small>{scaffoldMessage}</small>}</div><button className="run-button" type="button" onClick={() => void scaffoldFromManifest()}>Create files from manifest</button></div>
-            {promptHistory.length > 0 && <details className="prompt-history"><summary>Local prompt history ({promptHistory.length})</summary><div>{promptHistory.map((item, index) => <article key={item.id}><span>{new Date(item.createdAt).toLocaleString()}</span><small>{item.prompt.length.toLocaleString()} characters</small><button type="button" onClick={() => setGeneratedPrompt(item.prompt)}>Restore</button>{index === 0 || !generatedPrompt || item.prompt === generatedPrompt ? null : <details><summary>Compare with current</summary><div className="prompt-compare"><pre>{item.prompt}</pre><pre>{generatedPrompt}</pre></div></details>}</article>)}</div></details>}
-          </section>
-        </div>
-      )}
       {onboardingStep >= 0 && (
         <div className="modal-backdrop onboarding-backdrop">
           <section className="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
             <div className="onboarding-progress" aria-label={`Onboarding step ${onboardingStep + 1} of 2`}><i className="active"/><i className={onboardingStep >= 1 ? "active" : ""}/></div>
             {onboardingStep === 0 && <><img className="onboarding-mark" src={logoUrl} alt="" /><div className="eyebrow">WELCOME TO LEARNLOCAL</div><h2 id="onboarding-title">Learn programming privately, on your computer</h2><p>Courses, code, settings, and progress stay on this device. LearnLocal does not require an account and does not send your work to an AI service.</p><div className="onboarding-points"><span>✓ Portable LearnPack courses</span><span>✓ Disposable, network-disabled runtimes</span><span>✓ Progress stored locally</span></div></>}
-            {onboardingStep === 1 && <><div className="eyebrow">ENVIRONMENT CHECK</div><h2 id="onboarding-title">{provider?.available ? "Your local runner is ready" : "Finish setting up Docker"}</h2><p>{provider?.available ? `Docker ${provider.version ?? ""} is available. Install the Java runtime when you run your first exercise.` : "LearnLocal needs Docker Desktop or Docker Engine to run code safely. You can still browse courses and generate prompts before installing it."}</p><div className={`onboarding-status ${provider?.available ? "ready" : "warning"}`}><span>{provider?.available ? "✓" : "!"}</span><div><strong>{provider?.available ? "Sandbox provider detected" : "Docker is not available yet"}</strong><small>{provider?.message ?? "Checking the local environment…"}</small></div></div></>}
+            {onboardingStep === 1 && <><div className="eyebrow">ENVIRONMENT CHECK</div><h2 id="onboarding-title">{provider?.available ? "Your local runner is ready" : "Finish setting up Docker"}</h2><p>{provider?.available ? `Docker ${provider.version ?? ""} is available. Install the Java runtime when you run your first exercise.` : "LearnLocal needs Docker Desktop or Docker Engine to run code safely. You can still import and browse courses before installing it."}</p><div className={`onboarding-status ${provider?.available ? "ready" : "warning"}`}><span>{provider?.available ? "✓" : "!"}</span><div><strong>{provider?.available ? "Sandbox provider detected" : "Docker is not available yet"}</strong><small>{provider?.message ?? "Checking the local environment…"}</small></div></div></>}
             <footer><button className="ghost-button" disabled={onboardingStep === 0} onClick={() => setOnboardingStep((step) => Math.max(0, step - 1))}>Back</button>{onboardingStep < 1 ? <button className="submit-button" onClick={() => setOnboardingStep((step) => step + 1)}>Continue</button> : <button className="submit-button" onClick={finishOnboarding}>Start learning</button>}</footer>
           </section>
         </div>

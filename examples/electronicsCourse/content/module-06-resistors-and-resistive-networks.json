@@ -1,0 +1,81 @@
+{
+  "id": "module-06-resistors-and-resistive-networks",
+  "title": "Module 6: Resistors and Resistive Networks",
+  "description": "choose topology, standard value, power rating, and tolerance from the function the resistor performs. Covers resistor technologies, E-series values, color codes, tolerance, temperature coefficient, pull-ups, pull-downs, shunts, dividers, potentiometers, LDRs, thermistors.",
+  "lessons": [
+    {
+      "id": "m06-l01-resistors-and-resistive-networks-physical-model-and-",
+      "title": "Resistors and Resistive Networks: physical model and vocabulary",
+      "theoryFile": "lessons/module-06/m06-l01-resistors-and-resistive-networks-physical-model-and-.md",
+      "exercises": []
+    },
+    {
+      "id": "m06-l02-resistors-and-resistive-networks-analysis-and-compon",
+      "title": "Resistors and Resistive Networks: analysis and component judgment",
+      "theoryFile": "lessons/module-06/m06-l02-resistors-and-resistive-networks-analysis-and-compon.md",
+      "exercises": []
+    },
+    {
+      "id": "m06-l03-resistors-and-resistive-networks-measurement-design-",
+      "title": "Resistors and Resistive Networks: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-06/m06-l03-resistors-and-resistive-networks-measurement-design-.md",
+      "exercises": []
+    },
+    {
+      "id": "m06-assessment",
+      "title": "Resistors and Resistive Networks: assessment and deliberate practice",
+      "theoryFile": "lessons/module-06/m06-assessment.md",
+      "exercises": [
+        {
+          "id": "m06-concept-check",
+          "type": "multipleChoice",
+          "title": "Resistors and Resistive Networks: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with resistor technologies?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m06-worked-analysis",
+          "type": "calculation",
+          "title": "Resistors and Resistive Networks: worked analysis",
+          "instructionMarkdown": "Design a 12 V to approximately 3 V divider whose output stays within limits when loaded by 100 kΩ.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nA 30 kΩ/10 kΩ divider gives 3.00 V unloaded from 12 V. A 100 kΩ load makes the lower leg 10 kΩ || 100 kΩ = 9.09 kΩ, so output becomes 12×9.09/(30+9.09) = 2.79 V. This 7% loading error shows why divider current, load impedance, power, and tolerance must be evaluated together.\n\nThe governing principle is: **choose topology, standard value, power rating, and tolerance from the function the resistor performs**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m06-fault-lab",
+          "type": "lab",
+          "title": "Resistors and Resistive Networks: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **divider loading, wrong E-series rounding, insufficient wattage, sensor self-heating**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **divider loading, wrong E-series rounding, insufficient wattage, sensor self-heating** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

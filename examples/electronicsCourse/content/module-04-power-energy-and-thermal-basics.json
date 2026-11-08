@@ -1,0 +1,81 @@
+{
+  "id": "module-04-power-energy-and-thermal-basics",
+  "title": "Module 4: Power, Energy, and Thermal Basics",
+  "description": "close the electrical and thermal budgets together rather than treating rated power as a target. Covers P=VI, I²R, V²/R, efficiency, watt-hours, resistor ratings, heat flow, thermal resistance, junction temperature, derating.",
+  "lessons": [
+    {
+      "id": "m04-l01-power-energy-and-thermal-basics-physical-model-and-v",
+      "title": "Power, Energy, and Thermal Basics: physical model and vocabulary",
+      "theoryFile": "lessons/module-04/m04-l01-power-energy-and-thermal-basics-physical-model-and-v.md",
+      "exercises": []
+    },
+    {
+      "id": "m04-l02-power-energy-and-thermal-basics-analysis-and-compone",
+      "title": "Power, Energy, and Thermal Basics: analysis and component judgment",
+      "theoryFile": "lessons/module-04/m04-l02-power-energy-and-thermal-basics-analysis-and-compone.md",
+      "exercises": []
+    },
+    {
+      "id": "m04-l03-power-energy-and-thermal-basics-measurement-design-a",
+      "title": "Power, Energy, and Thermal Basics: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-04/m04-l03-power-energy-and-thermal-basics-measurement-design-a.md",
+      "exercises": []
+    },
+    {
+      "id": "m04-assessment",
+      "title": "Power, Energy, and Thermal Basics: assessment and deliberate practice",
+      "theoryFile": "lessons/module-04/m04-assessment.md",
+      "exercises": [
+        {
+          "id": "m04-concept-check",
+          "type": "multipleChoice",
+          "title": "Power, Energy, and Thermal Basics: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with P=VI?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m04-worked-analysis",
+          "type": "calculation",
+          "title": "Power, Energy, and Thermal Basics: worked analysis",
+          "instructionMarkdown": "Estimate junction temperature for a device dissipating 1.2 W with 45 °C/W junction-to-ambient at 30 °C ambient.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nTemperature rise is 1.2 W × 45 °C/W = 54 °C. At 30 °C ambient the estimated junction temperature is 84 °C. This is acceptable only if it remains below the recommended operating limit with interface and airflow uncertainty; absolute maximum junction temperature is not a design target.\n\nThe governing principle is: **close the electrical and thermal budgets together rather than treating rated power as a target**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m04-fault-lab",
+          "type": "troubleshooting",
+          "title": "Power, Energy, and Thermal Basics: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **overloaded resistor, inadequate copper area, missing derating, optimistic efficiency**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **overloaded resistor, inadequate copper area, missing derating, optimistic efficiency** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        }
+      ]
+    }
+  ]
+}

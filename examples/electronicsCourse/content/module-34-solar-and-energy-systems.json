@@ -1,0 +1,99 @@
+{
+  "id": "module-34-solar-and-energy-systems",
+  "title": "Module 34: Solar and Energy Systems",
+  "description": "size from worst-month energy and separate panel, converter, battery, and load efficiencies. Covers solar cell I-V curve, panels, bypass diodes, irradiance, temperature, MPPT, PWM charging, energy budgets, storage, load shedding.",
+  "lessons": [
+    {
+      "id": "m34-l01-solar-and-energy-systems-physical-model-and-vocabula",
+      "title": "Solar and Energy Systems: physical model and vocabulary",
+      "theoryFile": "lessons/module-34/m34-l01-solar-and-energy-systems-physical-model-and-vocabula.md",
+      "exercises": []
+    },
+    {
+      "id": "m34-l02-solar-and-energy-systems-analysis-and-component-judg",
+      "title": "Solar and Energy Systems: analysis and component judgment",
+      "theoryFile": "lessons/module-34/m34-l02-solar-and-energy-systems-analysis-and-component-judg.md",
+      "exercises": []
+    },
+    {
+      "id": "m34-l03-solar-and-energy-systems-measurement-design-and-fail",
+      "title": "Solar and Energy Systems: measurement, design, and failure evidence",
+      "theoryFile": "lessons/module-34/m34-l03-solar-and-energy-systems-measurement-design-and-fail.md",
+      "exercises": []
+    },
+    {
+      "id": "m34-assessment",
+      "title": "Solar and Energy Systems: assessment and deliberate practice",
+      "theoryFile": "lessons/module-34/m34-assessment.md",
+      "exercises": [
+        {
+          "id": "m34-concept-check",
+          "type": "multipleChoice",
+          "title": "Solar and Energy Systems: engineering judgment",
+          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with solar cell I-V curve?",
+          "choices": [
+            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
+            "Use the typical value as a guarantee and increase power until the expected result appears",
+            "Replace components at random before documenting the original symptom"
+          ],
+          "correctChoice": 0,
+          "hints": [
+            "The strongest answer preserves safety, assumptions, limits, and evidence."
+          ]
+        },
+        {
+          "id": "m34-worked-analysis",
+          "type": "schematic",
+          "title": "Solar and Energy Systems: worked analysis",
+          "instructionMarkdown": "Create a daily energy budget and select panel and battery capacity with autonomy margin.\n\nShow assumptions, equations, units, standard-value choices, ratings, tolerance effects, and the measurements that would verify the result.",
+          "checklist": [
+            "I drew or described the complete source and return path.",
+            "I carried units and checked the order of magnitude.",
+            "I checked ratings and at least one worst-case condition.",
+            "I wrote an observable verification step before viewing the solution."
+          ],
+          "hints": [
+            "Start with a symbolic relationship before substituting numbers.",
+            "Separate typical behavior from guaranteed limits and add measurement tolerance."
+          ],
+          "solutionMarkdown": "## Reference solution\n\nDaily load energy is the sum of each load power×hours, divided by conversion efficiency. Size panel energy from worst-month peak-sun hours with weather and temperature margin; size battery from required autonomy, allowable depth of discharge, temperature, and aging. Confirm cold-panel open-circuit voltage stays below controller maximum.\n\nThe governing principle is: **size from worst-month energy and separate panel, converter, battery, and load efficiencies**. Define every reference direction and convert values to coherent SI units. Compare the result with component ratings and standard available values, then report a bounded expectation that includes tolerance, temperature, supply variation, and instrument loading.\n\n### Verification evidence\n\n1. Power off and confirm wiring, polarity, and discharge state.\n2. Configure a conservative current limit.\n3. Predict source current and the critical node voltages or waveform features.\n4. Power on and compare the first measurement with the bounded prediction.\n5. Stop if current, temperature, smell, or waveform exceeds the safe bound.\n\nThe notebook should make both the reasoning and bench test independently reproducible."
+        },
+        {
+          "id": "m34-fault-lab",
+          "type": "lab",
+          "title": "Solar and Energy Systems: measurement and fault investigation",
+          "instructionMarkdown": "Plan or perform a low-voltage investigation of **peak watts treated as daily energy, shading ignored, cold open-circuit voltage unchecked**. Record a safe setup, predicted healthy evidence, observed evidence, one hypothesis at a time, and the final verification.",
+          "checklist": [
+            "I documented the de-energized inspection and safe current limit.",
+            "I recorded expected healthy readings before measuring.",
+            "I used one falsifiable hypothesis at a time.",
+            "I included final evidence that distinguishes cause from symptom."
+          ],
+          "hints": [
+            "Measure the supply current and block boundaries before probing internal details.",
+            "Change only one condition between measurements."
+          ],
+          "solutionMarkdown": "## Reference investigation\n\nStart de-energized. Inspect orientation, solder joints, connector pinout, component values, and evidence of heat. Check resistance only where stored charge and parallel paths are understood. Apply power through a current-limited extra-low-voltage source.\n\nThe first evidence set is supply voltage, supply current, and the input/output of each functional block. Compare each reading with the predicted range. The fault **peak watts treated as daily energy, shading ignored, cold open-circuit voltage unchecked** should be accepted only when a measurement distinguishes it from alternatives. After repair, repeat the original reproduction steps and a nearby edge case.\n\n### Required record\n\n- symptom and conditions;\n- annotated schematic or block diagram;\n- instrument, probe, range, bandwidth, and reference;\n- expected and measured values;\n- hypothesis and discriminating test;\n- root cause, corrective action, and regression check."
+        },
+        {
+          "id": "m34-phase-project",
+          "type": "project",
+          "title": "Protected battery and solar power system",
+          "instructionMarkdown": "Complete the phase project **Protected battery and solar power system**. Produce requirements, safety limits, calculations, schematic or block diagram, component choices, test plan, measured or simulated evidence, fault analysis, and a concise design review.",
+          "checklist": [
+            "Requirements and pass criteria are measurable.",
+            "Safety, power, thermal, and interface limits are documented.",
+            "Calculations and component selections cite evidence.",
+            "The test plan includes nominal, boundary, and fault cases.",
+            "Results include annotated diagrams or waveforms and a revision note."
+          ],
+          "hints": [
+            "Freeze measurable requirements before selecting components.",
+            "Review the current loops, return paths, fault states, and test access before layout or assembly."
+          ],
+          "solutionMarkdown": "## Reference project standard\n\nA passing project is not defined by matching one exact circuit. It is defined by traceable requirements and evidence. The reference architecture separates source protection, power conversion, sensing, control, interfaces, and loads. Each block states input/output ranges, safe states, and test points.\n\nThe calculation package includes nominal and worst-case values, power and thermal budgets, tolerance effects, and component-rating margins. The verification matrix maps every requirement to a test or inspection with objective pass criteria. The troubleshooting section includes at least one injected open, short or bias fault and the measurements that isolate it.\n\nA strong submission also records a discovered weakness and the revision made in response; engineering quality is demonstrated by the feedback loop, not by pretending the first version was perfect."
+        }
+      ]
+    }
+  ]
+}

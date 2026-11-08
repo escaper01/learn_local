@@ -6,16 +6,14 @@ import {
   AppError,
   cancelRequestSchema,
   courseOpenSchema,
-  coursePromptRequestSchema,
   courseRemoveSchema,
   exerciseWorkspaceSchema,
   exerciseWorkspaceWriteSchema,
+  guidedExerciseCompleteSchema,
   hintRevealSchema,
   IPC_CHANNELS,
   runRequestSchema,
   quizSubmitSchema,
-  promptTemplateSaveSchema,
-  promptTemplateRemoveSchema,
   timeTrackingStartSchema,
   timeTrackingSessionSchema,
   themeSaveSchema,
@@ -33,12 +31,11 @@ import {
   type RuntimeInstallProgressEvent
 } from "@learnlocal/contracts";
 import { AttemptRepository } from "@learnlocal/database";
-import { importLearnPack, listImportedCourses, loadImportedCourse, removeImportedCourse, scaffoldLearnPackFromManifest, toCourseView } from "@learnlocal/learnpack";
+import { importLearnPack, listImportedCourses, loadImportedCourse, removeImportedCourse, toCourseView } from "@learnlocal/learnpack";
 import { EXECUTION_POLICY, type FunctionEntrypoint, type FunctionValue, type OutputTestDefinition } from "@learnlocal/runner-core";
 import { java21Adapter, SUM_EXERCISE } from "@learnlocal/runner-java";
 import { DockerProvider } from "@learnlocal/sandbox-docker";
 import { createSettingsProfile, parseSettingsProfile, resolveSettings, validateSettingValue } from "@learnlocal/settings-core";
-import { buildCoursePrompt } from "@learnlocal/prompt-generator";
 
 const docker = new DockerProvider();
 let attempts: AttemptRepository | undefined;
@@ -255,51 +252,6 @@ function registerIpc(): void {
     return { status: "imported" as const, changed: profile.length };
   });
 
-  ipcMain.handle(IPC_CHANNELS.promptsGenerate, (event, input: unknown) => {
-    assertTrustedSender(event);
-    const form = coursePromptRequestSchema.parse(input);
-    const prompt = buildCoursePrompt(form);
-    attempts?.addPromptHistory(`prompt_${randomUUID()}`, prompt, form);
-    return { prompt };
-  });
-
-  ipcMain.handle(IPC_CHANNELS.promptsListTemplates, (event) => {
-    assertTrustedSender(event);
-    return attempts?.listPromptTemplates() ?? [];
-  });
-
-  ipcMain.handle(IPC_CHANNELS.promptsSaveTemplate, (event, input: unknown) => {
-    assertTrustedSender(event);
-    const { name, form } = promptTemplateSaveSchema.parse(input);
-    return attempts?.savePromptTemplate(`template_${randomUUID()}`, name, form) ?? [];
-  });
-
-  ipcMain.handle(IPC_CHANNELS.promptsRemoveTemplate, (event, input: unknown) => {
-    assertTrustedSender(event);
-    const { id } = promptTemplateRemoveSchema.parse(input);
-    return attempts?.removePromptTemplate(id) ?? [];
-  });
-
-  ipcMain.handle(IPC_CHANNELS.promptsListHistory, (event) => {
-    assertTrustedSender(event);
-    return attempts?.listPromptHistory() ?? [];
-  });
-
-  ipcMain.handle(IPC_CHANNELS.promptsScaffold, async (event) => {
-    assertTrustedSender(event);
-    const selected = await dialog.showOpenDialog({
-      title: "Select your LearnPack manifest.json",
-      defaultPath: app.isPackaged ? app.getPath("documents") : join(process.cwd(), "learnpack-spec", "examples"),
-      properties: ["openFile"],
-      filters: [{ name: "LearnPack manifest", extensions: ["json"] }]
-    });
-    const path = selected.filePaths[0];
-    if (selected.canceled || !path) return { status: "cancelled" as const, created: 0, existing: 0 };
-    const result = await scaffoldLearnPackFromManifest(path);
-    await shell.openPath(result.root);
-    return { status: "created" as const, courseId: result.courseId, created: result.created, existing: result.existing };
-  });
-
   ipcMain.handle(IPC_CHANNELS.progressSummary, (event) => {
     assertTrustedSender(event);
     return attempts?.learningSummary() ?? { totalAttempts: 0, completedExercises: 0, passedSubmissions: 0, currentStreakDays: 0, recentAttempts: [], activity: [] };
@@ -315,6 +267,15 @@ function registerIpc(): void {
     const correct = request.choiceIndex === exercise.correctChoice;
     attempts?.recordQuizAttempt(`quiz_${randomUUID()}`, `${request.courseId}:${exercise.id}`, request.choiceIndex, correct);
     return { correct };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.progressCompleteGuided, async (event, input: unknown) => {
+    assertTrustedSender(event);
+    const request = guidedExerciseCompleteSchema.parse(input);
+    const pack = await loadImportedCourse(join(app.getPath("userData"), "courses"), request.courseId, request.version);
+    const exercise = pack.modules.flatMap((module) => module.lessons).flatMap((lesson) => lesson.exercises).find((candidate) => candidate.id === request.exerciseId);
+    if (!exercise?.solutionMarkdown || !exercise.checklist?.length) throw new AppError("EXERCISE_TYPE_UNSUPPORTED", "validation", "This exercise cannot be completed through guided review.");
+    attempts?.recordGuidedCompletion(`guided_${randomUUID()}`, `${request.courseId}:${exercise.id}`);
   });
 
   ipcMain.handle(IPC_CHANNELS.progressRevealHint, async (event, input: unknown) => {
@@ -397,10 +358,6 @@ function registerIpc(): void {
         courseCardView: rendererContext.courseCardView ?? null,
         customThemeCount: customThemes.length,
         customThemeNames: customThemes.map((theme) => theme.name)
-      },
-      prompts: {
-        templateCount: attempts?.listPromptTemplates().length ?? 0,
-        historyCount: attempts?.listPromptHistory().length ?? 0
       }
     };
     await writeFile(selected.filePath, JSON.stringify(diagnostics, null, 2), "utf8");
