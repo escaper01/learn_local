@@ -28,7 +28,7 @@ function initialThemeId(): string {
   const legacy = localStorage.getItem("learnlocal.theme");
   if (legacy === "light") return "medium-light";
   if (legacy === "dark") return "leetcode-dark";
-  return "leetcode-dark";
+  return "medium-light";
 }
 
 function isSupportedLanguage(value: string): value is "java" {
@@ -763,7 +763,7 @@ export default function App() {
     try {
       const remaining = await window.learnLocal.themes.remove({ id });
       setCustomThemes(remaining);
-      if (activeThemeId === id) setActiveThemeId("leetcode-dark");
+      if (activeThemeId === id) setActiveThemeId("medium-light");
     } catch (reason) { setError(friendlyError(reason)); }
   };
 

@@ -2,6 +2,7 @@ import { Component, StrictMode, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./styles.css";
+import "./foundation-theme.css";
 
 interface StartupBoundaryState { error: Error | null }
 
@@ -22,12 +23,12 @@ class StartupBoundary extends Component<{ children: ReactNode }, StartupBoundary
 
 function StartupFailure({ title, detail }: { title: string; detail: string }) {
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 32, color: "#dce5df", background: "#0c1015", fontFamily: "Inter, system-ui, sans-serif" }}>
-      <section style={{ width: "min(560px, 100%)", padding: 28, border: "1px solid #34423a", borderRadius: 12, background: "#121a16" }}>
-        <div style={{ color: "#65d99a", fontWeight: 800, letterSpacing: ".08em" }}>LEARNLOCAL</div>
-        <h1 style={{ marginBottom: 8 }}>{title}</h1>
-        <p style={{ color: "#9ba9a1", lineHeight: 1.6 }}>{detail}</p>
-        <button type="button" onClick={() => window.location.reload()} style={{ marginTop: 14, padding: "10px 16px", border: 0, borderRadius: 7, color: "#07130d", background: "#65d99a", fontWeight: 750, cursor: "pointer" }}>Reload application</button>
+    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 32, color: "#111111", background: "#f4f2eb", fontFamily: '"Segoe UI", system-ui, sans-serif' }}>
+      <section style={{ width: "min(620px, 100%)", padding: 36, border: "2px solid #111111", borderRadius: "0 46px 0 0", background: "#ffffff", boxShadow: "9px 9px 0 #c9c5ba" }}>
+        <div style={{ color: "#8f2d0c", fontWeight: 850, letterSpacing: ".16em", fontSize: 11 }}>LEARNLOCAL · LOCAL FIRST</div>
+        <h1 style={{ margin: "10px 0", fontFamily: 'Georgia, "Iowan Old Style", serif', fontSize: 42, lineHeight: 1 }}>{title}</h1>
+        <p style={{ color: "#55534e", lineHeight: 1.65 }}>{detail}</p>
+        <button type="button" onClick={() => window.location.reload()} style={{ marginTop: 16, padding: "11px 18px", border: "2px solid #111111", borderRadius: 0, color: "#111111", background: "#ff7139", fontWeight: 800, cursor: "pointer" }}>Reload application</button>
       </section>
     </main>
   );
