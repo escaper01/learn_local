@@ -51,6 +51,7 @@ if (process.env.PORTABLE_EXECUTABLE_DIR) {
 // Electron/Chromium GPU compositing can produce a fully rendered but visually blank
 // window on some Windows driver combinations. Monaco does not require GPU rendering.
 if (process.platform === "win32") app.disableHardwareAcceleration();
+if (process.platform === "win32") app.setAppUserModelId("dev.learnlocal.desktop");
 
 function assertTrustedSender(event: IpcMainInvokeEvent): void {
   if (event.senderFrame !== event.sender.mainFrame) {
@@ -65,12 +66,16 @@ function assertTrustedSender(event: IpcMainInvokeEvent): void {
 }
 
 function createWindow(): void {
+  const icon = app.isPackaged
+    ? join(process.resourcesPath, "icon.png")
+    : join(app.getAppPath(), "build", "icon.png");
   const window = new BrowserWindow({
     width: 1440,
     height: 900,
     minWidth: 1060,
     minHeight: 680,
     backgroundColor: "#16171a",
+    icon,
     title: "LearnLocal",
     show: false,
     webPreferences: {

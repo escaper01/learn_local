@@ -40,13 +40,23 @@ function languageBadge(value: string): string {
   return value.slice(0, 2).toUpperCase();
 }
 
-function exerciseIcon(type: string, completed: boolean): string {
-  if (completed) return "✓";
-  if (type === "multipleChoice") return "?";
-  if (type === "debug") return "⌁";
-  if (type === "project") return "◆";
-  if (type === "output") return "▶";
-  return "⌘";
+function exerciseBadge(type: string, completed: boolean): string {
+  if (completed) return "Done";
+  const labels: Record<string, string> = {
+    multipleChoice: "Quiz",
+    shortAnswer: "Answer",
+    calculation: "Calc",
+    schematic: "Draw",
+    simulation: "Sim",
+    lab: "Lab",
+    firmware: "Code",
+    designReview: "Review",
+    troubleshooting: "Fix",
+    debug: "Debug",
+    project: "Project",
+    output: "Run"
+  };
+  return labels[type] ?? "Task";
 }
 
 const STARTER_CODE = `public class Solution {
@@ -162,7 +172,6 @@ export default function App() {
   const [view, setView] = useState<"lesson" | "dashboard" | "courses">("courses");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem("learnlocal.sidebarCollapsed") === "1");
   const [topicModalTab, setTopicModalTab] = useState<"lessons" | "milestones">("lessons");
-  const [courseCardView, setCourseCardView] = useState<"detailed" | "compact">(() => localStorage.getItem("learnlocal.courseCardView") === "compact" ? "compact" : "detailed");
   const [activeThemeId, setActiveThemeId] = useState<string>(initialThemeId);
   const [customThemes, setCustomThemes] = useState<CustomThemeRecord[]>([]);
   const [showAppearance, setShowAppearance] = useState(false);
@@ -271,10 +280,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("learnlocal.sidebarCollapsed", sidebarCollapsed ? "1" : "0");
   }, [sidebarCollapsed]);
-
-  useEffect(() => {
-    localStorage.setItem("learnlocal.courseCardView", courseCardView);
-  }, [courseCardView]);
 
   useEffect(() => {
     // Seed the live topbar timer with today's true backend total once; after this it only
@@ -859,7 +864,7 @@ export default function App() {
         <div className="sidebar-spacer" />
         <nav>
           <button className="nav-item" onClick={() => void openSettings()}><span className="nav-icon">⚙</span><span className="nav-label">Settings</span></button>
-          <button className="nav-item" onClick={() => void window.learnLocal.diagnostics.export({ activeThemeId, sidebarCollapsed, courseCardView })}><span className="nav-icon">?</span><span className="nav-label">Export diagnostics</span></button>
+          <button className="nav-item" onClick={() => void window.learnLocal.diagnostics.export({ activeThemeId, sidebarCollapsed })}><span className="nav-icon">?</span><span className="nav-label">Export diagnostics</span></button>
         </nav>
         <StatusDot status={provider} />
       </aside>
@@ -1032,7 +1037,7 @@ export default function App() {
                           <div className="topic-exercise-list">
                             {lesson.exercises.map((exercise) => (
                               <button type="button" key={exercise.id} title={exercise.title} className={`topic-exercise-link ${exercise.completed ? "completed" : ""} ${exercise.id === activeImportedExercise?.id ? "active" : ""}`} onClick={() => { setShowTopicPanel(false); void selectCourseExercise(lesson, exercise); }}>
-                                <i>{exerciseIcon(exercise.type, exercise.completed)}</i><span>{exercise.title}</span>
+                                <i>{exerciseBadge(exercise.type, exercise.completed)}</i><span>{exercise.title}</span>
                               </button>
                             ))}
                           </div>
@@ -1080,13 +1085,15 @@ export default function App() {
               <b>{Math.min(100, Math.round((timeSummary.todaySeconds / (dailyGoalMinutes * 60)) * 100))}%</b>
             </div>
             {activeCourse && (
-              <div className="time-per-module">
-                <span>Time per chapter · {activeCourse.summary.title}</span>
-                {activeCourse.modules.map((module, index) => {
-                  const seconds = timeSummary.perModule.find((entry) => entry.courseId === activeCourse.summary.id && entry.moduleId === module.id)?.seconds ?? 0;
-                  return <div className="time-per-module-row" key={module.id}><small>{String(index + 1).padStart(2, "0")} · {module.title}</small><b>{formatDuration(seconds)}</b></div>;
-                })}
-              </div>
+              <details className="time-per-module">
+                <summary>Chapter time breakdown · {activeCourse.modules.length} chapters</summary>
+                <div>
+                  {activeCourse.modules.map((module, index) => {
+                    const seconds = timeSummary.perModule.find((entry) => entry.courseId === activeCourse.summary.id && entry.moduleId === module.id)?.seconds ?? 0;
+                    return <div className="time-per-module-row" key={module.id}><small>{String(index + 1).padStart(2, "0")} · {module.title}</small><b>{formatDuration(seconds)}</b></div>;
+                  })}
+                </div>
+              </details>
             )}
           </article>
           <div className="dashboard-grid">
@@ -1105,17 +1112,11 @@ export default function App() {
         <section className="content-view courses-view">
           <header>
             <div><div className="eyebrow">COURSE LIBRARY</div><h1>My courses</h1><p>Imported LearnPack courses are available offline.</p></div>
-            <div className="courses-header-actions">
-              <div className="course-view-toggle" role="group" aria-label="Course list view">
-                <button type="button" className={courseCardView === "detailed" ? "active" : ""} onClick={() => setCourseCardView("detailed")}>Detailed</button>
-                <button type="button" className={courseCardView === "compact" ? "active" : ""} onClick={() => setCourseCardView("compact")}>Compact</button>
-              </div>
-              <button className="run-button" onClick={() => void importCourse()}>Import course folder</button>
-            </div>
+            <div className="courses-header-actions"><button className="run-button" onClick={() => void importCourse()}>Import course folder</button></div>
           </header>
-          <div className={`course-grid ${courseCardView}`}>
+          <div className="course-grid detailed">
             {courses.length === 0 && <article className="course-empty"><span>✦</span><h2>Import your first learning path</h2><p>Choose a LearnPack course folder containing a manifest.json file.</p><button className="submit-button" onClick={() => void importCourse()}>Import course folder</button></article>}
-            {courses.map((course) => <article className={`course-card imported ${courseCardView}`} key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2>{courseCardView === "detailed" && <p>{course.description}</p>}<div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><div className="course-actions"><button className="run-button" onClick={() => void openImportedCourse(course)}>Continue course</button><button type="button" className="course-remove" disabled={Boolean(activeAction)} onClick={() => openCourseRemoval(course)}>Remove</button></div></article>)}
+            {courses.map((course) => <article className="course-card imported" key={`${course.id}-${course.version}`}><span className={`course-language ${course.language}`}>{languageBadge(course.language)}</span><div><small>IMPORTED · {course.language.toUpperCase()} {course.languageVersion}</small><h2>{course.title}</h2><p>{course.description}</p><div><span>{course.moduleCount} chapters</span><span>{course.lessonCount} lessons</span><span>{course.exerciseCount} tasks</span><span>{course.estimatedHours} hours</span>{!isSupportedLanguage(course.language) && <span>Study mode</span>}</div></div><div className="course-actions"><button className="run-button" onClick={() => void openImportedCourse(course)}>Continue course</button><button type="button" className="course-remove" disabled={Boolean(activeAction)} onClick={() => openCourseRemoval(course)}>Remove</button></div></article>)}
           </div>
         </section>
       )}
