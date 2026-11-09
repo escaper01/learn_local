@@ -1,11 +1,11 @@
 # LearnPack 1.0
 
-A LearnPack is a ZIP archive with the `.learnpack` extension. It contains declarative learning content only. A manifest may describe runtime/toolchain requirements, but commands, executable container configuration, image names, host paths, package-manager operations, and executable files are forbidden.
+A LearnPack is a directory of declarative learning content rooted at `manifest.json`. A manifest may describe runtime/toolchain requirements, but commands, executable container configuration, image names, host paths, package-manager operations, and executable files are forbidden. Distribution archives are ordinary ZIP files that must be extracted before their folder is imported.
 
 ## Required layout
 
 ```text
-course.learnpack
+course-directory/
 ├── manifest.json
 ├── content/
 │   └── module.json
@@ -22,13 +22,13 @@ course.learnpack
 Each lesson provides its theory in exactly one of two ways:
 
 - `theoryMarkdown`: the Markdown text inline in the module JSON.
-- `theoryFile`: an archive-root-relative path to a UTF-8 `.md` file, such as `lessons/module-01/first-program.md`. Long lessons should use this form so they can be edited as ordinary Markdown.
+- `theoryFile`: a course-root-relative path to a UTF-8 `.md` file, such as `lessons/module-01/first-program.md`. Long lessons should use this form so they can be edited as ordinary Markdown.
 
-A `theoryFile` must be a safe relative path ending in `.md`, must exist in the archive, must not be empty, and must not exceed 200,000 characters. The importer resolves it into `theoryMarkdown` before storing the course, so an imported course never depends on the original archive layout. Lesson Markdown is rendered as untrusted text: headings, paragraphs, emphasis, inline code, fenced code blocks, bullet and numbered lists, pipe tables, blockquote callouts, and horizontal rules. HTML, images, and links are displayed as plain text.
+A `theoryFile` must be a safe relative path ending in `.md`, must exist in the course directory, must not be empty, and must not exceed 200,000 characters. The importer resolves it into `theoryMarkdown` before storing the course, so an imported course never depends on the original source layout. Lesson Markdown is rendered as untrusted text: headings, paragraphs, emphasis, inline and fenced code, lists, tables, blockquote callouts, horizontal rules, and validated local images. HTML and remote links are not trusted content.
 
 ## Trust model
 
-LearnPack content is untrusted. The importer performs structural and semantic validation without extracting the archive. It rejects unsafe paths, duplicate paths, symbolic links, executable file extensions, oversized archives, excessive entry counts, duplicate stable IDs, missing references, invalid limits, and language/adapter mismatches.
+LearnPack content is untrusted. The importer walks the selected directory without following symbolic links. It rejects unsafe paths, duplicate normalized paths, symbolic links, executable file extensions, oversized files, excessive file counts, duplicate stable IDs, missing references, invalid limits, unsafe assets, and language/adapter mismatches.
 
 Exercises describe arguments, expected values, starter files, hints, and bounded resource requests. A trusted adapter shipped with LearnLocal converts those declarations into a workspace and allowlisted command arguments.
 

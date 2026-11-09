@@ -1,6 +1,6 @@
 # Contributing
 
-Read `CLAUDE.md` and `LearnLocal-Full-Project-Plan.md` before changing architecture.
+Read `CLAUDE.md` and `docs/architecture/decisions.md` before changing architecture. Read `docs/learnpack-authoring.md` before adding or changing a course topic.
 
 For every change:
 
@@ -17,4 +17,4 @@ $env:RUN_DOCKER_TESTS='1'
 npx vitest run packages/sandbox-docker/src/docker.integration.test.ts
 ```
 
-Do not submit generated output, local databases, runtime caches, learner data, secrets, or unsigned third-party runtime definitions.
+Do not submit generated output, packaged `.learnpack`/`.zip` course archives, local databases, runtime caches, learner data, secrets, or unsigned third-party runtime definitions. Release workflows generate course archives from the reviewed source under `examples/`.

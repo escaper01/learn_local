@@ -1,6 +1,6 @@
 # LearnLocal Engineering Guide
 
-This file is the project-wide guide for AI coding assistants and human contributors. Read `LearnLocal-Full-Project-Plan.md` before making architectural changes. The plan is the product source of truth; this guide turns its decisions into day-to-day engineering rules.
+This file is the project-wide guide for AI coding assistants and human contributors. Read `docs/architecture/decisions.md` before making architectural changes and `docs/learnpack-authoring.md` before changing curriculum. Those maintained documents describe the current product rather than a historical implementation plan.
 
 ## Product intent
 
@@ -18,11 +18,11 @@ packages/database/       SQLite migrations and repositories
 packages/runner-core/    Provider/adapter interfaces and immutable policy
 packages/runner-java/    Trusted Java workspace and harness generation
 packages/sandbox-docker/ Docker lifecycle and process isolation
-packages/learnpack/      LearnPack schemas, archive validation, and course views
+packages/learnpack/      LearnPack schemas, directory validation, and course views
 packages/settings-core/  Setting definitions, validation, and precedence
 ```
 
-Future packages should follow the structure in the full project plan instead of accumulating unrelated code in the desktop app.
+Future packages should preserve these trust boundaries instead of accumulating unrelated code in the desktop app.
 
 ## Commands
 

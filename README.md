@@ -2,9 +2,9 @@
 
 # LearnLocal
 
-**Programming education for anyone, regardless of internet access or budget.**
+**Deep, practical learning for anyone, regardless of internet access or budget.**
 
-LearnLocal is an offline-first desktop application for learning to code. Import a course once, and everything after that — reading lessons, taking quizzes, writing and running real code, tracking your progress — works completely offline, with no account, no subscription, and no data ever leaving your machine.
+LearnLocal is an offline-first desktop application for structured technical learning. Import a course once, and everything after that—reading lessons, studying diagrams, completing calculations and labs, taking quizzes, writing and running supported code, and tracking progress—works locally with no account or subscription.
 
 ## Download
 
@@ -13,13 +13,16 @@ Grab the latest Windows build from the [Releases page](https://github.com/escape
 - **`LearnLocal-<version>-x64.exe`** — a normal installer (Start Menu shortcut, uninstaller).
 - **`LearnLocal-Portable-<version>-x64.exe`** — no installation. Copy it anywhere (including a USB drive) and run it directly; it stores its database, courses, and settings in a `LearnLocal-Data` folder next to the executable, so the whole thing stays self-contained.
 
-**Docker Desktop (or Docker Engine) must be installed and running** for LearnLocal to execute code — it's what runs your Java submissions in a disposable, network-disabled container. You can still browse and read a course without it, but Run/Submit need it. Reading courses, quizzes, and the editor all work fine before you install Docker.
+**Docker Desktop (or Docker Engine) is only required for executable programming exercises.** It runs Java submissions in disposable, network-disabled containers. Reading, quizzes, guided calculations, electronics labs, solutions, projects, and progress tracking work without Docker.
 
-### Importing the bundled Java course
+### Importing the bundled courses
 
-Every release also includes **`javaCourse.zip`** — the full 25-chapter Java Developer Academy curriculum, ready to import:
+Every release includes two offline curricula:
 
-1. Download `javaCourse.zip` from the same [release](https://github.com/escaper01/learn_local/releases) and extract it anywhere on disk (right-click → **Extract All…**).
+- **`javaCourse.zip`** — Java Developer Academy, with 25 chapters and 152 lessons from first compilation through production-oriented backend engineering.
+- **`electronicsCourse.zip`** — Electronics Engineering Foundations, with 46 chapters and 184 lessons covering theory, components, circuit analysis, measurement, microcontrollers, PCB design, power electronics, RF, IoT, troubleshooting, and capstone work.
+
+1. Download either course ZIP from the same [release](https://github.com/escaper01/learn_local/releases) and extract it anywhere on disk (right-click → **Extract All…**).
 2. Open LearnLocal and click **Import course folder**.
 3. In the folder picker, locate and select the folder you just extracted (the one containing `manifest.json`).
 
@@ -33,17 +36,14 @@ Most modern ways to learn programming — interactive platforms, video subscript
 - **Learners who can't justify a monthly subscription** — LearnLocal itself is free and requires no account. Courses are portable files you own, not a rented catalog.
 - **Anyone who wants their code and progress to stay on their own machine** — nothing is uploaded anywhere. Ever.
 
-Today, LearnLocal ships with trusted, sandboxed **Java 21** execution and a complete, ready-to-import Java curriculum (25 chapters, from first compile to Spring Boot and distributed systems). Support for more languages is planned — course *content* for any language can already be imported and studied today, it just runs in read-only "study mode" until a trusted execution adapter for that language ships.
+Today, LearnLocal ships with trusted, sandboxed **Java 21** execution plus complete Java and Electronics curricula. Course content for any subject or language can be imported and studied; executable exercises only run when LearnLocal contains a reviewed adapter for that runtime.
 
 ## A tour of the app
 
 | | |
 |---|---|
-| ![Dashboard](docs/screenshots/dashboard.jpg) **Dashboard** — attempts, streaks, and time studied today/this week/this month, with a per-chapter breakdown. | ![My Courses](docs/screenshots/my-courses.jpg) **My Courses** — imported courses with a Detailed or Compact view. |
-| ![Lesson with a quiz](docs/screenshots/quiz.jpg) **Concept checks** — multiple-choice quizzes woven into lessons, with instant feedback. | ![Lesson and code editor](docs/screenshots/lesson-editor-light.jpg) **Lesson + editor** — reading pane and Monaco code editor side by side, both syntax-highlighted from the same theme. |
-| ![Dark theme](docs/screenshots/lesson-editor-dark.jpg) **Built-in dark theme** — LeetCode-inspired, for a coding-tool feel. | ![Theme picker](docs/screenshots/theme-picker.jpg) **Theme picker** — pick a built-in theme or duplicate one to design your own. |
-
-*(Screenshots above show both the default LeetCode Dark theme and the Medium Light alternative.)*
+| ![Dashboard](docs/screenshots/dashboard.jpg) **Dashboard** — the complete learning overview fits in one desktop window, including activity, attempts, confidence, streaks, and study time. | ![My Courses](docs/screenshots/my-courses.jpg) **My Courses** — a detailed offline library for programming and study-mode curricula. |
+| ![Electronics lesson](docs/screenshots/electronics-lesson.jpg) **Guided technical work** — theory, calculations, labs, checklists, and worked solutions appear together. | ![Course outline](docs/screenshots/course-outline.jpg) **Course outline** — navigate lessons, typed exercises, and milestone projects with clear task labels. |
 
 ## Feature overview
 
@@ -59,9 +59,9 @@ Today, LearnLocal ships with trusted, sandboxed **Java 21** execution and a comp
 - Per-course and per-chapter time breakdowns, a daily study goal with progress, attempts/streak/confidence stats — all computed locally from raw session data, never estimated.
 
 **Appearance**
-- Five built-in themes (LeetCode Dark, Medium Light, One Dark Pro, Atom One Dark, PowerShell Blue), each with a matching real syntax-highlighting palette shared by the Monaco editor *and* the reading pane's code blocks — not just chrome colors.
-- Duplicate any theme and customize every color (backgrounds, text, accent, status colors, code syntax) with a live preview, saved as your own theme.
-- Adjustable editor font size with quick +/− controls.
+- An editorial desktop design system with strong typography, compact information density, accessible contrast, and consistent native branding.
+- Built-in light and dark themes plus custom theme duplication and color editing.
+- Matching syntax colors for Monaco and lesson code blocks, with adjustable editor font size.
 
 **Course content**
 - Import a course by pointing at its folder directly — no archive format to trust, validated against the LearnPack 1.0 schema (path traversal, symlink, and size-limit checks included).
@@ -123,7 +123,7 @@ Installer output is written to `release/`. The manual packaging workflow builds 
 
 ## Course content
 
-The repository includes a small canonical import fixture at `learnpack-spec/examples/java-foundations/` and a full Java 21 developer academy under `examples/javaCourse/`. The academy contains 25 chapters, 152 sequential lessons, 208 knowledge checks and executable labs, five cumulative portfolio phases, and a production-minded capstone. It progresses from first compilation through the JVM, language fundamentals, algorithms, object design, testing, builds, concurrency, networking, SQL/JDBC, architecture, security, Spring/JPA, distributed systems, and operations.
+The repository includes a small canonical import fixture at `learnpack-spec/examples/java-foundations/` and a full Java 21 developer academy under `examples/javaCourse/`. The academy contains 25 chapters, 152 sequential lessons, 226 exercises and checkpoints, an extended portfolio catalog, and a production-minded capstone. It progresses from first compilation through the JVM, language fundamentals, algorithms, object design, testing, builds, concurrency, networking, SQL/JDBC, architecture, security, Spring/JPA, distributed systems, and operations.
 
 The repository also includes `examples/electronicsCourse/`, a 46-module, 184-lesson Electronics Engineering Foundations curriculum with offline circuit diagrams, component and instrument imagery, worked calculations, guided simulations and labs, troubleshooting investigations, phase projects, and a final system capstone. It covers safety, circuit analysis, passive and semiconductor components, AC and frequency response, analog and digital design, microcontrollers and protocols, power electronics, batteries and solar, schematics and PCB layout, signal integrity, EMI, RF, IoT, measurement, and engineering verification. Build, verify, and package it with `npm run curriculum:electronics:build`, `npm run curriculum:electronics:verify`, and `npm run curriculum:electronics:package`.
 
@@ -131,6 +131,6 @@ Every file under `examples/javaCourse/` is independently authored curriculum and
 
 **Importing a course**: in the app, click **Import course** and select a course's folder directly (for example `examples/javaCourse/`) — LearnLocal validates it against the LearnPack 1.0 schema on import. There is no archive/zip step; importing a folder directly is a deliberate security choice (a zip renamed to a custom extension is not a meaningful trust boundary).
 
-A packaged `javaCourse.learnpack` archive can still be built at the repository root with `npm run curriculum:package` for distribution or backup — it's a plain zip of the same source files, rebuilt with `node scripts/verify-java-curriculum.mjs`, which checks instructor reference solutions for all function labs, debug repairs, and project cases against the locally available Java 21 Docker image. Instructor fixtures are excluded from the pack. This verifies those cases, not every illustrative snippet or external framework integration.
+A packaged Java archive can be built with `npm run curriculum:package`; build Electronics with `npm run curriculum:electronics:verify && npm run curriculum:electronics:package`. These commands create ignored release outputs at the repository root. The reviewed directories under `examples/` remain the authoring sources.
 
-To add a topic with Codex, Claude, or another coding agent, give it access to this repository and ask it to inspect `examples/javaCourse/`, the LearnPack schemas, and the [LearnPack authoring guide](docs/learnpack-authoring.md). The agent should edit the curriculum files directly, validate the references, and update the course version. Import the resulting course folder in LearnLocal to use it.
+To add a topic with Codex, Claude, or another coding agent, give it access to this repository and follow the detailed [course and topic authoring guide](docs/learnpack-authoring.md). It covers planning, progression, stable IDs, manifests, lesson writing, every exercise type, solutions and tests, projects, diagrams and images, versioning, validation, packaging, and import. The agent should edit the curriculum source directly rather than recreating an in-app generation workflow.

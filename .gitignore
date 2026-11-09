@@ -10,3 +10,7 @@ Thumbs.db
 *.sqlite-shm
 *.sqlite-wal
 .learnlocal/
+.claude/*.lock
+/javaCourse.learnpack
+/electronicsCourse.learnpack
+/learnpack-spec/examples/java-foundations.learnpack

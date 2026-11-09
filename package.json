@@ -1,16 +1,16 @@
 {
   "name": "learnlocal",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "main": "./out/main/main.js",
   "private": true,
-  "description": "An offline-first desktop application for portable, interactive programming courses.",
+  "description": "An offline-first desktop application for portable, interactive technical courses.",
   "author": "LearnLocal Contributors",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "overrides": {
-    "dompurify": "3.4.15"
+    "dompurify": "3.4.17"
   },
   "scripts": {
     "predev": "install-electron --no",
@@ -50,14 +50,51 @@
     "productName": "LearnLocal",
     "asar": true,
     "icon": "build/icon.png",
-    "directories": { "output": "release" },
-    "files": ["out/**/*", "package.json"],
-    "extraResources": [{ "from": "build/icon.png", "to": "icon.png" }],
-    "publish": { "provider": "github", "owner": "escaper01", "repo": "learn_local" },
-    "win": { "icon": "build/icon.png", "target": ["nsis", "portable"], "artifactName": "LearnLocal-${version}-${arch}.${ext}" },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "deleteAppDataOnUninstall": false },
-    "portable": { "artifactName": "LearnLocal-Portable-${version}-${arch}.${ext}" },
-    "mac": { "target": ["dmg"], "category": "public.app-category.education" },
-    "linux": { "target": ["AppImage"], "category": "Education" }
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "escaper01",
+      "repo": "learn_local"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "LearnLocal-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "LearnLocal-Portable-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Education"
+    }
   }
 }

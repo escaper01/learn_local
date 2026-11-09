@@ -51,11 +51,14 @@ jobs:
           if [ "${#recovered[@]}" -gt 0 ]; then
             gh release upload "$TAG" "${recovered[@]}" --clobber -R "$REPO"
           fi
-      - name: Package the Java curriculum for the release
+      - name: Package release curricula
         shell: bash
         run: |
           npm run curriculum:package
+          npm run curriculum:electronics:verify
+          npm run curriculum:electronics:package
           cp javaCourse.learnpack javaCourse.zip
-      - name: Attach curriculum archive to the release
+          cp electronicsCourse.learnpack electronicsCourse.zip
+      - name: Attach curriculum archives to the release
         shell: bash
-        run: gh release upload "${{ github.ref_name }}" javaCourse.zip --clobber
+        run: gh release upload "${{ github.ref_name }}" javaCourse.zip electronicsCourse.zip --clobber

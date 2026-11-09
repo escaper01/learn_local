@@ -1,3 +1,0 @@
-cd examples\javaCourse
-Compress-Archive -Path manifest.json,content,projects,lessons -DestinationPath ..\..\javaCourse.zip -Force
-Move-Item ..\..\javaCourse.zip ..\..\javaCourse.learnpack -Force

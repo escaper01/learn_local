@@ -174,7 +174,7 @@ describe("LearnPack semantic validation", () => {
     await expect(inspectLearnPack(file)).rejects.toMatchObject({ code: "PACK_NOT_DIRECTORY" });
   });
 
-  it("inspects the canonical LearnPack archive without extracting it", async () => {
+  it("inspects the canonical LearnPack directory", async () => {
     const path = JAVA_FOUNDATIONS_DIR;
     const pack = await inspectLearnPack(path);
     expect(pack.summary).toMatchObject({ id: "java-foundations", exerciseCount: 1 });

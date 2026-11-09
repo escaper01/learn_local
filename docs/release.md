@@ -1,6 +1,6 @@
 # Release process
 
-There are two separate GitHub Actions workflows: **Package desktop apps** (manual, builds all three OSes as temporary CI artifacts, never publishes) and **Release Windows build** (automatic on a version tag, publishes a draft GitHub Release with the Windows installer attached). Most releases today should use the tag-triggered flow below.
+There are two GitHub Actions workflows: **Package desktop apps** builds temporary cross-platform CI artifacts, while **Release Windows build** runs for a version tag and creates a draft GitHub Release containing the Windows installer, portable application, update metadata, and both bundled curricula. Use the tag-triggered flow for public releases.
 
 ## Cutting a Windows GitHub Release
 
@@ -11,11 +11,13 @@ There are two separate GitHub Actions workflows: **Package desktop apps** (manua
    git tag v0.2.0
    git push origin v0.2.0
    ```
-4. Pushing the tag triggers **Release Windows build** (`.github/workflows/release.yml`) on `windows-latest`. It runs `npm run release:win`, which builds both Windows targets — the NSIS installer (`LearnLocal-<version>-x64.exe`) and a portable build (`LearnLocal-Portable-<version>-x64.exe`) — and calls `electron-builder --publish always`. electron-builder creates the release as a **draft** by default — nothing public happens automatically. A following step merges any duplicate draft releases electron-builder's concurrent uploads can race-create for the same tag, then runs `npm run curriculum:package` and attaches the result to the release as `javaCourse.zip`, so a fresh install has a course to import immediately.
-5. Open the repository's **Releases** page, review the draft (edit the auto-generated notes if you want), confirm the installer `.exe`, the portable `.exe`, `latest.yml`, and `javaCourse.zip` assets are all attached, then click **Publish release** yourself. This is the explicit owner action that makes the release public.
+4. Pushing the tag triggers **Release Windows build** (`.github/workflows/release.yml`) on `windows-latest`. It builds the NSIS installer (`LearnLocal-<version>-x64.exe`) and portable application (`LearnLocal-Portable-<version>-x64.exe`). Electron Builder uploads to a draft release. The workflow then merges any duplicate drafts, validates and packages the curricula from `examples/`, and uploads `javaCourse.zip` and `electronicsCourse.zip`.
+5. Open the repository's **Releases** page and review the draft. Confirm the installer, portable executable, `latest.yml`, `javaCourse.zip`, and `electronicsCourse.zip` are present. Edit the notes and publish the release manually; tag creation alone does not make it public.
 6. Smoke-test the published installer: first launch, Docker detection, Java installation, the canonical LearnPack import, Run/Submit/cancel, restart persistence, runtime removal, settings import/export, and diagnostics export.
 
 The portable build needs no installation: copy the `.exe` anywhere (including removable media) and run it. It stores its database, imported courses, and settings in a `LearnLocal-Data` folder created next to the executable itself, not in the Windows per-user profile, so the whole thing — app plus data — stays self-contained and movable between machines. The installed (NSIS) build still uses the normal per-user `%APPDATA%` location.
+
+Curriculum ZIP files are transport artifacts. Extract one and import the folder containing `manifest.json`. Do not commit generated `.learnpack` or `.zip` files: the release job always rebuilds them from the reviewed curriculum source.
 
 The Windows build is currently **unsigned** — no code-signing certificate is configured, so Windows SmartScreen will warn installers came from an unrecognized publisher until a user clicks through it. To sign it later, add a certificate via the `CSC_LINK`/`CSC_KEY_PASSWORD` repository secrets and remove the `CSC_IDENTITY_AUTO_DISCOVERY: "false"` override in `release.yml` — no other workflow changes are needed.
 

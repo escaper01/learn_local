@@ -16,4 +16,6 @@ SQLite stores settings, attempts, test results, completion, and autosaved worksp
 
 ## Course trust
 
-LearnPacks are declarative ZIP archives. The importer reads lazily without extraction and enforces entry, compressed, expanded, and per-file limits. Unsafe paths, duplicate paths, symlinks, executables, invalid schemas, duplicate IDs, missing references, and adapter mismatches are rejected.
+LearnPack source is a declarative directory whose root contains `manifest.json`. The desktop importer accepts a selected directory, rejects symlinks and unsafe or unsupported files, enforces file/count/size limits, validates every schema and reference, and copies an immutable snapshot into application data. Executables, invalid schemas, duplicate IDs, missing references, and adapter mismatches are rejected.
+
+Release archives are ordinary ZIP files produced from the reviewed source directories. A learner extracts an archive and imports the resulting folder; the archive itself is a transport format, not a trust boundary and not an authoring source.
