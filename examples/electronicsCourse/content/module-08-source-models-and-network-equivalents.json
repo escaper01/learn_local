@@ -29,16 +29,17 @@
         {
           "id": "m08-concept-check",
           "type": "multipleChoice",
-          "title": "Source Models and Network Equivalents: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with ideal and real sources?",
+          "title": "Source Models and Network Equivalents: concept check",
+          "instructionMarkdown": "A 12 V source drives a divider of 30 kΩ (top) and 10 kΩ (bottom). What are the Thevenin voltage and resistance at the divider output?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "3 V and 40 kΩ",
+            "12 V and 7.5 kΩ",
+            "3 V and 7.5 kΩ",
+            "9 V and 7.5 kΩ"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "For Rth, turn the source off (short) and combine the resistors in parallel."
           ]
         },
         {

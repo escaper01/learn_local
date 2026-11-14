@@ -29,16 +29,17 @@
         {
           "id": "m27-concept-check",
           "type": "multipleChoice",
-          "title": "Embedded C, Arduino, and PlatformIO: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with integer widths?",
+          "title": "Embedded C, Arduino, and PlatformIO: concept check",
+          "instructionMarkdown": "A variable is written in an ISR and read in the main loop. What does correct firmware need?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Declare it const so the compiler can cache it",
+            "Declare it volatile and read it atomically, briefly disabling interrupts when it spans several bytes",
+            "Nothing special, since the compiler always re-reads globals",
+            "Declare it volatile, because volatile alone makes every access atomic"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "volatile prevents caching; it does not make multi-byte access atomic."
           ]
         },
         {

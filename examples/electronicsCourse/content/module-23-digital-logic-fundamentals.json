@@ -29,16 +29,17 @@
         {
           "id": "m23-concept-check",
           "type": "multipleChoice",
-          "title": "Digital Logic Fundamentals: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with binary?",
+          "title": "Digital Logic Fundamentals: concept check",
+          "instructionMarkdown": "By De Morgan's theorem, what is NOT(A AND B)?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "(NOT A) AND (NOT B)",
+            "(NOT A) OR (NOT B)",
+            "A OR B",
+            "(NOT A) OR B"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Complement every input and swap AND with OR."
           ]
         },
         {

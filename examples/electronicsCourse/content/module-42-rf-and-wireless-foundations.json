@@ -29,16 +29,17 @@
         {
           "id": "m42-concept-check",
           "type": "multipleChoice",
-          "title": "RF and Wireless Foundations: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with spectrum?",
+          "title": "RF and Wireless Foundations: concept check",
+          "instructionMarkdown": "What is the free-space wavelength at 2.4 GHz?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 1.25 m",
+            "About 1.25 cm",
+            "About 2.4 m",
+            "About 12.5 cm"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "λ = c ÷ f, with c ≈ 3×10⁸ m/s."
           ]
         },
         {

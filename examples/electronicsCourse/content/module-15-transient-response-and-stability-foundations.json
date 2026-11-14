@@ -29,16 +29,17 @@
         {
           "id": "m15-concept-check",
           "type": "multipleChoice",
-          "title": "Transient Response and Stability Foundations: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with step response?",
+          "title": "Transient Response and Stability Foundations: concept check",
+          "instructionMarkdown": "A feedback loop shows large overshoot followed by ringing on a step input. What is the most consistent explanation and response?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "The loop is overdamped; raise the bandwidth further to remove ringing",
+            "Low phase margin (underdamped); reduce loop gain or bandwidth, or add compensation, then re-measure",
+            "Ringing proves the gain margin is large, so no change is needed",
+            "The sensor must be defective; replace it"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Ringing is the signature of poorly damped poles."
           ]
         },
         {

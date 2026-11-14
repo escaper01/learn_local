@@ -29,16 +29,17 @@
         {
           "id": "m37-concept-check",
           "type": "multipleChoice",
-          "title": "Mixed-Signal and High-Speed Layout: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with analog and digital partitioning?",
+          "title": "Mixed-Signal and High-Speed Layout: concept check",
+          "instructionMarkdown": "A high-speed trace crosses a gap in its reference plane. What happens?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "The return current must detour, creating a larger loop, an impedance discontinuity, and more EMI and crosstalk",
+            "Nothing, since return current flows in the trace itself",
+            "Noise drops because the planes are isolated",
+            "Only DC behavior changes"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Return current follows the signal beneath it."
           ]
         },
         {

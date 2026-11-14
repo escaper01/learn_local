@@ -29,16 +29,17 @@
         {
           "id": "m22-concept-check",
           "type": "multipleChoice",
-          "title": "Sensors and Analog Interfacing: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with temperature?",
+          "title": "Sensors and Analog Interfacing: concept check",
+          "instructionMarkdown": "A 10 mV/°C sensor feeds a 12-bit ADC with a 3.3 V reference. What temperature does one ADC code represent?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 0.8 °C",
+            "About 0.008 °C",
+            "About 0.33 °C",
+            "About 0.08 °C"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "LSB = 3.3 V ÷ 4096 ≈ 0.8 mV."
           ]
         },
         {

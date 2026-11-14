@@ -29,16 +29,17 @@
         {
           "id": "m24-concept-check",
           "type": "multipleChoice",
-          "title": "Logic Families and Sequential Logic: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with CMOS?",
+          "title": "Logic Families and Sequential Logic: concept check",
+          "instructionMarkdown": "A 5 V push-pull output must drive an input on a 3.3 V-only microcontroller. What is the right approach?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Connect it directly, since 5 V is above the 3.3 V logic-high threshold",
+            "Add a pull-up resistor to 5 V on the MCU pin",
+            "Use a level shifter or a correctly designed divider so the pin never exceeds its rated maximum",
+            "Add a larger decoupling capacitor at the pin"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Check the pin's absolute maximum, not only its logic-high threshold."
           ]
         },
         {

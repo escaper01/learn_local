@@ -29,16 +29,17 @@
         {
           "id": "m06-concept-check",
           "type": "multipleChoice",
-          "title": "Resistors and Resistive Networks: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with resistor technologies?",
+          "title": "Resistors and Resistive Networks: concept check",
+          "instructionMarkdown": "A 12 V source feeds a 30 kΩ / 10 kΩ divider (output across the 10 kΩ), then a 100 kΩ load is connected to the output. What is the loaded output?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "3.00 V",
+            "2.00 V",
+            "1.20 V",
+            "About 2.79 V"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Combine 10 kΩ in parallel with 100 kΩ before dividing."
           ]
         },
         {

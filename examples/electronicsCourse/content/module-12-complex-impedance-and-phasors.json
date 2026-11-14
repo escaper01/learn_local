@@ -29,16 +29,17 @@
         {
           "id": "m12-concept-check",
           "type": "multipleChoice",
-          "title": "Complex Impedance and Phasors: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with capacitive and inductive reactance?",
+          "title": "Complex Impedance and Phasors: concept check",
+          "instructionMarkdown": "A 100 Ω resistor in series with a 1 µF capacitor is driven at 1 kHz. What is the impedance magnitude and the phase relationship?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 259 Ω; current leads voltage by about 58°",
+            "About 188 Ω; current lags voltage by about 58°",
+            "About 188 Ω; current leads voltage by about 58°",
+            "About 159 Ω; current leads voltage by 90°"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Xc = 1/(2πfC) ≈ 159 Ω, which adds in quadrature with R."
           ]
         },
         {

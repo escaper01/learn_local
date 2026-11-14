@@ -29,16 +29,17 @@
         {
           "id": "m09-concept-check",
           "type": "multipleChoice",
-          "title": "Capacitors and RC Circuits: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with capacitance?",
+          "title": "Capacitors and RC Circuits: concept check",
+          "instructionMarkdown": "What is the time constant, and the time to reach 63.2% of the final value, for 10 kΩ charging a 10 µF capacitor from a step?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "τ = 100 ms, so 63.2% at 100 ms",
+            "τ = 10 ms, so 63.2% at 10 ms",
+            "τ = 1 s, so 63.2% at 1 s",
+            "τ = 100 ms, but 63.2% is reached at 500 ms"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "τ = R × C; 63.2% is exactly one time constant."
           ]
         },
         {

@@ -29,16 +29,17 @@
         {
           "id": "m13-concept-check",
           "type": "multipleChoice",
-          "title": "Filters and Frequency Response: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with low-pass?",
+          "title": "Filters and Frequency Response: concept check",
+          "instructionMarkdown": "Which capacitor value turns a 1.6 kΩ resistor into a first-order RC low-pass near 1 kHz?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "100 nF",
+            "1 µF",
+            "10 nF",
+            "1 nF"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "fc = 1/(2πRC)."
           ]
         },
         {

@@ -29,16 +29,17 @@
         {
           "id": "m17-concept-check",
           "type": "multipleChoice",
-          "title": "Semiconductor Foundations and Diodes: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with energy bands?",
+          "title": "Semiconductor Foundations and Diodes: concept check",
+          "instructionMarkdown": "A 5 V rail feeds an IC with a 6 V absolute maximum. Which TVS rating decides whether the IC survives a surge?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "The clamping voltage at the specified peak pulse current",
+            "The reverse standoff voltage",
+            "The junction capacitance",
+            "The 0.7 V forward voltage"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Standoff sets what it ignores in normal operation, not what it lets through in a surge."
           ]
         },
         {

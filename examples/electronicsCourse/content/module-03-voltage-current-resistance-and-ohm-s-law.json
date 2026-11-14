@@ -29,16 +29,17 @@
         {
           "id": "m03-concept-check",
           "type": "multipleChoice",
-          "title": "Voltage, Current, Resistance, and Ohm's Law: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with electric potential?",
+          "title": "Voltage, Current, Resistance, and Ohm's Law: concept check",
+          "instructionMarkdown": "A 9 V source drives an LED (about 2.0 V drop) through a series resistor. Which E12 value gives roughly 10 mA without exceeding it?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "900 Ω, from 9 V ÷ 10 mA",
+            "750 Ω (about 9.3 mA)",
+            "220 Ω",
+            "47 Ω"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Ohm's law applies to the voltage across the resistor only, not the full supply."
           ]
         },
         {

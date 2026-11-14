@@ -29,16 +29,17 @@
         {
           "id": "m35-concept-check",
           "type": "multipleChoice",
-          "title": "Schematic Capture and Documentation: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with symbols?",
+          "title": "Schematic Capture and Documentation: concept check",
+          "instructionMarkdown": "Which practice makes a schematic reviewable by another engineer?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Relying on the PCB artwork to show connectivity",
+            "Meaningful net names, labelled rails, notes on design intent, datasheet-based part data, and a clean ERC",
+            "Leaving automatic net names everywhere",
+            "Hiding connector pin assignments in the BOM"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "A schematic should explain intent without the layout."
           ]
         },
         {

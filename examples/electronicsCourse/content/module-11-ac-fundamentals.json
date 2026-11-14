@@ -29,16 +29,17 @@
         {
           "id": "m11-concept-check",
           "type": "multipleChoice",
-          "title": "AC Fundamentals: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with period?",
+          "title": "AC Fundamentals: concept check",
+          "instructionMarkdown": "What is the RMS value of a sine wave with 2 V peak amplitude?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 2.83 V",
+            "About 1.41 V",
+            "4 V",
+            "About 1.27 V"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "RMS of a sine is peak ÷ √2."
           ]
         },
         {

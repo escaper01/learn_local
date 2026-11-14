@@ -29,16 +29,17 @@
         {
           "id": "m19-concept-check",
           "type": "multipleChoice",
-          "title": "MOSFETs and Power Switching: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with NMOS?",
+          "title": "MOSFETs and Power Switching: concept check",
+          "instructionMarkdown": "A logic-level MOSFET is driven from a 3.3 V GPIO. Which datasheet entry confirms it is fully enhanced?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "A threshold voltage VGS(th) of 2 V, since 3.3 V is above it",
+            "RDS(on) specified at VGS = 3.3 V or lower",
+            "The maximum continuous gate current",
+            "The body-diode forward voltage"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Threshold is where conduction starts, not where RDS(on) is low."
           ]
         },
         {

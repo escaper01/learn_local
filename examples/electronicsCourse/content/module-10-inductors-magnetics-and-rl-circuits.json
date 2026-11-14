@@ -29,16 +29,17 @@
         {
           "id": "m10-concept-check",
           "type": "multipleChoice",
-          "title": "Inductors, Magnetics, and RL Circuits: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with magnetic field?",
+          "title": "Inductors, Magnetics, and RL Circuits: concept check",
+          "instructionMarkdown": "Why is a diode placed across a relay coil?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "It makes the relay release faster by dissipating the coil energy instantly",
+            "It lowers the steady coil current while the relay is on",
+            "It rectifies the coil supply so the relay can run from AC",
+            "It gives the coil current a path when the switch opens and clamps the inductive voltage spike"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "A current in an inductor cannot stop instantly: v = L·di/dt."
           ]
         },
         {

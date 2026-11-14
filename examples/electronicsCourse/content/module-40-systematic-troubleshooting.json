@@ -29,16 +29,17 @@
         {
           "id": "m40-concept-check",
           "type": "multipleChoice",
-          "title": "Systematic Troubleshooting: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with symptom reproduction?",
+          "title": "Systematic Troubleshooting: concept check",
+          "instructionMarkdown": "A board draws excess supply current and has no output. What is the best next step?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Raise the current limit until the output appears",
+            "Replace the largest IC first",
+            "Keep a low current limit, divide the system into blocks, and find which block draws the excess current",
+            "Reflow every joint before measuring"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Isolate with evidence before replacing parts."
           ]
         },
         {

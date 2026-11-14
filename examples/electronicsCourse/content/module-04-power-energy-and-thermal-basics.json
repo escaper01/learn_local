@@ -29,16 +29,17 @@
         {
           "id": "m04-concept-check",
           "type": "multipleChoice",
-          "title": "Power, Energy, and Thermal Basics: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with P=VI?",
+          "title": "Power, Energy, and Thermal Basics: concept check",
+          "instructionMarkdown": "A device dissipates 1.2 W and has a junction-to-ambient thermal resistance of 45 °C/W in a 30 °C ambient. What is the estimated junction temperature?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "54 °C",
+            "31.2 °C",
+            "84 °C",
+            "129 °C"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Rise = power × thermal resistance, then add ambient."
           ]
         },
         {

@@ -29,16 +29,17 @@
         {
           "id": "m31-concept-check",
           "type": "multipleChoice",
-          "title": "Switching Regulators and DC-DC Conversion: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with buck?",
+          "title": "Switching Regulators and DC-DC Conversion: concept check",
+          "instructionMarkdown": "What is the ideal duty cycle of a buck converter producing 5 V from 12 V?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 58.3%",
+            "About 41.7%",
+            "About 29.4%",
+            "About 240%"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "In continuous conduction, D = Vout ÷ Vin."
           ]
         },
         {

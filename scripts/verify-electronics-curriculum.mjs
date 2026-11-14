@@ -9,6 +9,9 @@ const assets = new Set();
 let lessons = 0;
 let exercises = 0;
 let guided = 0;
+const mcqStems = new Set();
+const mcqKeys = new Set();
+let mcqCount = 0;
 let words = 0;
 let coverageText = "";
 
@@ -38,7 +41,12 @@ for (const modulePath of manifest.modules) {
       exercises += 1;
       register(exercise.id, modulePath);
       exerciseById.set(exercise.id, exercise);
-      if (exercise.type !== "multipleChoice") {
+      if (exercise.type === "multipleChoice") {
+        mcqStems.add(exercise.instructionMarkdown);
+        mcqKeys.add(exercise.correctChoice);
+        mcqCount += 1;
+        if (new Set(exercise.choices).size !== exercise.choices.length) errors.push(`${exercise.id} has duplicate choices`);
+      } else {
         guided += 1;
         if (!exercise.solutionMarkdown?.trim()) errors.push(`${exercise.id} has no worked solution`);
         if (!exercise.checklist?.length) errors.push(`${exercise.id} has no evidence checklist`);
@@ -69,5 +77,7 @@ if (exercises !== 147) errors.push(`Expected 147 exercises, found ${exercises}`)
 if (guided < 100) errors.push(`Expected at least 100 guided exercises, found ${guided}`);
 if (words < 100000) errors.push(`Expected at least 100,000 lesson words, found ${words}`);
 
+if (mcqCount > 1 && mcqStems.size < mcqCount) errors.push("Multiple-choice questions must have unique stems");
+if (mcqCount > 3 && mcqKeys.size < 3) errors.push("Multiple-choice answer positions are too predictable");
 if (errors.length) throw new Error(`Electronics curriculum verification failed:\n- ${errors.join("\n- ")}`);
 console.log(`PASS: ${manifest.modules.length} modules, ${lessons} lessons, ${exercises} exercises (${guided} guided), ${manifest.projects.length} projects, ${assets.size} referenced assets, ${words.toLocaleString()} lesson words.`);

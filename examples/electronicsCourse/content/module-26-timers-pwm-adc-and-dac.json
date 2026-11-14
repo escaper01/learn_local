@@ -29,16 +29,17 @@
         {
           "id": "m26-concept-check",
           "type": "multipleChoice",
-          "title": "Timers, PWM, ADC, and DAC: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with timer prescalers?",
+          "title": "Timers, PWM, ADC, and DAC: concept check",
+          "instructionMarkdown": "A timer runs at 16 MHz with no prescaler. How many counts make up one period for 20 kHz PWM?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "8000 counts",
+            "80 counts",
+            "20000 counts",
+            "800 counts"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Counts = timer clock ÷ PWM frequency."
           ]
         },
         {

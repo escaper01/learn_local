@@ -29,16 +29,17 @@
         {
           "id": "m33-concept-check",
           "type": "multipleChoice",
-          "title": "Motors and Power Drivers: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with brushed DC?",
+          "title": "Motors and Power Drivers: concept check",
+          "instructionMarkdown": "A motor draws 1 A normally and 5 A when stalled. How should you size the H-bridge and its protection?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Rate it above the stall current, or limit current, and plan for braking energy",
+            "Rate it for 1 A, since the motor normally stays at that level",
+            "Rate it for 2 A, twice the nominal current",
+            "Ignore stall because the driver turns off by itself"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "A stall draws the highest current the motor can ever demand."
           ]
         },
         {

@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { moduleQuestions } from "./electronics-mcqs.mjs";
 
 const root = resolve(import.meta.dirname, "../examples/electronicsCourse");
 
@@ -142,17 +143,18 @@ function analysisExerciseType(number) {
 
 function assessment(number, title, concepts, principle, example, fault, phaseProject, workedSolution) {
   const id = `m${pad(number)}-assessment`;
-  const mainConcept = concepts.split(", ")[0];
+  const [question, correct, wrong, mcqHint] = moduleQuestions[number - 1];
+  // Deterministic, varied answer position so the key is not predictable.
+  const correctChoice = [2, 0, 3, 1][number % 4];
+  const choices = [...wrong];
+  choices.splice(correctChoice, 0, correct);
   const exercises = [
     {
-      id: `m${pad(number)}-concept-check`, type: "multipleChoice", title: `${title}: engineering judgment`,
-      instructionMarkdown: `Which approach best demonstrates sound judgment when working with ${mainConcept}?`,
-      choices: [
-        `State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement`,
-        `Use the typical value as a guarantee and increase power until the expected result appears`,
-        `Replace components at random before documenting the original symptom`
-      ], correctChoice: 0,
-      hints: ["The strongest answer preserves safety, assumptions, limits, and evidence."]
+      id: `m${pad(number)}-concept-check`, type: "multipleChoice", title: `${title}: concept check`,
+      instructionMarkdown: question,
+      choices,
+      correctChoice,
+      hints: [mcqHint]
     },
     {
       id: `m${pad(number)}-worked-analysis`, type: analysisExerciseType(number), title: `${title}: worked analysis`,
@@ -240,6 +242,6 @@ const capstonePath = "projects/final-electronics-capstone.json";
 projectPaths.push(capstonePath);
 await writeFile(resolve(root, capstonePath), json({ id: "final-electronics-capstone", title: "Final Electronics Engineering Capstone", descriptionMarkdown: "# Final Electronics Engineering Capstone\n\nDesign a substantial low-voltage electronic system such as a solar environmental monitor, battery-powered controller, motor controller, measurement instrument, or industrial sensor node. Deliver measurable requirements, safety analysis, architecture, calculations, schematic, simulations, firmware design, PCB review, bring-up plan, verification matrix, annotated measurements, fault injection, EMI and thermal review, and a design defense.", learningObjectives: ["Integrate analog, digital, embedded, power, layout, and troubleshooting skills", "Produce traceable engineering evidence", "Design safe states and fault containment", "Defend tradeoffs and limitations honestly"], checkpointExerciseIds: ["m46-final-capstone"] }), "utf8");
 
-await writeFile(resolve(root, "manifest.json"), json({ format: "learnpack", schemaVersion: "1.0.0", id: "electronics-engineering-foundations", version: "1.0.0", course: { title: "Electronics Engineering Foundations: Theory to Practical Systems", description: "A complete offline electronics curriculum covering safety, circuit theory, components, AC and frequency response, semiconductor and analog design, digital logic, microcontrollers, communications, power electronics, batteries and solar, schematic and PCB layout, signal integrity, EMI, RF, IoT, measurement, troubleshooting, verification, and capstone engineering practice.", language: "electronics", languageVersion: "1.0", level: "beginner", estimatedHours: 520, authors: [{ name: "LearnLocal Electronics Academy" }] }, runtime: { adapter: "electronics", adapterRange: ">=0.1.0 <2.0.0", runtimeVersion: "1.0", containerRequirements: "Study-mode electronics curriculum. Optional low-voltage bench equipment, SPICE simulator, KiCad, and Arduino-compatible development tools are used in guided activities; no course content can install or execute them." }, modules: modulePaths, projects: projectPaths }), "utf8");
+await writeFile(resolve(root, "manifest.json"), json({ format: "learnpack", schemaVersion: "1.0.0", id: "electronics-engineering-foundations", version: "1.0.1", course: { title: "Electronics Engineering Foundations: Theory to Practical Systems", description: "A complete offline electronics curriculum covering safety, circuit theory, components, AC and frequency response, semiconductor and analog design, digital logic, microcontrollers, communications, power electronics, batteries and solar, schematic and PCB layout, signal integrity, EMI, RF, IoT, measurement, troubleshooting, verification, and capstone engineering practice.", language: "electronics", languageVersion: "1.0", level: "beginner", estimatedHours: 520, authors: [{ name: "LearnLocal Electronics Academy" }] }, runtime: { adapter: "electronics", adapterRange: ">=0.1.0 <2.0.0", runtimeVersion: "1.0", containerRequirements: "Study-mode electronics curriculum. Optional low-voltage bench equipment, SPICE simulator, KiCad, and Arduino-compatible development tools are used in guided activities; no course content can install or execute them." }, modules: modulePaths, projects: projectPaths }), "utf8");
 
 console.log(`Built electronics curriculum: ${modules.length} modules, ${modules.length * 4} lessons, ${modules.length * 3 + phases.length + 1} exercises, ${projectPaths.length} projects.`);

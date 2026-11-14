@@ -29,16 +29,17 @@
         {
           "id": "m02-concept-check",
           "type": "multipleChoice",
-          "title": "Mathematics for Electronics: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with SI prefixes?",
+          "title": "Mathematics for Electronics: concept check",
+          "instructionMarkdown": "What is the guaranteed resistance range of a 4.7 kΩ ±5% resistor?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "4230 Ω to 5170 Ω",
+            "4653 Ω to 4747 Ω",
+            "4700 Ω to 4935 Ω",
+            "4465 Ω to 4935 Ω"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "5% of 4700 Ω is 235 Ω, applied in both directions."
           ]
         },
         {

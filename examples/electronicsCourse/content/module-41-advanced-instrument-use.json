@@ -29,16 +29,17 @@
         {
           "id": "m41-concept-check",
           "type": "multipleChoice",
-          "title": "Advanced Instrument Use: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with differential probes?",
+          "title": "Advanced Instrument Use: concept check",
+          "instructionMarkdown": "How do you measure ringing on a switch node accurately?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Use a short probe ground spring and a scope and probe bandwidth well above the ringing frequency",
+            "Use the long ground lead and turn on the 20 MHz bandwidth limit for a cleaner trace",
+            "Use a 1× probe for more signal",
+            "Average many captures to remove the ringing"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Probe loops and bandwidth limits change what you see."
           ]
         },
         {

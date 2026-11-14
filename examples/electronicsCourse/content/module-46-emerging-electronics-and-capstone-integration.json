@@ -29,16 +29,17 @@
         {
           "id": "m46-concept-check",
           "type": "multipleChoice",
-          "title": "Emerging Electronics and Capstone Integration: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with GaN?",
+          "title": "Emerging Electronics and Capstone Integration: concept check",
+          "instructionMarkdown": "When should a team choose GaN switches for a power converter?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Always, because newer technology improves every metric",
+            "When the vendor claims better efficiency, without further testing",
+            "Whenever layout care isn't required, as with silicon parts",
+            "When requirement-linked benefits outweigh cost, maturity, layout and EMI demands, and supply risk, as confirmed by measurement"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Pick technology from requirements and evidence, not novelty."
           ]
         },
         {

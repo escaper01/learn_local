@@ -29,16 +29,17 @@
         {
           "id": "m43-concept-check",
           "type": "multipleChoice",
-          "title": "IoT and Connected Embedded Systems: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with device architecture?",
+          "title": "IoT and Connected Embedded Systems: concept check",
+          "instructionMarkdown": "An IoT node loses its network connection. What is the right behavior?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Retry in a tight loop until it reconnects",
+            "Keep operating locally, buffer bounded timestamped data, and reconnect with exponential backoff and jitter",
+            "Halt all functions until the network returns",
+            "Buffer without limit until memory is exhausted"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "The device should stay safe and useful when the network is missing."
           ]
         },
         {

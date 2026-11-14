@@ -29,16 +29,17 @@
         {
           "id": "m32-concept-check",
           "type": "multipleChoice",
-          "title": "Batteries, Charging, and Battery Management: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with alkaline?",
+          "title": "Batteries, Charging, and Battery Management: concept check",
+          "instructionMarkdown": "A 2000 mAh cell is discharged at 1 C. What is the current?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "200 mA",
+            "1 A",
+            "2 A",
+            "20 A"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "1 C is the current that would drain the rated capacity in one hour."
           ]
         },
         {

@@ -29,16 +29,17 @@
         {
           "id": "m05-concept-check",
           "type": "multipleChoice",
-          "title": "Measurement Instruments: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with DMM modes?",
+          "title": "Measurement Instruments: concept check",
+          "instructionMarkdown": "How do you measure a 20 mA branch current with a DMM?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Open the branch and insert the meter in series, in a suitable current range on its fused input",
+            "Place the meter across the branch with the current range selected",
+            "Place the meter across the supply in DC-voltage mode",
+            "Insert the meter in series but leave it in voltage mode"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "An ammeter must carry the current it measures."
           ]
         },
         {

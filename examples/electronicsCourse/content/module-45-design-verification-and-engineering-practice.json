@@ -29,16 +29,17 @@
         {
           "id": "m45-concept-check",
           "type": "multipleChoice",
-          "title": "Design Verification and Engineering Practice: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with requirements?",
+          "title": "Design Verification and Engineering Practice: concept check",
+          "instructionMarkdown": "Which requirement is written in a verifiable form?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Output 5.0 V ±2% for 9–15 V input and 0–500 mA load from −10 to 50 °C, verified by bench test",
+            "The power supply shall be stable",
+            "The output voltage should be about right",
+            "The board must be robust and reliable"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "A requirement needs conditions, a tolerance, and a verification method."
           ]
         },
         {

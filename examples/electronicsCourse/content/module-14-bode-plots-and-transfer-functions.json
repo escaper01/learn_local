@@ -29,16 +29,17 @@
         {
           "id": "m14-concept-check",
           "type": "multipleChoice",
-          "title": "Bode Plots and Transfer Functions: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with gain?",
+          "title": "Bode Plots and Transfer Functions: concept check",
+          "instructionMarkdown": "A first-order low-pass filter has its corner at 1 kHz. What are its gain and phase at 1 kHz?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "−20 dB and −90°",
+            "0 dB and 0°",
+            "−3 dB and −90°",
+            "−3 dB and −45°"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "At the corner the output is 1/√2 of the passband and the phase is half-way to its final shift."
           ]
         },
         {

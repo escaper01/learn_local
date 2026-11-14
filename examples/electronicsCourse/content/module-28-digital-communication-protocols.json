@@ -29,16 +29,17 @@
         {
           "id": "m28-concept-check",
           "type": "multipleChoice",
-          "title": "Digital Communication Protocols: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with UART?",
+          "title": "Digital Communication Protocols: concept check",
+          "instructionMarkdown": "Why does an I²C bus need pull-up resistors?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "They limit the clock to 100 kHz",
+            "I²C is differential and needs them for balance",
+            "Devices only pull the lines low (open-drain), so resistors provide the high level",
+            "They terminate reflections like a CAN bus"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "No device drives the line high."
           ]
         },
         {

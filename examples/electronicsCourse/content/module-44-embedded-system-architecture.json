@@ -29,16 +29,17 @@
         {
           "id": "m44-concept-check",
           "type": "multipleChoice",
-          "title": "Embedded-System Architecture: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with requirements?",
+          "title": "Embedded-System Architecture: concept check",
+          "instructionMarkdown": "How should a watchdog be fed?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "From a timer ISR, so it never trips",
+            "On every loop iteration regardless of task state",
+            "Only after all critical tasks have shown progress",
+            "Never, because the watchdog is disabled during start-up"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "A watchdog that always gets fed detects nothing."
           ]
         },
         {

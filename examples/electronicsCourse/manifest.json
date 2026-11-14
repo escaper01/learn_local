@@ -2,7 +2,7 @@
   "format": "learnpack",
   "schemaVersion": "1.0.0",
   "id": "electronics-engineering-foundations",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "course": {
     "title": "Electronics Engineering Foundations: Theory to Practical Systems",
     "description": "A complete offline electronics curriculum covering safety, circuit theory, components, AC and frequency response, semiconductor and analog design, digital logic, microcontrollers, communications, power electronics, batteries and solar, schematic and PCB layout, signal integrity, EMI, RF, IoT, measurement, troubleshooting, verification, and capstone engineering practice.",

@@ -29,16 +29,17 @@
         {
           "id": "m30-concept-check",
           "type": "multipleChoice",
-          "title": "Linear Power Supplies and Regulation: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with rectifiers?",
+          "title": "Linear Power Supplies and Regulation: concept check",
+          "instructionMarkdown": "An LDO drops 12 V to 5 V at 200 mA. How much power does it dissipate?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "1.0 W",
+            "2.4 W",
+            "0.14 W",
+            "1.4 W"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Dissipation = (Vin − Vout) × I."
           ]
         },
         {

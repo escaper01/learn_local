@@ -29,16 +29,17 @@
         {
           "id": "m36-concept-check",
           "type": "multipleChoice",
-          "title": "PCB Fundamentals and Layout: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with stackups?",
+          "title": "PCB Fundamentals and Layout: concept check",
+          "instructionMarkdown": "Where should a 100 nF decoupling capacitor go for an IC?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Near the regulator at the board edge",
+            "Anywhere, since only the capacitance value matters",
+            "As close as possible to the supply pin, with short connections to the pin and its ground return",
+            "On the opposite side through long traces"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "The capacitor's value helps only if the loop inductance is small."
           ]
         },
         {

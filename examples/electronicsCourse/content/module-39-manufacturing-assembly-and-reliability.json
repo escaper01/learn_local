@@ -29,16 +29,17 @@
         {
           "id": "m39-concept-check",
           "type": "multipleChoice",
-          "title": "Manufacturing, Assembly, and Reliability: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with footprints?",
+          "title": "Manufacturing, Assembly, and Reliability: concept check",
+          "instructionMarkdown": "Which is a sound design-for-manufacturing practice?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Place parts at minimum clearance to save area",
+            "Use datasheet or IPC land patterns, add fiducials and test points, and mark polarity clearly",
+            "Omit silkscreen polarity marks to reduce clutter",
+            "Leave out test points to save area"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Design for the people building and testing the board."
           ]
         },
         {

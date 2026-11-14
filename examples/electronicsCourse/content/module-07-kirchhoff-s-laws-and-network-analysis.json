@@ -29,16 +29,17 @@
         {
           "id": "m07-concept-check",
           "type": "multipleChoice",
-          "title": "Kirchhoff's Laws and Network Analysis: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with nodes?",
+          "title": "Kirchhoff's Laws and Network Analysis: concept check",
+          "instructionMarkdown": "At a node, 3 mA flows in through R1 and 5 mA flows in through R2. Only R3 leaves the node. What current flows out through R3?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "2 mA",
+            "8 mA",
+            "5 mA",
+            "15 mA"
           ],
-          "correctChoice": 0,
+          "correctChoice": 1,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "KCL: the algebraic sum of currents at a node is zero."
           ]
         },
         {

@@ -29,16 +29,17 @@
         {
           "id": "m34-concept-check",
           "type": "multipleChoice",
-          "title": "Solar and Energy Systems: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with solar cell I-V curve?",
+          "title": "Solar and Energy Systems: concept check",
+          "instructionMarkdown": "A 10 W (peak) panel gets 5 peak-sun-hours per day, with 70% overall system efficiency. How much energy reaches the load per day?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 50 Wh",
+            "About 240 Wh",
+            "About 3.5 Wh",
+            "About 35 Wh"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Daily energy = panel watts × sun hours × efficiency."
           ]
         },
         {

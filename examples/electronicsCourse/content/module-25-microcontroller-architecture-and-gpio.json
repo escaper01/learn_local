@@ -29,16 +29,17 @@
         {
           "id": "m25-concept-check",
           "type": "multipleChoice",
-          "title": "Microcontroller Architecture and GPIO: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with CPU?",
+          "title": "Microcontroller Architecture and GPIO: concept check",
+          "instructionMarkdown": "A GPIO pin is rated for 20 mA, but you need to switch a 100 mA load. What should you do?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Drive a transistor or MOSFET from the pin and power the load from its own supply path",
+            "Connect the load to the pin because short bursts exceed the rating safely",
+            "Connect five pins in parallel with no resistors",
+            "Add a pull-up and hope the pin current limits itself"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Pins signal; drivers supply the load current."
           ]
         },
         {

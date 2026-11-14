@@ -29,16 +29,17 @@
         {
           "id": "m16-concept-check",
           "type": "multipleChoice",
-          "title": "Noise, Grounding, Shielding, and Signal Integrity: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with thermal noise?",
+          "title": "Noise, Grounding, Shielding, and Signal Integrity: concept check",
+          "instructionMarkdown": "What is the approximate RMS thermal noise of a 10 kΩ resistor over a 10 kHz bandwidth at room temperature?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 13 µV",
+            "About 130 nV",
+            "About 1.3 µV",
+            "About 1.3 mV"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "v = √(4kTRB); noise falls with the square root of bandwidth."
           ]
         },
         {

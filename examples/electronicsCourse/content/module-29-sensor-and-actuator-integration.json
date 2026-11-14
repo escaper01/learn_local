@@ -29,16 +29,17 @@
         {
           "id": "m29-concept-check",
           "type": "multipleChoice",
-          "title": "Sensor and Actuator Integration: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with displays?",
+          "title": "Sensor and Actuator Integration: concept check",
+          "instructionMarkdown": "A 3.3 V controller must switch a 12 V solenoid. What is the best arrangement?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "A separate 12 V supply with a common reference, a driver transistor, flyback protection, and an off state during reset",
+            "Power it from the MCU's 3.3 V regulator",
+            "Drive it from a GPIO pin without a driver",
+            "Share the logic return and omit protection, since the coil is small"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Keep load energy off the logic supply and define the safe state."
           ]
         },
         {

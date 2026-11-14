@@ -29,16 +29,17 @@
         {
           "id": "m18-concept-check",
           "type": "multipleChoice",
-          "title": "BJT Transistors: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with NPN?",
+          "title": "BJT Transistors: concept check",
+          "instructionMarkdown": "An NPN switch must carry 50 mA and the datasheet guarantees a minimum hFE of 100. What base current should you design for?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "About 0.5 mA, which is exactly collector current ÷ hFE",
+            "About 50 mA",
+            "About 0.05 mA",
+            "About 5 mA, forcing a switching gain near 10"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Saturation needs margin because beta varies with temperature and part."
           ]
         },
         {

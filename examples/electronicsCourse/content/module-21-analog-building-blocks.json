@@ -29,16 +29,17 @@
         {
           "id": "m21-concept-check",
           "type": "multipleChoice",
-          "title": "Analog Building Blocks: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with comparators?",
+          "title": "Analog Building Blocks: concept check",
+          "instructionMarkdown": "Why does a comparator circuit add hysteresis (a Schmitt trigger)?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Separate rising and falling thresholds stop noise near the threshold from causing repeated output transitions",
+            "It raises the gain so the output switches faster",
+            "It removes the input DC offset",
+            "It lowers the supply current"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "The two thresholds create a dead band wider than the noise."
           ]
         },
         {

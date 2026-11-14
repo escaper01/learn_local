@@ -29,16 +29,17 @@
         {
           "id": "m20-concept-check",
           "type": "multipleChoice",
-          "title": "Operational Amplifiers: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with ideal model?",
+          "title": "Operational Amplifiers: concept check",
+          "instructionMarkdown": "A non-inverting op-amp stage needs a gain of 11 and uses Rf = 10 kΩ. What is Rg?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "10 kΩ",
+            "100 Ω",
+            "1 kΩ",
+            "11 kΩ"
           ],
-          "correctChoice": 0,
+          "correctChoice": 2,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Gain = 1 + Rf/Rg."
           ]
         },
         {

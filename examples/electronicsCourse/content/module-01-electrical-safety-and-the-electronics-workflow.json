@@ -29,16 +29,17 @@
         {
           "id": "m01-concept-check",
           "type": "multipleChoice",
-          "title": "Electrical Safety and the Electronics Workflow: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with charge?",
+          "title": "Electrical Safety and the Electronics Workflow: concept check",
+          "instructionMarkdown": "You are powering an unknown 12 V board for the first time from a bench supply. Which setup is safest?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Output at 0 V, current limit around 100 mA, polarity verified with the output off, then raise the voltage while watching current",
+            "Set 12 V and a 5 A limit so the board never trips the supply during start-up",
+            "Clip the scope ground to the board's return to watch the rails, since a grounded clip is harmless",
+            "Power it directly and check polarity afterwards from any smoke or heat"
           ],
           "correctChoice": 0,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Limit the energy available before you know the board is healthy."
           ]
         },
         {

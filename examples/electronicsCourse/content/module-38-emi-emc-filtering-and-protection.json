@@ -29,16 +29,17 @@
         {
           "id": "m38-concept-check",
           "type": "multipleChoice",
-          "title": "EMI-EMC, Filtering, and Protection: engineering judgment",
-          "instructionMarkdown": "Which approach best demonstrates sound judgment when working with conducted and radiated emissions?",
+          "title": "EMI-EMC, Filtering, and Protection: concept check",
+          "instructionMarkdown": "Where should ESD/TVS protection be placed on an external cable input?",
           "choices": [
-            "State assumptions, calculate a bounded expectation, check ratings, and verify with a safe measurement",
-            "Use the typical value as a guarantee and increase power until the expected result appears",
-            "Replace components at random before documenting the original symptom"
+            "Next to the protected IC, far from the connector",
+            "Anywhere on the net, since placement is irrelevant",
+            "After a long series trace to limit current",
+            "At the connector, with a short low-inductance path to chassis or ground"
           ],
-          "correctChoice": 0,
+          "correctChoice": 3,
           "hints": [
-            "The strongest answer preserves safety, assumptions, limits, and evidence."
+            "Stop the surge at the entry point before it spreads."
           ]
         },
         {
